@@ -8,6 +8,7 @@ The intent of this document is to record each team member's contributions to pro
 
 ## 2. User Interface Mockups and Storyboard Sequences
 - **Neth Mackenzy**: Made initial storyboard on google slides, contributed to hand-drawn first draft of figma UI and contributed to final figma deliverable (made main campsite browser, campsite info, reserve after winning and t&c screens, calendar and search field widgets, and contributing to general polishing up) while ensuring requirements are met as per project description.
+- - **Hye-Sung Lee**: Contributed to initial storyboard with hand-drawn mockups and later with the figma UI. Also provided feedback for the initial storyboard on Google Slides
 - **Bailey Parrish**: Polished UI, enforcing standard layouts, navigation, along with confirming functionality of the figma prototype and compliance with design decisions made in the product backlog.
 - **Sofia Arturo Gomez**: Contributed to the Figma UI design, including the user menu, CSV and QR code views, notifications, lottery views, campsite selection options, reservation confirmation for the Reserve Spot feature, administrative views, and user-type selection for login and sign-up. Additionally, helped ensure consistency between the Figma designs, user stories, and product backlog.
 
