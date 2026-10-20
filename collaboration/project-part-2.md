@@ -14,4 +14,6 @@ The intent of this document is to record each team member's contributions to pro
 - **Justin Ham**: Contributed to the figma UI design, especially for campsite owner and the UI admin, ensuring all user stories are met and ensuring all requirements are met as per project description. 
 
 ## 3. Object-Oriented Analysis
-- **Shira Li, Bailey Parrish**: Contributed to first draft, paper CRC cards.
+- **Shira Li**: inital draft of CRC cards done on index paper (without MVC in mind)
+- **Shira Li, Bailey Parrish**: Contributed to version 1 of paper CRC cards with MVC without US
+- **Shira Li**: Completed the final version of CRC cards with MVC in mind, and going through all US. 
