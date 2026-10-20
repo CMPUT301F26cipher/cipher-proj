@@ -7,5 +7,8 @@ The intent of this document is to record each team member's contributions to pro
 - Justin Ham, Neth Mackenzy, Hye-Sung Lee, Sofia Arturo, Bailey Parrish: Participated in discussion to ensure consistency and alignment between the UI mockups and product backlog and implemented necessary changes to both.
 
 ## 2. User Interface Mockups and Storyboard Sequences
+-
+- Bailey Parrish: Polished UI, enforcing standard layouts, navigation, along with confirming functionality of the figma prototype and compliance with design decisions made in the product backlog.
 
 ## 3. Object-Oriented Analysis
+- Shira Li, Bailey Parrish: Contributed to first draft, paper CRC cards.
