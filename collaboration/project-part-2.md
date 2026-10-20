@@ -16,4 +16,4 @@ The intent of this document is to record each team member's contributions to pro
 ## 3. Object-Oriented Analysis
 - **Shira Li**: inital draft of CRC cards done on index paper (without MVC in mind)
 - **Shira Li, Bailey Parrish**: Contributed to version 1 of paper CRC cards with MVC without US
-- **Shira Li**: Completed the final version of CRC cards with MVC in mind, and going through all US. 
+- **Shira Li**: Completed the final version of CRC cards while reapplying MVC to remove duplicate responsibilities between views and controllers. Went through all entrant, campsite owner, and admin user stories to clarify each class’s role, and added cards for notifications, messaging, lotteries, reservations, and admin views to keep the design consistent with the product backlog.
