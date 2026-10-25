@@ -1,45 +1,46 @@
 # Project Part 3 Task Distribution
----
 Legend
-S - Schedule related
-D - Dependence on 
+
+S - Schedule related\
+D - Dependence on\
 P - Productivity related (low priority)
+
 ---
 
 ## Madison
-- 
-- 
-- 
+- [ ] 
+- [ ] 
+- [ ] 
 
 ## Neth
-- 
-- 
-- 
+- [ ] 
+- [ ] 
+- [ ] 
 
 ## Shira
-- UML (v1) using mermaid 
-- 
-- 
+- [ ] UML (v1) using mermaid 
+- [ ]  
+- [ ] 
 
 ## Sofia
-- 
-- 
-- 
+- [ ] 
+- [ ] 
+- [ ] 
 
 ## Bailey
-- 
-- 
-- 
+- [ ] 
+- [ ] 
+- [ ] 
 
 ## Justin
-- 
-- 
-- 
+- [ ] 
+- [ ] 
+- [ ] 
 
-## Hye Sung
-- 
-- 
-- 
+## Hye-Sung
+- [ ] 
+- [ ] 
+- [ ] 
 
 # Additionals
 - [ ] Presentation (P)
@@ -51,6 +52,8 @@ P - Productivity related (low priority)
 ---
 ## Grouping tasks
 *Midpoint US are bolded and italicized*
+
+
 
 ### Data
 - Database
@@ -66,8 +69,8 @@ P - Productivity related (low priority)
 - FilterBy
 - EntrantsView
 
-Related US
-US ***01.01.01, 01.01.02, 01.01.03, ***
+Related US\
+US ***01.01.01, 01.01.02, 01.01.03,***
 
 
 
@@ -76,7 +79,7 @@ US ***01.01.01, 01.01.02, 01.01.03, ***
 - CampsiteInfoView
 - CampsiteOwnerView
 
-Related US
+Related US\
 US ***01.01.04, 01.01.05, 01.13.01***
 
 ### Notifications & messages
@@ -87,7 +90,7 @@ US ***01.01.04, 01.01.05, 01.13.01***
 - confirmationView
 - PolicyView
 
-Related US
+Related US\
 US 01.03.02, 02.12.01, 03.12.01, 01.05.02, 02.10.01, 02.10.02, 03.08.01, 01.05.01, 01.07.02, 01.10.01, 01.11.01, 
 
 
@@ -101,14 +104,14 @@ US 01.03.02, 02.12.01, 03.12.01, 01.05.02, 02.10.01, 02.10.02, 03.08.01, 01.05.0
 - CampsiteOwner
 - Entrant
 
-Related US
-US 01.07.03, 01.08.01,*** 01.09.01***, 
+Related US\
+US 01.07.03, 01.08.01, ***01.09.01***, 
 
 ### Admin (low prior right now as heavy dependency)
 - AdministratorView
 - Administrator
 
-Related US
+Related US\
 US ***03.11.01***
 
 ### Lottery 
@@ -119,7 +122,7 @@ US ***03.11.01***
 - EditLotteryView
 - LotteryModel
 
-Related US
+Related US\
 US 01.01.06, ***01.04.01, 01.04.02, 01.04.03, 02.04.01, 02.04.02, 02.04.05, 02.04.06, 02.04.07***, 02.05.01, 
 
 Note: both lottery and reservation interact with reservationModel heavily
@@ -133,9 +136,9 @@ Note: both lottery and reservation interact with reservationModel heavily
 - WaitlistView
 - CampsiteOwnerWaitlistView
 
-Related US
+Related US\
 US ***01.06.01, 01.06.02***, 01.07.01, ***02.01.01, 02.01.02, 02.01.03, 02.01.04, 02.03.01, 02.04.03, 02.04.04***, 02.06.01, ***02.07.01, 02.07.02***, 02.07.03, 02.08.01, ***02.09.01***, 
 
 
-waitlists
+waitlists\
 US ***01.02.01***, 01.02.02, 
