@@ -1,0 +1,7 @@
+class CampsiteOwnerView {
+    'Displays lists of campsite owners campsites
+    'Open to show details of campsites
+    'Display the currently booked dates for my campsite.
+
+    
+}
