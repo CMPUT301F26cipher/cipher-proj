@@ -18,9 +18,13 @@ P - Productivity related (low priority)
 - [ ] 
 
 ## Shira
-- [ ] UML (v1) using mermaid 
-- [ ]  
-- [ ] 
+- [x] grouped project classes by features using CRC cards and user stories (oct 25) (D)
+    -   8 feature groups
+- [ ] set up UML class diagrams using Mermaid (v1 from CRC -> UML) (oct 25) (D) 
+    - [ ] overview.md
+    - [ ] lottery.md
+    - [ ] 
+    - [ ] 
 
 ## Sofia
 - [ ] 
