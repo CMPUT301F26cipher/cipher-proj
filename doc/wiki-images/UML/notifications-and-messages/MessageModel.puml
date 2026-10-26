@@ -1,0 +1,8 @@
+class MessageModel {
+    ' stores messages between campsite owner and entrant
+    ' allow campsite owner to send message to entrant
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

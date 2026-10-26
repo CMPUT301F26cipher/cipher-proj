@@ -1,0 +1,11 @@
+class MessageView {
+    ' displays messages between campsite owner and entrant
+    ' textbox for messages
+    ' back button
+    ' button to send message
+    ' display profile picture and name of recipient
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

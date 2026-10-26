@@ -20,11 +20,15 @@ P - Productivity related (low priority)
 ## Shira
 - [x] grouped project classes by features using CRC cards and user stories (oct 25) (D)
     -   8 feature groups
-- [ ] set up UML class diagrams using Mermaid (v1 from CRC -> UML) (oct 25) (D) 
-    - [ ] overview.md
-    - [ ] lottery.md
-    - [ ] 
-    - [ ] 
+- [x] set up UML class diagrams using PlantUML (v.1 from CRC -> UML) (oct 25) (D) 
+    - [x] lottery
+    - [x] filter
+    - [x] campsite-display
+    - [x] admin
+    - [x] notifications-and-messages
+    - [x] profile
+    - [x] reservation-and-waitlist
+- [ ] 
 
 ## Sofia
 - [ ] 
@@ -49,6 +53,7 @@ P - Productivity related (low priority)
 # Additionals
 - [ ] Presentation (P)
 - [ ] Meeting Minutes (S)
+- [ ] I want to see the images in our doc/wiki-images on a wiki page for quick referencing (S)
 - [ ] 
 
 ---
