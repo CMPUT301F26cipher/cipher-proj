@@ -20,7 +20,7 @@ class CreateLotteryView {
     -postButton: Button
 
     ' --- methods ---
-    +displayCmapsites(campsites: ) Unit
-    +onPostClicked() Unit
+    +displayCampsites(campsites: ): Unit
+    +onPostClicked(): Unit
 
 }

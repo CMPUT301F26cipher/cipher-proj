@@ -4,8 +4,8 @@ class EditLotteryView {
     
 
     ' --- methods ---
-    +displayLottery(LotteryModel lottery) Unit
+    +displayLottery(LotteryModel lottery): Unit
     ' save button
-    +onSaveClicked() Unit
+    +onSaveClicked(): Unit
 
 }

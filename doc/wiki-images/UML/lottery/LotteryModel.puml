@@ -20,8 +20,8 @@ class LotteryModel {
     ' Optionally set a capacity for my lottery waitlist.
 
     ' automatically draw winners after the registration period ends.
-    +isRegistrationClosed() boolean
-    +drawWinners(Waitlist waitlist) List~Entrant~
+    +isRegistrationClosed(): boolean
+    +drawWinners(Waitlist waitlist): List<Entrant>
 
     ' Updates lotterylist
 

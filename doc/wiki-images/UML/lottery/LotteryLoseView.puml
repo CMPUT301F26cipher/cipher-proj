@@ -1,0 +1,12 @@
+
+class LotteryLoseView {
+    ' display lose message with campsite name
+    -loseMessage: String
+
+    ' --- constructors ---
+
+
+    ' --- methods ---
+    +displayLoseMessage(campsite: CampsiteModel): Unit
+
+}
