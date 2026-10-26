@@ -28,6 +28,7 @@ P - Productivity related (low priority)
     - [x] notifications-and-messages
     - [x] profile
     - [x] reservation-and-waitlist
+- [ ] write script to update uml's images (P)
 - [ ] 
 
 ## Sofia
