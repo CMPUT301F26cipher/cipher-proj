@@ -1,0 +1,28 @@
+
+class LotteryModel {
+    ' store registration period
+    -Date registrationStart
+    -Date registrationEnd
+
+    ' store booking period
+    -Date bookingStart
+    -Date bookingEnd
+
+    ' store number of lottery winners
+    -Int numberOfWinners
+    -WaitlistModel waitlist
+
+    ' --- constructors ---
+
+
+
+    ' --- methods ---
+    ' Optionally set a capacity for my lottery waitlist.
+
+    ' automatically draw winners after the registration period ends.
+    +isRegistrationClosed() boolean
+    +drawWinners(Waitlist waitlist) List~Entrant~
+
+    ' Updates lotterylist
+
+}

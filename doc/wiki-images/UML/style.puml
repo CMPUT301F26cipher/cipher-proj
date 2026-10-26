@@ -1,0 +1,7 @@
+' make it show plain +, -, # attributes
+skinparam ClassAttributeIconSize 0
+' hide C
+hide circle
+' make right angle lines
+skinparam linetype ortho
+hide empty members

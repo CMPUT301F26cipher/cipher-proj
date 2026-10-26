@@ -1,0 +1,40 @@
+@startuml lottery
+!include style.puml
+
+!include_once lottery/CreateLotteryView.puml
+!include_once lottery/EditLotteryView.puml
+!include_once lottery/LotteryController.puml
+!include_once lottery/LotteryLoseView.puml
+!include_once lottery/LotteryModel.puml
+!include_once lottery/LotteryWinView.puml
+
+' LotteryController collaborators
+LotteryController -- "1" LotteryModel
+LotteryController -- "0..*" WaitlistModel
+LotteryController -- "0..*" ReservationModel
+LotteryController -- NotificationView
+LotteryController -- LotteryWinView
+LotteryController -- LotteryLoseView
+LotteryController -- EntrantModel
+
+' LotteryLoseView collaborators
+LotteryLoseView -- CampsiteModel
+
+' LotteryWinView collaborators
+LotteryWinView -- ReservationModel
+LotteryWinView -- CampsiteModel
+LotteryWinView -- LotteryModel
+
+' CreateLotteryView collaborators
+CreateLotteryView -- LotteryModel
+CreateLotteryView -- CampsiteModel
+
+' EditLotteryView collaborators
+EditLotteryView -->LotteryModel
+
+' LotteryModel collaborators
+LotteryModel -- CampsiteModel
+LotteryModel -- WaitlistModel : sets capacity, gets entrants
+LotteryModel -- Database
+
+@enduml

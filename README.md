@@ -6,3 +6,8 @@
 utilizing a lottery system to make in-demand campsite reservations.
 
 ## Set Up 
+
+
+
+### UML Class Diagrams
+PlantUML to edit <note: remember to add how - shira>
