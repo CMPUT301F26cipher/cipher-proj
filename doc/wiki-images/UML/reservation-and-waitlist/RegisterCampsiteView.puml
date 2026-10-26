@@ -1,0 +1,8 @@
+class RegisterCampsiteView {
+    ' campsite details including name, location, description (amenities), maximum occupancy, map location, optional image, and tags
+    ' text boxes to input those details
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

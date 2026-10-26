@@ -1,0 +1,8 @@
+class CampsiteOwnerWaitlistView {
+    ' display entrants on the waitlist for a specific campsite
+    ' button to notify entrants who have joined the waitlist for my campsite lottery
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

@@ -1,0 +1,12 @@
+class ReservationModel {
+    ' track which days are booked by which entrants
+    ' stores reservation status (pending, accepted/declined, canceled/confirmed)
+    ' tracks if the user has paid/unpaid, or been refunded
+    ' update final reserve list for campsite owner
+    ' allow campsite owner to reject reservation
+    -Dates: List<Date>
+    -reservationList: 
+    ' --- constructors ---
+
+    ' --- methods ---
+}
