@@ -1,0 +1,24 @@
+@startuml filter
+!include style.puml
+
+!include_once filter/EntrantsView.puml
+!include_once filter/FilterBy.puml
+!include_once filter/SearchBarController.puml
+!include_once filter/SearchBarView.puml
+
+' EntrantsView collaborators
+EntrantsView -- "1" SearchBarView
+EntrantsView -- SearchBarController
+EntrantsView -- FilterBy
+
+' FilterBy collaborators
+FilterBy -- Database
+
+' SearchBarController collaborators
+SearchBarController -- FilterBy : Modify
+SearchBarController -- 
+
+' SearchBarView collaborators
+SearchBarView -- "1" SearchBarController
+
+@enduml

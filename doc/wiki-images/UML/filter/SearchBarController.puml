@@ -1,0 +1,10 @@
+class SearchBarController {
+    'Reads input given by SearchBarView
+    'Ensure input is query-ready by applying regex to clean it (trimming whitespace/rejecting empty searches)
+    'Gives query-ready input to FilterBy to match results
+
+    ' --- constructors ---
+    
+    ' --- methods ---
+  
+}
