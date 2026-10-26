@@ -1,0 +1,48 @@
+@startuml profile
+!include style.puml
+
+!include_once profile/User.puml
+!include_once profile/AccountController.puml
+!include_once profile/LoginView.puml
+!include_once profile/SignupView.puml
+!include_once profile/ProfileInfoView.puml
+!include_once profile/CampsiteOwner.puml
+!include_once profile/Entrant.puml
+
+
+' inheritance
+User <|-- CampsiteOwner
+User <|-- Entrant
+
+' User collaborators
+User -- Database
+User -- DeviceModel
+
+' AccountController collaborators
+AccountController -- UserModel
+AccountController -- DeviceModel
+
+' LoginView collaborators
+LoginView -- UserModel
+LoginView -- DeviceModel
+
+' SignupView collaborators
+SignupView -- UserModel
+SignupView -- DeviceModel
+
+' ProfileInfoView collaborators
+ProfileInfoView -- EntrantModel
+
+' CampsiteOwner collaborators
+CampsiteOwner -- CampsiteModel
+CampsiteOwner -- LotteryController
+CampsiteOwner -- CalendarModel
+CampsiteOwner -- WaitlistModel
+CampsiteOwner -- CampsiteView
+CampsiteOwner -- ReservationModel
+
+' Entrant collaborators
+Entrant -- Database
+Entrant -- DeviceModel
+
+@enduml

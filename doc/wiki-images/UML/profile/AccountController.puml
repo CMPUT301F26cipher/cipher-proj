@@ -1,0 +1,9 @@
+class AccountController {
+    ' Reads input given by LoginView or SignupView
+    ' Ensure input is query-ready by applying regex to clean it (trimming whitespace/rejecting empty searches)
+    ' gives query-ready input to UserModel to match results
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

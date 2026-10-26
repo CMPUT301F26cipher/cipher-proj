@@ -1,5 +1,9 @@
 class FilterBy {
+    'Get filtered results by querying the database with input given by SearchBarController
     
+    'Notifies the view when results are available by calling update()
+
+
     ' --- constructors ---
     
     ' --- methods ---

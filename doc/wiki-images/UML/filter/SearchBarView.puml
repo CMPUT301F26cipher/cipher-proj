@@ -1,4 +1,8 @@
 class SearchBarView {
+    'Search button & text input boxes for location and dates
+    'Display results list
+    'Send whatever the user inputs in the text box to SearchBarController to handle
+    'Update view when notified by FilterBy
 
     ' --- constructors ---
     

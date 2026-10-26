@@ -108,7 +108,7 @@ CreateLotteryView --> CampsiteModel
 
 class EditLotteryView {
     %% display current lottery information that can be editable
-
+    
 
     %% --- methods ---
     +displayLottery(LotteryModel lottery) Unit
