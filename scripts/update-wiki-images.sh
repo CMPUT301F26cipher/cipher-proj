@@ -66,15 +66,14 @@ update_page() {
   rm -f "$tmp"
 }
 
-# Copy meeting notes into the wiki and list them in the sidebar (newest first)
+# List meeting notes in the sidebar, linking to doc/meeting-notes in the repo (no copies)
 update_meetings() {
-  src="doc/meeting-notes"; dest="doc/wiki/meeting-notes"
+  src="doc/meeting-notes"
   [ -d "$src" ] || return
-  rm -rf "$dest"; mkdir -p "$dest"
   tmp=$(mktemp)
   find "$src" -type f -name "*.md" | sort -r | while read -r f; do
-    cp "$f" "$dest/"
-    echo "* [[$(basename "$f" .md)]]"
+    path=$(echo "$f" | sed 's/ /%20/g; s/,/%2C/g')
+    echo "* [$(basename "$f" .md)]($REPO/blob/$BRANCH/$path)"
   done > "$tmp"
   replace_section doc/wiki/_Sidebar.md meetings "$tmp"
   rm -f "$tmp"
