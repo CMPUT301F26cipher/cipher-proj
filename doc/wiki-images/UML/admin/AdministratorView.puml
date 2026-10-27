@@ -1,0 +1,12 @@
+class AdministratorView {
+    ' browse and remove registered campsites
+    ' browse and remove profiles
+    ' browse and remove images
+    ' remove campsite owners that violate app policy
+    ' review logs of all notifications
+    ' review logs of all messages from campsite owners to entrants who reserved their campsite
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

@@ -1,0 +1,20 @@
+class LotteryController {
+    -lottery: LotteryModel
+
+    ' --- constructors ---
+
+
+    ' --- methods ---
+    ' call draw
+    +runLottery(): Unit
+
+    ' ask ReservationModel to create reservation for winners
+    +requestReservations(winners: List<Entrant>): Unit
+
+    ' ask notifications to send win and lose messages
+    +notifyParticipants(winners: List<Entrant>, loses: List<Entrant>): Unit
+
+    ' manages when winning entrants accepts or declines reservation
+    +acceptWin(entrant: Entrant): Unit
+    +DeclineWin(entrant: Entrant): Unit
+}

@@ -1,0 +1,9 @@
+class LoginView {
+    ' text boxes: username, password
+    -username: TextField
+    -password: TextField
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

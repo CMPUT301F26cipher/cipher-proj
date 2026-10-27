@@ -1,0 +1,7 @@
+class NotificationView {
+    ' displays list of recent notifications
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

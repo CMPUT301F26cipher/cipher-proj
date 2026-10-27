@@ -1,0 +1,10 @@
+class CampsiteOwnerReservationView {
+    ' display a list of active reservations
+    ' display a list of past reservations
+    ' display a list of canceled reservations
+    ' button to reject a reservation
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

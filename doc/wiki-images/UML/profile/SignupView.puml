@@ -1,0 +1,7 @@
+class SignupView {
+    ' text boxes: create password, confirm password, username
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

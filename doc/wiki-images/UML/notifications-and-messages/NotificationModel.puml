@@ -1,0 +1,8 @@
+class NotificationModel {
+    ' stores notifications (specific to user)
+    ' stores log of sent notifications for campsite owner
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

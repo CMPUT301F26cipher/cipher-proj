@@ -1,0 +1,9 @@
+class EntrantsView {
+    ' Display filtered campsites based on location, date, and number of guests
+    -SearchBarView: SearchBarView
+
+    ' --- constructors ---
+
+    ' --- methods ---
+  
+}

@@ -1,0 +1,9 @@
+class Entrant {
+    ' store profile picture
+    ' remove profile picture
+    ' tracks if user wants to have notification opt-out
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

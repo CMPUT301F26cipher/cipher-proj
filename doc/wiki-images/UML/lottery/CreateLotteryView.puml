@@ -1,0 +1,26 @@
+
+class CreateLotteryView {
+    ' Purpose: list multiple campsites in a lottery for a certain period.
+    -campsites: LazyColumn<
+
+    ' textbox to set registration period
+    -registrationStartInput: TextField
+    -registrationEndInput: TextField
+
+    ' textbox to set booking period
+    -bookingStartInput: TextField
+    -bookingEndInput: TextField
+
+    ' textbox to set number of lottery winners
+    -waitlistCapacityInput: TextField
+
+    ' textbox to optionally set a capacity for my lottery waitlist.
+
+    ' button to post lottery
+    -postButton: Button
+
+    ' --- methods ---
+    +displayCampsites(campsites: ): Unit
+    +onPostClicked(): Unit
+
+}

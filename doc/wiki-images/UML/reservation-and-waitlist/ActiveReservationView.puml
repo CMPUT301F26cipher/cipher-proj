@@ -1,0 +1,8 @@
+class ActiveReservationView {
+    ' display entrant's active reservations
+    ' button to cancel reservation
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

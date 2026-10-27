@@ -1,0 +1,12 @@
+abstract class UserModel {
+    ' special roles (entrants, owners, admins)
+    ' verify if user exists already
+    ' make a new user, which it adds to the database
+    ' check if user has saved credential, bypasses login screen
+    ' remove user / delete profile
+    ' card notes: current user information (login, pfp)
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

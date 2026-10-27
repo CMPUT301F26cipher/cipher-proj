@@ -1,0 +1,13 @@
+class ProfileInfoView {
+    ' button to upload photo
+    ' display delete profile button
+    ' toggle to opt out of notifications
+    -name: String
+    -email: String
+    -phoneNumber: Int
+    -profile: UserModel
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

@@ -1,0 +1,22 @@
+
+class LotteryWinView {
+    ' display win message with campsite name
+    -winMessage: String
+
+    
+    ' Button to accept reservation
+    -acceptButton: Button
+    ' Button to decline reservation
+    -declineButton: Button
+
+    ' Checkbox for entrants to confirm that they have read the campsite rules and policies before confirming their reservation
+    -policyCheckbox: Checkbox
+
+    ' --- methods ---
+    +displayWinMessage(campsite: CampsiteModel): Unit
+
+    ' Display available dates of the campsite that can be reserved for
+    +displayAvailableDates(): Unit
+    +onAcceptClicked(): Unit
+    +onDeclineClicked(): Unit
+}

@@ -1,0 +1,18 @@
+@startuml admin
+!include style.puml
+
+!include_once admin/Administrator.puml
+!include_once admin/AdministratorView.puml
+
+'Administrator collaborators
+Administrator -- NotificationModel
+Administrator -- AdministratorView
+Administrator -- UserModel
+
+'AdministratorView collaborators
+AdministratorView -- UserModel
+AdministratorView -- NotificationModel
+AdministratorView -- MessageModel
+AdministratorView -- CampsiteModel
+
+@enduml

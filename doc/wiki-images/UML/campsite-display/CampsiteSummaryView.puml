@@ -1,0 +1,9 @@
+class CampsiteSummaryView {
+    -name: TextView
+    -location: TextView
+    -maxOccupancy: TextView
+
+    ' --- methods ---
+    +displaySummary()
+
+}

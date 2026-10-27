@@ -1,0 +1,32 @@
+@startuml notifications-and-messages
+!include style.puml
+
+!include_once notifications-and-messages/NotificationView.puml
+!include_once notifications-and-messages/NotificationModel.puml
+!include_once notifications-and-messages/MessageModel.puml
+!include_once notifications-and-messages/MessageView.puml
+!include_once notifications-and-messages/ConfirmationView.puml
+!include_once notifications-and-messages/PolicyView.puml
+
+' NotificationView collaborators
+NotificationView -- LotteryLoseView
+NotificationView -- LotteryWinView
+NotificationView -- ConfirmationView
+
+' NotificationModel collaborators
+NotificationModel -- Database
+NotificationModel -- EntrantModel
+NotificationModel -- CampsiteOwnerModel
+NotificationModel -- WaitlistModel
+
+' MessageModel collaborators
+MessageModel -- Database
+MessageModel -- ReservationModel
+
+' MessageView collaborators
+MessageView -- MessageModel
+
+' ConfirmationView collaborators
+ConfirmationView -- CampsiteModel
+ConfirmationView -- EntrantModel
+@enduml

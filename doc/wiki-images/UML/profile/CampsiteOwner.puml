@@ -1,0 +1,11 @@
+class CampsiteOwner {
+    ' create and manage campsite(s)
+    ' upload (add/replace) promo images
+    ' attach geolocation of campsite
+    ' monitor the progress of the waitlist
+    ' access to final list of reservees
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}

@@ -18,8 +18,17 @@ P - Productivity related (low priority)
 - [ ] 
 
 ## Shira
-- [ ] UML (v1) using mermaid 
-- [ ]  
+- [x] grouped project classes by features using CRC cards and user stories (oct 25) (D)
+    -   8 feature groups
+- [x] set up UML class diagrams using PlantUML (v.1 from CRC -> UML) (oct 25) (D) 
+    - [x] lottery
+    - [x] filter
+    - [x] campsite-display
+    - [x] admin
+    - [x] notifications-and-messages
+    - [x] profile
+    - [x] reservation-and-waitlist
+- [ ] write script to update uml's images (P)
 - [ ] 
 
 ## Sofia
@@ -45,6 +54,7 @@ P - Productivity related (low priority)
 # Additionals
 - [ ] Presentation (P)
 - [ ] Meeting Minutes (S)
+- [ ] I want to see the images in our doc/wiki-images on a wiki page for quick referencing (S)
 - [ ] 
 
 ---
@@ -80,7 +90,7 @@ US ***01.01.01, 01.01.02, 01.01.03,***
 - CampsiteOwnerView
 
 Related US\
-US ***01.01.04, 01.01.05, 01.13.01***
+US ***01.01.04, 01.01.05,*** 01.13.01
 
 ### Notifications & messages
 - NotificationView

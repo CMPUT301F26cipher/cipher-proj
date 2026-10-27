@@ -1,0 +1,39 @@
+@startuml reservation-and-waitlist
+!include style.puml
+
+!include_once reservation-and-waitlist/ReservationModel.puml
+!include_once reservation-and-waitlist/ActiveReservationView.puml
+!include_once reservation-and-waitlist/PastReservationView.puml
+!include_once reservation-and-waitlist/RegisterCampsiteView.puml
+!include_once reservation-and-waitlist/CampsiteOwnerReservationView.puml
+!include_once reservation-and-waitlist/WaitlistView.puml
+!include_once reservation-and-waitlist/CampsiteOwnerWaitlistView.puml
+
+' ReservationModel collaborators
+ReservationModel -- EntrantModel
+ReservationModel -- CampsiteModel
+ReservationModel -- Database
+ReservationModel -- CampsiteOwnerModel
+
+' ActiveReservationView collaborators
+ActiveReservationView -- ReservationModel
+ActiveReservationView -- EntrantModel
+ActiveReservationView -- ReservationController
+
+' PastReservationView collaborators
+PastReservationView -- ReservationModel
+
+' RegisterCampsiteView collaborators
+RegisterCampsiteView -- CampsiteOwner
+RegisterCampsiteView -- CampsiteModel
+
+' CampsiteOwnerReservationView collaborators
+CampsiteOwnerReservationView -- ReservationModel
+
+' WaitlistView collaborators
+WaitlistView -- WaitlistModel
+
+' CampsiteOwnerWaitlistView collaborators
+CampsiteOwnerWaitlistView -- WaitlistModel
+CampsiteOwnerWaitlistView -- NotificationModel
+@enduml

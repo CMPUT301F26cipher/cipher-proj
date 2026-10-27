@@ -1,0 +1,7 @@
+class ConfirmationView {
+    ' displays confirmation message to entrant of campsite reservation
+
+    ' --- constructors ---
+
+    ' --- methods ---
+}
