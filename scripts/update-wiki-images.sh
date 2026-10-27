@@ -19,6 +19,17 @@ else
   echo "PlantUML not installed, skipping .puml conversion (run: brew install plantuml)"
 fi
 
+# Replace the text between <!-- NAME:start --> and <!-- NAME:end --> in a file
+replace_section() {
+  file="$1"; name="$2"; content="$3"
+  grep -q "<!-- $name:start -->" "$file" || printf '\n<!-- %s:start -->\n<!-- %s:end -->\n' "$name" "$name" >> "$file"
+  awk -v tmp="$content" -v s="<!-- $name:start -->" -v e="<!-- $name:end -->" '
+    index($0, s) { print; while ((getline line < tmp) > 0) print line; skip=1; next }
+    index($0, e) { skip=0 }
+    !skip { print }
+  ' "$file" > "$file.new" && mv "$file.new" "$file"
+}
+
 # List the files directly inside one folder (not its subfolders)
 emit_files() {
   find "$1" -maxdepth 1 -type f | sort | while read -r f; do
@@ -51,12 +62,21 @@ update_page() {
   page="doc/wiki/$1"; shift
   tmp=$(mktemp)
   for folder in "$@"; do gallery "$folder"; done > "$tmp"
-  grep -q '<!-- images:start -->' "$page" || printf '\n<!-- images:start -->\n<!-- images:end -->\n' >> "$page"
-  awk -v tmp="$tmp" '
-    /<!-- images:start -->/ { print; while ((getline line < tmp) > 0) print line; skip=1; next }
-    /<!-- images:end -->/   { skip=0 }
-    !skip { print }
-  ' "$page" > "$page.new" && mv "$page.new" "$page"
+  replace_section "$page" images "$tmp"
+  rm -f "$tmp"
+}
+
+# Copy meeting notes into the wiki and list them in the sidebar (newest first)
+update_meetings() {
+  src="doc/meeting-notes"; dest="doc/wiki/meeting-notes"
+  [ -d "$src" ] || return
+  rm -rf "$dest"; mkdir -p "$dest"
+  tmp=$(mktemp)
+  find "$src" -type f -name "*.md" | sort -r | while read -r f; do
+    cp "$f" "$dest/"
+    echo "* [[$(basename "$f" .md)]]"
+  done > "$tmp"
+  replace_section doc/wiki/_Sidebar.md meetings "$tmp"
   rm -f "$tmp"
 }
 
@@ -64,5 +84,7 @@ update_page() {
 update_page CRC.md   "CRC-Cards/final version"
 update_page Figma.md "Figma"
 update_page UML.md   "top:generated-uml-pngs"
+
+update_meetings
 
 echo "Wiki pages updated."
