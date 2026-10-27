@@ -6,6 +6,7 @@
 cd "$(git rev-parse --show-toplevel)"
 
 REPO=$(git remote get-url origin | sed -E 's#^git@github.com:#https://github.com/#; s#\.git$##')
+BRANCH=$(git branch --show-current)
 
 # Convert the top-level UML .puml diagrams into pictures in a separate folder
 # (skips style.puml and the class pieces in UML subfolders, which are only included)
@@ -25,8 +26,8 @@ emit_files() {
     name=$(basename "$f")
     case "$(echo "$name" | tr 'A-Z' 'a-z')" in
       style.puml) ;;
-      *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp) echo; echo "![$name]($REPO/raw/main/$path)" ;;
-      *.pdf|*.puml) echo; echo "- [$name]($REPO/blob/main/$path)" ;;
+      *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp) echo; echo "![$name]($REPO/raw/$BRANCH/$path)" ;;
+      *.pdf|*.puml) echo; echo "- [$name]($REPO/blob/$BRANCH/$path)" ;;
     esac
   done
 }
