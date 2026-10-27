@@ -16,7 +16,7 @@ FilterBy -- Database
 
 ' SearchBarController collaborators
 SearchBarController -- FilterBy : Modify
-SearchBarController -- 
+'SearchBarController -- 
 
 ' SearchBarView collaborators
 SearchBarView -- "1" SearchBarController

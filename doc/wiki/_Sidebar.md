@@ -3,6 +3,7 @@
 Meeting Minutes
 
 <!-- meetings:start -->
+* [tue, Oct 27 - meeting mins](https://github.com/CMPUT301F26cipher/cipher-proj/blob/uml/doc/meeting-notes/tue%2C%20Oct%2027%20-%20meeting%20mins.md)
 * [tue, Oct 13 - meeting min](https://github.com/CMPUT301F26cipher/cipher-proj/blob/uml/doc/meeting-notes/tue%2C%20Oct%2013%20-%20meeting%20min.md)
 * [sun, oct 25 - meeting mins](https://github.com/CMPUT301F26cipher/cipher-proj/blob/uml/doc/meeting-notes/sun%2C%20oct%2025%20-%20meeting%20mins.md)
 * [sat, oct 17 - meeting min](https://github.com/CMPUT301F26cipher/cipher-proj/blob/uml/doc/meeting-notes/sat%2C%20oct%2017%20-%20meeting%20min.md)

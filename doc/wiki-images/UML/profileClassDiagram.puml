@@ -1,7 +1,7 @@
 @startuml profile
 !include style.puml
 
-!include_once profile/User.puml
+!include_once profile/UserModel.puml
 !include_once profile/AccountController.puml
 !include_once profile/LoginView.puml
 !include_once profile/SignupView.puml
