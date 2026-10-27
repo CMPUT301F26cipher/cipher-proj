@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -e
+
+# --- CONFIGURE YOUR WIKI URL HERE ---
+WIKI_REPO_URL="git@github.com:your-org/your-repo.wiki.git"
+# ------------------------------------
+
+echo "[pre-push hook] Checking for changes in doc/wiki..."
+
+TEMP_WIKI_DIR=$(mktemp -d)
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+REMOTE_REF="origin/$BRANCH"
+
+if git rev-parse --verify "$REMOTE_REF" >/dev/null 2>&1; then
+    CHANGES=$(git diff --name-only "$REMOTE_REF" HEAD -- doc/wiki/)
+else
+    CHANGES=$(git ls-files doc/wiki/)
+fi
+
+if [ -z "$CHANGES" ]; then
+    echo "[pre-push hook] No changes detected in doc/wiki. Proceeding with push."
+    rm -rf "$TEMP_WIKI_DIR"
+    exit 0
+fi
+
+echo "[pre-push hook] Changes detected in doc/wiki. Syncing to Wiki repository..."
+
+git clone --quiet "$WIKI_REPO_URL" "$TEMP_WIKI_DIR"
+rsync -av --delete --exclude='.git' doc/wiki/ "$TEMP_WIKI_DIR/"
+
+cd "$TEMP_WIKI_DIR"
+
+if [ -n "$(git status --porcelain)" ]; then
+    git add .
+    git commit -m "Auto-update wiki from doc/wiki/ (commit: $(git rev-parse --short HEAD))"
+    git push origin HEAD
+    echo "[pre-push hook] Wiki updated successfully!"
+else
+    echo "[pre-push hook] Wiki is already up to date."
+fi
+
+rm -rf "$TEMP_WIKI_DIR"
+exit 0
