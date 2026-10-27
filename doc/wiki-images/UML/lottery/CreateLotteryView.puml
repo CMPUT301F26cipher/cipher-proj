@@ -1,7 +1,7 @@
 
 class CreateLotteryView {
-    ' list multiple campsites in a lottery for a certain period.
-    -campsites: 
+    ' Purpose: list multiple campsites in a lottery for a certain period.
+    -campsites: LazyColumn<
 
     ' textbox to set registration period
     -registrationStartInput: TextField

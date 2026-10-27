@@ -12,10 +12,10 @@
 LotteryController -- "1" LotteryModel
 LotteryController -- "0..*" WaitlistModel
 LotteryController -- "0..*" ReservationModel
-LotteryController -- NotificationView
+LotteryController -up- NotificationView
 LotteryController -- LotteryWinView
 LotteryController -- LotteryLoseView
-LotteryController -- EntrantModel
+LotteryController -right- EntrantModel
 
 ' LotteryLoseView collaborators
 LotteryLoseView -- CampsiteModel
@@ -30,7 +30,7 @@ CreateLotteryView -- LotteryModel
 CreateLotteryView -- CampsiteModel
 
 ' EditLotteryView collaborators
-EditLotteryView -->LotteryModel
+EditLotteryView -- LotteryModel
 
 ' LotteryModel collaborators
 LotteryModel -- CampsiteModel
