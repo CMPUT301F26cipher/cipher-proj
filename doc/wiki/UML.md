@@ -1,19 +1,17 @@
 
 <!-- images:start -->
 
-- [LotteryClassDiagram.puml](https://github.com/CMPUT301F26cipher/cipher-proj/blob/main/doc/wiki-images/UML/LotteryClassDiagram.puml)
+![admin.png](https://github.com/CMPUT301F26cipher/cipher-proj/raw/main/doc/wiki-images/generated-uml-pngs/admin.png)
 
-- [adminClassDiagram.puml](https://github.com/CMPUT301F26cipher/cipher-proj/blob/main/doc/wiki-images/UML/adminClassDiagram.puml)
+![filter.png](https://github.com/CMPUT301F26cipher/cipher-proj/raw/main/doc/wiki-images/generated-uml-pngs/filter.png)
 
-- [campsiteDisplayClassDiagram.puml](https://github.com/CMPUT301F26cipher/cipher-proj/blob/main/doc/wiki-images/UML/campsiteDisplayClassDiagram.puml)
+![lottery.png](https://github.com/CMPUT301F26cipher/cipher-proj/raw/main/doc/wiki-images/generated-uml-pngs/lottery.png)
 
-- [filterClassDiagram.puml](https://github.com/CMPUT301F26cipher/cipher-proj/blob/main/doc/wiki-images/UML/filterClassDiagram.puml)
+![notifications-and-messages.png](https://github.com/CMPUT301F26cipher/cipher-proj/raw/main/doc/wiki-images/generated-uml-pngs/notifications-and-messages.png)
 
-- [notificationsAndMessagesClassDiagram.puml](https://github.com/CMPUT301F26cipher/cipher-proj/blob/main/doc/wiki-images/UML/notificationsAndMessagesClassDiagram.puml)
+![overview.png](https://github.com/CMPUT301F26cipher/cipher-proj/raw/main/doc/wiki-images/generated-uml-pngs/overview.png)
 
-- [overview.puml](https://github.com/CMPUT301F26cipher/cipher-proj/blob/main/doc/wiki-images/UML/overview.puml)
+![profile.png](https://github.com/CMPUT301F26cipher/cipher-proj/raw/main/doc/wiki-images/generated-uml-pngs/profile.png)
 
-- [profileClassDiagram.puml](https://github.com/CMPUT301F26cipher/cipher-proj/blob/main/doc/wiki-images/UML/profileClassDiagram.puml)
-
-- [reservationAndWaitlistClassDiagram.puml](https://github.com/CMPUT301F26cipher/cipher-proj/blob/main/doc/wiki-images/UML/reservationAndWaitlistClassDiagram.puml)
+![reservation-and-waitlist.png](https://github.com/CMPUT301F26cipher/cipher-proj/raw/main/doc/wiki-images/generated-uml-pngs/reservation-and-waitlist.png)
 <!-- images:end -->

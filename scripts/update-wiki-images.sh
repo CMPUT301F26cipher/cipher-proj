@@ -7,10 +7,13 @@ cd "$(git rev-parse --show-toplevel)"
 
 REPO=$(git remote get-url origin | sed -E 's#^git@github.com:#https://github.com/#; s#\.git$##')
 
-# Convert top-level .puml diagrams to .png
+# Convert the top-level UML .puml diagrams into pictures in a separate folder
 # (skips style.puml and the class pieces in UML subfolders, which are only included)
+OUT="$(pwd)/doc/wiki-images/generated-uml-pngs"
 if command -v plantuml >/dev/null; then
-  find doc/wiki-images -name "*.puml" ! -name "style.puml" ! -path "*/UML/*/*" -exec plantuml -tpng {} +
+  rm -rf "$OUT"
+  mkdir -p "$OUT"
+  find doc/wiki-images/UML -maxdepth 1 -name "*.puml" ! -name "style.puml" -exec plantuml -tpng -o "$OUT" {} +
 else
   echo "PlantUML not installed, skipping .puml conversion (run: brew install plantuml)"
 fi
@@ -59,6 +62,6 @@ update_page() {
 # Which folders go on which page
 update_page CRC.md   "CRC-Cards/final version"
 update_page Figma.md "Figma"
-update_page UML.md   "top:UML"
+update_page UML.md   "top:generated-uml-pngs"
 
 echo "Wiki pages updated."
