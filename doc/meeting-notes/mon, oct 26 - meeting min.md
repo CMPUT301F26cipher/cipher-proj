@@ -21,7 +21,8 @@ What is next
 
 - Reservation & Waitlist: Hye-Sung, Shira
 - Database / Filters: Sofia, Madison
-- Admin, Profile, Campsite-Display: Bailey
+- Admin, Profile: Madison
+-  Campsite-Display: Bailey
 - Lottery: Justin, Neth
 
 - WOW factor
