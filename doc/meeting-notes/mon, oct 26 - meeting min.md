@@ -20,8 +20,8 @@ What is next
 - 140 story point in the midpoint, want everyone to aim for ~20 story points 
 
 - Reservation & Waitlist: Hye-Sung, Shira
-- Database / Filters: Sofia, Bailey
-- Admin, Profile, Campsite-Display: Madison
+- Database / Filters: Sofia, Madison
+- Admin, Profile, Campsite-Display: Bailey
 - Lottery: Justin, Neth
 
 - WOW factor
