@@ -49,6 +49,7 @@ fun OwnerOverview() {
         }
 
         Text(text = "________________________________________________")
+        Text(text = "My Campsites")
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -79,7 +80,7 @@ fun OwnerOverview() {
 
  }
 
+// Have Text that says "My campsites"
 
-
-// RegistrationModel then RegisterCampsiteDetailsView
+// Work on WaitlistView, WaitlistModel
 

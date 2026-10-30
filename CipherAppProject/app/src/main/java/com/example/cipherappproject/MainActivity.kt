@@ -19,7 +19,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CipherAppProjectTheme {
-                OwnerOverview()
+                WaitlistView(
+
+                ) { }
             }
         }
     }
