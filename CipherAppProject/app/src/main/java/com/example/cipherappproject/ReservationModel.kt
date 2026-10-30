@@ -7,6 +7,16 @@ class ReservationModel(
     bookingStart: Date,
     bookingEnd: Date,
     ) {
+    enum class Status {ACTIVE, CANCELLED, PAST}
+
+    /**
+     * Sort reservations into active and past and by
+     *
+     * @param
+     */
+    fun sortReservationStatus() {
+
+    }
 
     // Check if entrants accepted booking
     @Composable
