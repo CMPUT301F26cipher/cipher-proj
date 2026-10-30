@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,45 +26,6 @@ import com.example.cipherappproject.ReservationModel.Status
 
 //
 // Google, Gemini Flash, "syntax for button in kotlin android studio", 2026-10-27
-
-
-/**
- * Display list of active reservation according to current active user type (entrants, owners,
- * admin)
- *
- * @param userType
- * @param
- * @return
- */
-@Composable
-fun DisplayListContent(reservations: List<Entrant>, onCancelClick: () -> Unit = {}) {
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (reservations != null) {
-            item {
-                Row(
-                    modifier = Modifier,
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = { onCancelClick() }
-                    ) {
-                        Text("Cancel")
-                    }
-                }
-            }
-        } else {
-            item {
-                Text("No active reservations")
-            }
-        }
-    }
-}
 
 /**
  * Displays the active reservation screen
@@ -103,6 +66,58 @@ fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status)
             Button( onClick = { onStatusSelected(status) }) {
                 Text(status.toString())
             }
+        }
+    }
+}
+
+
+/**
+ * Display list of active reservation according to current active user type (entrants, owners,
+ * admin)
+ *
+ * @param userType
+ * @param
+ * @return
+ */
+@Composable
+fun DisplayListContent(reservations: List<ReservationModel>) {
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (reservations.isNotEmpty()) {
+            items(reservations) { reservation ->
+                ReservationRow(reservation)
+                HorizontalDivider()
+            }
+        } else {
+            item { Text("No reservations") }
+        }
+    }
+}
+
+/**
+ * Display SINGLE reservation row, including the campsite name, campsite image, name of user, and
+ * booking period
+ *
+ */
+@Composable
+fun ReservationRow( reservation: ReservationModel, onCancelClick: () -> Unit = {}) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        //TODO: Display image of campsite
+
+        Column(modifier = Modifier.weight(1f)) {
+            //TODO: Display {campsite name},{username | booking period}
+            Text("CAMPSITE X")
+        }
+
+        Button( onClick = { onCancelClick() }) {
+            Text("Cancel")
         }
     }
 }
