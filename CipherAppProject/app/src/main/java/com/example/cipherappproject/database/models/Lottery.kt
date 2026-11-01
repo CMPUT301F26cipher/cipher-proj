@@ -1,4 +1,4 @@
-package com.example.cipherappproject
+package com.example.cipherappproject.database.models
 /**
  * Represents a Lottery main attributes and status in relation with the Firebase database.
  *
@@ -20,16 +20,14 @@ package com.example.cipherappproject
  *
  */
 data class Lottery (
-    private val lotteryId: String = "",
-    private val ownerId: String = "",
+    val lotteryId: String = "",
+    val ownerId: String = "",
     // one lottery can be applicable to many lotteries
-    private val campsiteIds: List<String> = emptyList(),
-    private var numWinner: Int = 0,
-    private var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
-    private var endDate: String = "",
-    private var maxParticipants: Int, // is optional for the owner
-    private val status: List<String> = emptyList(),
-    private val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
-    ){
-    // WILL FOLLOW A SIMILAR FORMAT TO PROFILE
-}
+    val campsiteIds: List<String> = emptyList(),
+    var numWinner: Int = 0,
+    var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
+    var endDate: String = "",
+    var maxParticipants: Int, // is optional for the owner
+    val status: String,
+    val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
+    )

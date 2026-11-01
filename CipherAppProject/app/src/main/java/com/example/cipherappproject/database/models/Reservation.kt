@@ -1,4 +1,4 @@
-package com.example.cipherappproject
+package com.example.cipherappproject.database.models
 /**
  * Represents a Reservation main attributes and status in relation with the Firebase database.
  *
@@ -16,12 +16,10 @@ package com.example.cipherappproject
  *
  */
 data class Reservation (
-    private val reservationId: String = "",
-    private val userId: String = "",
-    private val campsiteId: String = "",
-    private val lotteryId: String = "",
-    private val status: List<String> = emptyList(),
-    private val createdAt: String = ""
-) {
-    // WILL FOLLOW A SIMILAR FORMAT TO PROFILE
-}
+    val reservationId: String = "",
+    val userId: String = "",
+    val campsiteId: String = "",
+    val lotteryId: String = "",
+    var status: String = "",
+    val createdAt: String = ""
+)
