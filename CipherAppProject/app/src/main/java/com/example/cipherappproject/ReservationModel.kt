@@ -1,38 +1,22 @@
 package com.example.cipherappproject
 
-import androidx.compose.runtime.Composable
 import java.util.Date
 
 class ReservationModel(
-    bookingStart: Date,
-    bookingEnd: Date,
+    val campsite: Campsite,
+    val bookingStart: Date,
+    val bookingEnd: Date,
+    val isCancelled: Boolean
     ) {
     enum class Status {ACTIVE, CANCELLED, PAST}
 
     /**
-     * Sort reservations into active and past and by
-     *
-     * @param
+     * Holds the current status of current reservation, note it is
+     * calculated each time it is read
      */
-    fun sortReservationStatus() {
-
-    }
-
-    // Check if entrants accepted booking
-    @Composable
-    fun checkAcceptedReservation() {
-
-    }
-
-    @Composable
-    fun updateReservationStatus() {
-
-        // checkAcceptedReservation
-
-
-        // if current date ≥ booking end date, then add reservation to past reservation and
-        // update reservation view to past
-
-        // else: Add reservation to active, update reservation view to active
+    val status: Status get() = when {
+        isCancelled -> Status.CANCELLED
+        bookingEnd.before(Date()) -> Status.PAST
+        else -> Status.ACTIVE
     }
 }
