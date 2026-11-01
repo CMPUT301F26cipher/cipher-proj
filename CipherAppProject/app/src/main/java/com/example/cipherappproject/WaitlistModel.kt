@@ -17,7 +17,8 @@ package com.example.cipherappproject
 */
 
 data class WaitlistModel(
-    val user: String,
+    val waitlistID: String,
+    val campsiteID: String,
     val campsiteName: String,
     val participants: List<String>,
     val winners: Int,
