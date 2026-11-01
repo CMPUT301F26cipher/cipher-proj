@@ -1,4 +1,4 @@
-package com.example.cipherappproject
+package com.example.cipherappproject.ui.reservations
 
 class RegisterCampsiteDetailsView {
     // Text("Register Campsite")
