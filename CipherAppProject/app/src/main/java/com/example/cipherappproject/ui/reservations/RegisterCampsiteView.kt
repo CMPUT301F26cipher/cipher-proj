@@ -1,8 +1,12 @@
 package com.example.cipherappproject.ui.reservations
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -12,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.Button
+import androidx.compose.ui.unit.dp
 
 /**
  * Display
@@ -19,7 +24,7 @@ import androidx.compose.material3.Button
 @Composable
 fun RegisterCampsiteScreen() {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().padding(16.dp)
     ) {
         val nameState = rememberTextFieldState()
         val locationState = rememberTextFieldState()
@@ -29,15 +34,15 @@ fun RegisterCampsiteScreen() {
         LabeledTextField("Add Location",locationState, "Location Name")
 
         Text("Add Image")
-
         //TODO: add img box
+
         LabeledTextField("Lottery (Optional)", lotteryWinnerNumState, "Set # of lottery winners")
 
         Text("Booking Date")
         //TODO: add booking dates
 
         //TODO: create button
-        Button(onClick = () -> Unit) { }
+        //Button(onClick = () -> Unit) { }
     }
 
 
@@ -53,13 +58,14 @@ fun RegisterCampsiteScreen() {
 @Composable
 fun LabeledTextField(label: String, state: TextFieldState, placeholder: String) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("Add Location")
+        Text(label)
         TextField(
-            state = rememberTextFieldState(),
-            placeholder = { Text("Location Name") }
+            state = state,
+            placeholder = { Text(placeholder) }
         )
     }
 }
