@@ -29,9 +29,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CipherAppProjectTheme {
-                WaitlistView(
 
-                ) { }
             }
         }
     }

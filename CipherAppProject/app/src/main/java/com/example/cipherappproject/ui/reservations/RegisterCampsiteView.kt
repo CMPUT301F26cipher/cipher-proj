@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -35,7 +36,18 @@ fun RegisterCampsiteScreen() {
 
         Text("Add Image")
         //TODO: add img box
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(100.dp)
+//
+//        ) {
+//            Button(
+//                onClick = {}
+//            ) {
+//        }
 
+        //}
         LabeledTextField("Lottery (Optional)", lotteryWinnerNumState, "Set # of lottery winners")
 
         Text("Booking Date")
