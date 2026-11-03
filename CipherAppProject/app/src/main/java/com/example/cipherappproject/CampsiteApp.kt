@@ -83,6 +83,9 @@ fun CampsiteApp(){
             composable("search"){
                 CampsiteSearch(navController)
             }
+            composable("profile"){
+                ProfileView(navController)
+            }
             //TODO: implement other navigation types (Owner, Admin)
         }
         //TODO: add nav-bar at the bottom of screen that connects to various screens/displays

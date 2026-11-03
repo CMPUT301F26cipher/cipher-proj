@@ -11,7 +11,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class DriversTest {
+class NavbarTest {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>() // access MainActivity
 
@@ -24,7 +24,7 @@ class DriversTest {
 
         // verify navigation
         composeTestRule
-            .onNodeWithText("View Reservations")
+            .onNodeWithTag("profileColumn")
             .assertExists()
 
         // navigate to search screen
@@ -34,7 +34,7 @@ class DriversTest {
 
         // verify navigation
         composeTestRule
-            .onNodeWithText("searchResults")
+            .onNodeWithTag("searchResults")
             .assertExists()
     }
 }
