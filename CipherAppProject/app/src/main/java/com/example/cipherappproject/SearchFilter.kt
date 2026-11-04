@@ -18,13 +18,13 @@ import androidx.compose.runtime.setValue
  *
  */
 class SearchFilter{
-    private var searchName = mutableStateOf("")
+    private var searchName = ""
 
     fun getName(): String {
-        return searchName.toString()
+        return searchName
     }
     fun setName(newName:String) {
-        searchName = mutableStateOf(newName)
+        searchName = newName
     }
     //TODO: select what values to filter by, connect each to user input in SearchFiltersView
     //give default values of null??

@@ -19,14 +19,18 @@ import androidx.navigation.NavController
  * that match the given filters. Campsites in list are clickable, allowing navigation to the
  * details for that campsite.
  */
-
+/*
+ * Built by Bailey Nov 2 2026
+ * Updates:
+ * Bailey Nov 4 2026
+ */
 @Composable
 fun CampsiteSearch(
     navController: NavController,
 ){
     var searchFilter by remember { mutableStateOf(SearchFilter()) }
     val filteredCampsiteList = remember { CampsiteListFromFilters(searchFilter) }
-    var searchStatus by remember { mutableStateOf(SearchException("SearchStringTooShort")) }
+    var searchStatus by remember { mutableStateOf(SearchException()) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -37,13 +41,12 @@ fun CampsiteSearch(
             searchFilter,
             onSearch = {
                 searchFilter = it
-                searchStatus = SearchException("SearchStringTooShort")
+                searchStatus = SearchException()
                 try {
                     filteredCampsiteList.filterCampsites()
                 } catch (exception: SearchException){
                     searchStatus = exception
                 }
-                //TODO: give filters object to some class that returns list of campsites
             }
         )
 
