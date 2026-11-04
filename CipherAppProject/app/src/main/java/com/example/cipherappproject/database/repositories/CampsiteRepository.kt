@@ -58,7 +58,7 @@ class CampsiteRepository {
     fun addCampsite( // pass the field and only then create the campsite object in this function --> since id is only known and created here
         ownerId: String,
         campsiteName: String,
-        mapLocation: List<String>,
+        mapLocation: String,
         description: String,
         amenities: MutableList<String>,
         maxGuests: Int,
@@ -117,7 +117,7 @@ class CampsiteRepository {
 
 
     fun updateCampsite(campsite: Campsite) {
-        campsitesRef.document(campsite.getCampsiteId()).set(campsite)
+        campsitesRef.document(campsite.campsiteId).set(campsite)
     }
 
 
