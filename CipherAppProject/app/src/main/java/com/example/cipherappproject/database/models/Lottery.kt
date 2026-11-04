@@ -1,4 +1,22 @@
 package com.example.cipherappproject.database.models
+
+/*
+--------------------------------------------------------------------------------------
+Program Name: Lottery.kt
+Date Written: October 27, 2026
+Author: Sofia Arturo Gomez
+Purpose: Manage database for the object as Lottery
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-02-24  Sofia      1.01     added skeleton
+2026-03-22  Sofia      1.01     fixed getters and setters
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
 /**
  * Represents a Lottery main attributes and status in relation with the Firebase database.
  *
@@ -10,7 +28,7 @@ package com.example.cipherappproject.database.models
  * @property lotteryId use to uniquely identify each lottery within the database
  * @property ownerId use to identify to which owner is related to
  * @property campsiteIds use to identify to which campsite or campsites is related to
- * @property numWinner use to uniquely identify each profile within the database
+ * @property numWinners use to uniquely identify each profile within the database
  * @property startDate the opening date of the lottery
  * @property endDate the close date of the lottery
  * @property maxParticipants if owner decides a maximum number of participants
@@ -20,74 +38,66 @@ package com.example.cipherappproject.database.models
  *
  */
 data class Lottery (
-    val lotteryId: String = "",
-    val ownerId: String = "",
+    private val lotteryId: String = "",
+    private val ownerId: String = "",
     // one lottery can be applicable to many lotteries
-    val campsiteIds: List<String> = emptyList(),
-    var numWinner: Int = 0,
-    var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
-    var endDate: String = "",
-    var maxParticipants: Int, // is optional for the owner
-    val status: String,
-    val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
+    private val campsiteIds: MutableList<String> = mutableListOf(),
+    private var numWinners: Int = 0,
+    private var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
+    private var endDate: String = "",
+    private var maxParticipants: Int = -1, // is optional for the owner
+    private val status: String,
+    private val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
 ) {
-        /** Returns the lottery ID. */
         fun getLotteryId(): String {
             return lotteryId
         }
 
-        /** Returns the owner ID. */
-        fun getOwnerId(): String {
+        fun getLotteryOwnerId(): String {
             return ownerId
         }
 
-        /** Returns the campsite IDs included in this lottery. */
-        fun getCampsiteIds(): List<String> {
+        fun getLotteryCampsiteIds(): List<String> {
             return campsiteIds
         }
 
-        /** Returns the number of winners. */
-        fun getNumWinner(): Int {
-            return numWinner
+        fun addCampsiteAmenity(campsiteId: String) {
+            campsiteIds.add(campsiteId)
         }
 
-        /** Sets a positive winner count. */
-        fun setNumWinner(number: Int) {
-            // TODO: Validate and update numWinner
+        fun removeCampsiteAmenity(campsiteId: String) {
+            campsiteIds.remove(campsiteId)
         }
 
-        /** Returns the registration start date. */
-        fun getStartDate(): String {
+        fun getLotteryNumWinners(): Int {
+            return numWinners
+        }
+
+        fun setLotteryNumWinner(number: Int) {
+            numWinners = number
+        }
+
+        fun getLotteryStartDate(): String {
             return startDate
         }
 
-        /** Returns the registration end date. */
-        fun getEndDate(): String {
+        fun getLotteryEndDate(): String {
             return endDate
         }
 
-        /** Sets a valid registration period. */
-        fun setRegistrationPeriod(start: String, end: String) {
-            // TODO: Validate dates and update startDate and endDate
-        }
-
-        /** Returns the waitlist capacity, or null for unlimited. */
-        fun getMaxParticipants(): Int? {
+        fun getLotteryMaxParticipants(): Int {
             return maxParticipants
         }
 
-        /** Sets the optional capacity; null means unlimited. */
-        fun setMaxParticipants(capacity: Int?) {
-            // TODO: Validate and update maxParticipants
+        fun setLotteryMaxParticipants(numParticipants: Int) {
+            maxParticipants = numParticipants
         }
 
-        /** Returns the lottery status values. */
-        fun getStatus(): String {
+        fun getLotteryStatus(): String {
             return status
         }
 
-        /** Returns the creation date/time. */
-        fun getCreatedAt(): String {
+        fun getLotteryCreatedAt(): String {
             return createdAt
         }
     }
