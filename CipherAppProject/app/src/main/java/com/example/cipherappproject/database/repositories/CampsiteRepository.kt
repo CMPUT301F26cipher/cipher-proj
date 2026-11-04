@@ -1,4 +1,4 @@
-package com.example.cipherappproject.repositories
+package com.example.cipherappproject.database.repositories
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.cipherappproject.database.models.Campsite
@@ -84,25 +84,25 @@ class CampsiteRepository {
 
     }
 
-    fun getCampsiteByOnwer() {
+    fun getCampsitesByOnwer() {
 
     }
 
-    fun getCampsiteByTags() {
+    fun getCampsitesByTags() {
 
     }
 
-    fun getCampsiteByLocation() {
+    fun getCampsitesByAmenities() {
 
     }
 
-    fun getCampsiteByPrice() {
+    fun getCampsitesByLocation() {
 
     }
 
+    fun getCampsitesByPrice() {
 
-
-
+    }
 
 
     init {

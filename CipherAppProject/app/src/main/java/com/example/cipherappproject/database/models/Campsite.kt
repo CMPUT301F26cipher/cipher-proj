@@ -7,7 +7,7 @@ package com.example.cipherappproject.database.models
  *
  * @property campsiteId use to uniquely identify each campsite within the database
  * @property ownerId use to identify to which owner is related to
- * @property campsiteName is the campsite name
+ * @property campsiteName is the campsite name,
  * @property mapLocation the path to the image with the location of the campsite
  * @property description the campsite description
  * @property amenities the campsite further features

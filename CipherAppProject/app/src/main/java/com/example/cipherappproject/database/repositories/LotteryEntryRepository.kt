@@ -1,4 +1,4 @@
-package com.example.cipherappproject.repositories
+package com.example.cipherappproject.database.repositories
 
 class LotteryEntryRepository {
     // follow same format

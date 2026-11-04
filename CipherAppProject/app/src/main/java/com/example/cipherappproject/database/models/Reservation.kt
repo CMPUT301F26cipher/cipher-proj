@@ -21,5 +21,7 @@ data class Reservation (
     val campsiteId: String = "",
     val lotteryId: String = "",
     var status: String = "",
-    val createdAt: String = ""
+    val createdAt: String = "",
+    val bookStartDate: String = "",
+    val bookEndDate: String = ""
 )
