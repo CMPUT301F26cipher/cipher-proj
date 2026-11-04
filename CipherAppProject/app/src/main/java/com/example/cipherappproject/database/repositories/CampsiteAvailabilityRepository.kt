@@ -2,7 +2,6 @@ package com.example.cipherappproject.database.repositories
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.cipherappproject.database.models.CampsiteAvailability
-import com.example.cipherappproject.database.models.Reservation
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 

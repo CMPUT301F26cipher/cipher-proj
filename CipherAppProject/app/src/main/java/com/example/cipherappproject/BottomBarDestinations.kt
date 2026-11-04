@@ -6,10 +6,17 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
+ *
+ *
+ * Contains information necessary to build nav-bar
+ */
+/*
  * Adapted from https://github.com/android/snippets/blob/main/compose/snippets/src/main/java/com/example/compose/snippets/components/Navigation.kt
  * enum class Destination(...)
  *
- * Contains information necessary to build nav-bar
+ * Built by Bailey Nov 2 2026
+ * Updates:
+ *
  */
 enum class BottomBarDestinations(
     val route: String,

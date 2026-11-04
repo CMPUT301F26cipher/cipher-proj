@@ -18,6 +18,18 @@ import androidx.compose.ui.unit.dp
 /**
  * User input module, allows user to select desired filter parameters, and then on user click
  * activates a search through the database
+ *
+ * Inherits a searchFilter object from parent, allows mutation of the searchFilter by user input and returns
+ * mutated searchFilter upon user input
+ *
+ * @param searchFilter inherited set of parameters to be mutated
+ * @param onSearch allows upstream return of searchFilter
+ */
+/*
+ * Built by Bailey
+ * Nov 2 2026
+ * Updates:
+ *
  */
 @Composable
 fun SearchFiltersView(

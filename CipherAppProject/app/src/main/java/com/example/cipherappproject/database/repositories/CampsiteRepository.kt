@@ -32,7 +32,7 @@ class CampsiteRepository {
      * @return NA
      */
     /*Taken and learned from
-    - firbase official documention https://firebase.google.com/docs/firestore/manage-data/add-data#add_a_document
+    - firebase official documentation https://firebase.google.com/docs/firestore/manage-data/add-data#add_a_document
     - reddit question https://www.reddit.com/r/Firebase/comments/woiubf/how_to_store_document_id_in_a_field_of_a_document/
     */
 
@@ -80,11 +80,11 @@ class CampsiteRepository {
 
     fun deleteCampsite(campsiteId: String) {
         campsitesRef.document(campsiteId)
-            .delete() // need to check if this also affects lotteries, reservations, availabity, iamges??? frick
+            .delete() // need to check if this also affects lotteries, reservations, availability, images??? frick
 
     }
 
-    fun getCampsitesByOnwer() {
+    fun getCampsitesByOwner() {
 
     }
 

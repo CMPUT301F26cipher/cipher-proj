@@ -9,13 +9,19 @@ import androidx.compose.runtime.setValue
 /**
  * Class that stores input filter specifications
  *
- * @property searchName is the user input of a desired campsite name
+ * @property searchName the user input of a desired campsite name
+ */
+/*
+ * Built by Bailey
+ * Nov 2 2026
+ * Updates:
+ *
  */
 class SearchFilter{
     private var searchName = mutableStateOf("")
 
-    fun getName(): MutableState<String> {
-        return searchName
+    fun getName(): String {
+        return searchName.toString()
     }
     fun setName(newName:String) {
         searchName = mutableStateOf(newName)

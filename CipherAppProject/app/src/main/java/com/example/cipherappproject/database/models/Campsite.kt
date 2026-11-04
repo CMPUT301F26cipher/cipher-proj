@@ -34,67 +34,27 @@ data class Campsite (
     val qrCodeImagePath: String = ""
 ){
     // WILL FOLLOW A SIMILAR FORMAT TO PROFILE
-    fun getCampsiteId(): String {
-        return campsiteId
-    }
-
-    fun getOwnerId(): String {
-        return ownerId
-    }
-
-    fun getCampsiteName(): String {
-        return campsiteName
-    }
-
     fun setCampsiteName() {
 
-    }
-
-    fun getCampsiteLocation(): String {
-        return mapLocation
     }
 
     fun setCampsiteLocation() {
     }
 
-    fun getCampsiteDescription(): String {
-        return description
-    }
-
     fun setCampsiteDescription() {
     }
 
-    fun getCampsiteMaxGuests(): Int {
-        return maxGuests
-    }
-
     fun setCampsiteMaxGuests() {
-    }
-
-    fun getCampsitePricePerNight(): Float {
-        return pricePerNight
     }
 
     fun setCampsitePricePerNight() {
 
     }
 
-    fun getCampsiteImagePath(): String {
-        return imagePath
-    }
-
     fun setCampsiteImagePath() {
     }
 
-    fun getCampsiteTags(): List<String> {
-        return tags
-    }
-
     fun setCampsiteTags() {
-    }
-
-    fun getCampsiteQrCodeImagePath(): String {
-        return qrCodeImagePath
     }
 
     fun setCampsiteQrCodeImagePath() {
