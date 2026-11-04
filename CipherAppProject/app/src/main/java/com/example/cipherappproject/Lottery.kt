@@ -31,22 +31,22 @@ data class Lottery(
 ) {
     /** Returns the lottery ID. */
     fun getLotteryId(): String {
-        // TODO: Return lotteryId
+        return lotteryId
     }
 
     /** Returns the owner ID. */
     fun getOwnerId(): String {
-        // TODO: Return ownerId
+        return ownerId
     }
 
     /** Returns the campsite IDs included in this lottery. */
     fun getCampsiteIds(): List<String> {
-        // TODO: Return campsiteIds
+        return campsiteIds
     }
 
     /** Returns the number of winners. */
     fun getNumWinner(): Int {
-        // TODO: Return numWinner
+        return numWinner
     }
 
     /** Sets a positive winner count. */
@@ -56,12 +56,12 @@ data class Lottery(
 
     /** Returns the registration start date. */
     fun getStartDate(): String {
-        // TODO: Return startDate
+        return startDate
     }
 
     /** Returns the registration end date. */
     fun getEndDate(): String {
-        // TODO: Return endDate
+        return endDate
     }
 
     /** Sets a valid registration period. */
@@ -71,7 +71,7 @@ data class Lottery(
 
     /** Returns the waitlist capacity, or null for unlimited. */
     fun getMaxParticipants(): Int? {
-        // TODO: Return maxParticipants
+        return maxParticipants
     }
 
     /** Sets the optional capacity; null means unlimited. */
@@ -81,11 +81,11 @@ data class Lottery(
 
     /** Returns the lottery status values. */
     fun getStatus(): List<String> {
-        // TODO: Return status
+        return status
     }
 
     /** Returns the creation date/time. */
     fun getCreatedAt(): String {
-        // TODO: Return createdAt
+        return createdAt
     }
 }
