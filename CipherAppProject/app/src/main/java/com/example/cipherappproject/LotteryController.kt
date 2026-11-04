@@ -8,6 +8,7 @@ import com.example.cipherappproject.database.models.Lottery
  * Outstanding issues: implement logic and connect shared ownership/persistence
  * interfaces. Date semantics and capacity rules require team agreement.
  */
+/*
 class LotteryController {
     /** Validates settings and constructs a lottery; persistence is separate. */
     fun createLottery(
@@ -36,3 +37,4 @@ class LotteryController {
         // TODO: Validate optional capacity
     }
 }
+*/

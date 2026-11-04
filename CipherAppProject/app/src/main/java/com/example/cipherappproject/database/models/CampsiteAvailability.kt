@@ -1,4 +1,23 @@
 package com.example.cipherappproject.database.models
+
+/*
+--------------------------------------------------------------------------------------
+Program Name: CampsiteAvailability.kt
+Date Written: October 27, 2026
+Author: Sofia Arturo Gomez
+Purpose: Manage database for the object as CampsiteAvailability
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-02-24  Sofia      1.01     added skeleton
+2026-03-22  Sofia      1.01     fixed getters and setters
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
+
 /**
  * Represents a CampsiteAvailability main attributes and status in relation with the Firebase database.
  *
@@ -16,30 +35,30 @@ package com.example.cipherappproject.database.models
  */
 
 data class CampsiteAvailability (
-    val campsiteAvailabilityId:String = "",
-    val campsiteId: String = "",
-    val startDate: String = "",
-    val endDate: String = "",
-    var status: String = "" // can change --> useful for log too
+    private val campsiteAvailabilityId: String = "",
+    private val campsiteId: String = "",
+    private val startDate: String = "",
+    private val endDate: String = "",
+    private var status: String = "" // can change --> useful for log too
 ){
 
     fun getCampsiteAvailabilityId():String {
         return campsiteAvailabilityId
     }
 
-    fun getCampsiteId():String {
+    fun getCampsiteAvailabilityCampsiteId():String {
         return campsiteId
     }
 
-    fun getStartDate():String {
+    fun getCampsiteAvailabilityStartDate():String {
         return startDate
     }
 
-    fun getEndDate():String {
+    fun getCampsiteAvailabilityEndDate():String {
         return endDate
     }
 
-    fun getStatus():String {
+    fun getCampsiteAvailabilityStatus():String {
         return status
     }
 

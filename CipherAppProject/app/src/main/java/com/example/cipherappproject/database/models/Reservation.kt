@@ -1,4 +1,22 @@
 package com.example.cipherappproject.database.models
+
+/*
+--------------------------------------------------------------------------------------
+Program Name: Reservation.kt
+Date Written: October 27, 2026
+Author: Sofia Arturo Gomez
+Purpose: Manage database for the object as Reservation
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-02-24  Sofia      1.01     added skeleton
+2026-03-22  Sofia      1.01     fixed getters and setters
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
 /**
  * Represents a Reservation main attributes and status in relation with the Firebase database.
  *
@@ -16,12 +34,49 @@ package com.example.cipherappproject.database.models
  *
  */
 data class Reservation (
-    val reservationId: String = "",
-    val userId: String = "",
-    val campsiteId: String = "",
-    val lotteryId: String = "",
-    var status: String = "",
-    val createdAt: String = "",
-    val bookStartDate: String = "",
-    val bookEndDate: String = ""
-)
+    private val reservationId: String = "",
+    private val userId: String = "",
+    private val campsiteId: String = "",
+    private val lotteryId: String = "",
+    private var status: String = "",
+    private val createdAt: String = "",
+    private val bookStartDate: String = "",
+    private val bookEndDate: String = ""
+){
+    fun getBookEndDate(): String {
+        return bookEndDate
+    }
+
+    fun getBookStartDate(): String {
+        return bookStartDate
+    }
+
+    fun getCreatedAt(): String {
+        return createdAt
+    }
+
+    fun getStatus(): String {
+        return status
+    }
+    fun setStatus(updateStatus: String){
+        status = updateStatus
+    }
+
+    fun getCampsiteId(): String {
+        return campsiteId
+    }
+
+    fun getLotteryId(): String {
+        return lotteryId
+    }
+
+    fun getReservationId(): String {
+        return reservationId
+    }
+
+    fun getUserId(): String {
+        return userId
+    }
+
+
+}

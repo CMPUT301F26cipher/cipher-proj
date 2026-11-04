@@ -1,18 +1,36 @@
 package com.example.cipherappproject.database.repositories
 
+/*
+--------------------------------------------------------------------------------------
+Program Name: CampsiteRepository.kt
+Date Written: October 27, 2026
+Author: Sofia Arturo Gomez
+Purpose: Manage database methods for CampsiteRepository
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-02-24  Sofia      1.01     added skeleton
+2026-03-22  Sofia      1.01     added query get by id
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
 import androidx.compose.runtime.mutableStateListOf
 import com.example.cipherappproject.database.models.Campsite
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
 class CampsiteRepository {
     private val db = Firebase.firestore
     private val campsitesRef = db.collection("campsites")
-    private val _campsites = mutableStateListOf<Campsite>()
+    private val _allCampsites = mutableStateListOf<Campsite>()
 
 
     val campsites: List<Campsite>
-        get() = _campsites
+        get() = _allCampsites
 
     /**
      * create a campsite object and save it in firestore database
@@ -39,21 +57,20 @@ class CampsiteRepository {
     fun addCampsite( // pass the field and only then create the campsite object in this function --> since id is only known and created here
         ownerId: String,
         campsiteName: String,
-        mapLocation: String,
+        mapLocation: List<String>,
         description: String,
-        amenities: List<String>,
+        amenities: MutableList<String>,
         maxGuests: Int,
         pricePerNight: Float,
         imagePath: String,
-        tags: List<String>,
+        tags: MutableList<String>,
         qrCodeImagePath: String
 
-    ) {
+    ): String {
         // create a reference and id to the new campsite
         val campsiteRef = campsitesRef.document()
 
         // create campsite object
-
         val campsite = Campsite(
             campsiteId = campsiteRef.id,
             ownerId = ownerId,
@@ -69,12 +86,36 @@ class CampsiteRepository {
         )
 
         // save the object in the firebase
-        campsiteRef.set(campsite)
+        Tasks.await(campsiteRef.set(campsite))
+
+        return campsiteRef.id
+    }
+
+
+    fun getCampsiteById(
+        campsiteId: String,
+        result: (Campsite?) -> Unit
+    ){
+        campsitesRef
+            .document(campsiteId)
+            .get()
+            .addOnSuccessListener { document ->
+
+                /*learn and taken form https://medium.com/@ender.koca94/effective-data-modeling-in-firebase-cloud-firestore-using-kotlin-0a3224d84bb8*/
+                val campsite = document.toObject(Campsite::class.java)
+
+                // to avoid :type use lamba
+                result(campsite)
+
+            }
+            .addOnFailureListener { exception ->
+                result(null)
+            }
     }
 
 
     fun updateCampsite(campsite: Campsite) {
-        campsitesRef.document(campsite.campsiteId).set(campsite)
+        campsitesRef.document(campsite.getCampsiteId()).set(campsite)
     }
 
 
@@ -111,13 +152,13 @@ class CampsiteRepository {
                 return@addSnapshotListener
             }
 
-            _campsites.clear()
+            _allCampsites.clear()
 
             snapshot?.documents?.forEach { document ->
                 val campsite = document.toObject(Campsite::class.java) // pass from firestore to kotlin object
 
                 if (campsite != null) {
-                    _campsites.add(campsite)
+                    _allCampsites.add(campsite)
                 }
             }
         }

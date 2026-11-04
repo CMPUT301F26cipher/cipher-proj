@@ -1,4 +1,22 @@
 package com.example.cipherappproject.database.models
+
+/*
+--------------------------------------------------------------------------------------
+Program Name: Profile.kt
+Date Written: October 27, 2026
+Author: Sofia Arturo Gomez
+Purpose: Manage database for the object as Profile
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-02-24  Sofia      1.01     added skeleton
+2026-03-22  Sofia      1.01     fixed getters and setters
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
 /**
  * Represents a Profile main attributes and status in relation with the Firebase database.
  *
@@ -14,11 +32,35 @@ package com.example.cipherappproject.database.models
  *
  */
 data class Profile (
-    val profileId: String = "",
-    var name: String = "",
-    var email: String = "",
+    private val profileId: String = "",
+    private var name: String = "",
+    private var email: String = "",
     /*Learned and taken from baeldung blog website as https://www.baeldung.com/kotlin/initialize-list*/
-    val role: List<String> = emptyList<String>(),
-    var imageProfilePath: String = "",
-    val deviceId: String = "" // WE NEED TO REVIEW THIS TYPE!
-)
+    private val role: List<String> = emptyList<String>(),
+    private var imageProfilePath: String = "",
+    private val deviceId: String = "" // WE NEED TO REVIEW THIS TYPE!
+){
+    fun getProfileId(): String {
+        return profileId
+    }
+
+    fun getRole(): List<String> {
+        return role
+    }
+
+    fun getImageProfilePath(): String {
+        return imageProfilePath
+    }
+
+    fun getDeviceId(): String {
+        return deviceId
+    }
+
+    fun getName(): String {
+        return name
+    }
+
+    fun getEmail(): String {
+        return email
+    }
+}

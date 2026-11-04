@@ -1,4 +1,22 @@
 package com.example.cipherappproject.database.models
+
+/*
+--------------------------------------------------------------------------------------
+Program Name: Campsite.kt
+Date Written: October 27, 2026
+Author: Sofia Arturo Gomez
+Purpose: Manage database for the object as Campsite
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-02-24  Sofia      1.01     added skeleton
+2026-03-22  Sofia      1.01     fixed getters and setters
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
 /**
  * Represents a Campsite main attributes and status in relation with the Firebase database.
  *
@@ -21,24 +39,34 @@ package com.example.cipherappproject.database.models
  */
 
 data class Campsite (
-    val campsiteId: String = "",
-    val ownerId: String = "",
-    var campsiteName: String = "",
-    val mapLocation: String = "",
-    var description: String = "",
-    val amenities: List<String> = emptyList(),
-    val maxGuests: Int = 0,
-    val pricePerNight: Float = 0.0f, // NEED TO REVIEW THIS --> we need to worry about precision and losing money?
-    val imagePath: String = "",
-    val tags: List<String> = emptyList(),
-    val qrCodeImagePath: String = ""
+    private val campsiteId: String = "",
+    private val ownerId: String = "",
+    private var campsiteName: String = "",
+    private val mapLocation: List<String> = emptyList(), // format latitude and longitude and name location // read only
+    private var description: String = "",
+    private val amenities: MutableList<String> = mutableListOf(),
+    private var maxGuests: Int = 0,
+    private var pricePerNight: Float = 0.0f, // NEED TO REVIEW THIS --> we need to worry about precision and losing money?
+    private var imagePath: String = "",
+    private val tags: MutableList<String> = mutableListOf(),
+    private var qrCodeImagePath: String = ""
 ){
-    // WILL FOLLOW A SIMILAR FORMAT TO PROFILE
+    fun getCampsiteAmenities(): List<String> {
+        return amenities
+    }
+
+    fun addCampsiteAmenity(amenity: String) {
+        amenities.add(amenity)
+    }
+
+    fun removeCampsiteAmenity(amenity: String) {
+        amenities.remove(amenity)
+    }
     fun getCampsiteId(): String {
         return campsiteId
     }
 
-    fun getOwnerId(): String {
+    fun getCampsiteOwnerId(): String {
         return ownerId
     }
 
@@ -46,58 +74,64 @@ data class Campsite (
         return campsiteName
     }
 
-    fun setCampsiteName() {
-
+    fun setCampsiteName(name: String) {
+        campsiteName = name
     }
 
-    fun getCampsiteLocation(): String {
+    fun getCampsiteLocation(): List<String> {
         return mapLocation
-    }
-
-    fun setCampsiteLocation() {
     }
 
     fun getCampsiteDescription(): String {
         return description
     }
 
-    fun setCampsiteDescription() {
+    fun setCampsiteDescription(desc: String) {
+        description = desc
     }
 
     fun getCampsiteMaxGuests(): Int {
         return maxGuests
     }
 
-    fun setCampsiteMaxGuests() {
+    fun setCampsiteMaxGuests(numGuests: Int) {
+        maxGuests = numGuests
     }
 
     fun getCampsitePricePerNight(): Float {
         return pricePerNight
     }
 
-    fun setCampsitePricePerNight() {
-
+    fun setCampsitePricePerNight(price: Float) {
+        pricePerNight = price
     }
 
     fun getCampsiteImagePath(): String {
         return imagePath
     }
 
-    fun setCampsiteImagePath() {
+    fun setCampsiteImagePath(path: String) {
+        imagePath = path
     }
 
     fun getCampsiteTags(): List<String> {
         return tags
     }
 
-    fun setCampsiteTags() {
+    fun addCampsiteTag(tag: String) {
+        tags.add(tag)
+    }
+
+    fun removeCampsiteTag(tag: String) {
+        tags.remove(tag)
     }
 
     fun getCampsiteQrCodeImagePath(): String {
         return qrCodeImagePath
     }
 
-    fun setCampsiteQrCodeImagePath() {
+    fun setCampsiteQrCodeImagePath(path: String) {
+        qrCodeImagePath = path
     }
 }
 
