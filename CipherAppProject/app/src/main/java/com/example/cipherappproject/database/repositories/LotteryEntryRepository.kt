@@ -10,8 +10,9 @@ package com.example.cipherappproject.database.repositories
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-2026-02-24  Sofia      1.01     added skeleton
-2026-03-22  Sofia      1.01     added query get by id
+2026-03-27  Sofia      1.01     added skeleton
+2026-04-10  Sofia      1.02     added query get by id
+2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -26,7 +27,7 @@ import com.google.firebase.firestore.firestore
 
 class LotteryEntryRepository {
     private val db = Firebase.firestore
-    private val lotteriesEntryRef = db.collection("entries")
+    private val lotteriesEntryRef = db.collectionGroup("entries")
     private val _allLotteriesEntries = mutableStateListOf<LotteryEntry>()
 
 
@@ -41,7 +42,7 @@ class LotteryEntryRepository {
 
     ) : String {
         // create a reference and id to the new profile
-        val lotteryEntryRef = lotteriesEntryRef.document()
+        val lotteryEntryRef = db.collection("lotteries/$lotteryId/entries").document()
 
         // create lottery object
         val lotteryEntry = LotteryEntry(
@@ -59,15 +60,49 @@ class LotteryEntryRepository {
 
     }
 
-    fun updateLottery(lotteryEntry: LotteryEntry){
-        lotteriesEntryRef.document(lotteryEntry.getLotteryEntryId()).set(lotteryEntry)
+    fun updateLotteryEntry(lotteryEntry: LotteryEntry){
+        val lotteryId = lotteryEntry.getLotteryEntryLotteryId()
+        val lotteryEntryId = lotteryEntry.getLotteryEntryId()
+
+        val lotteryEntryRef = db.collection("lotteries/$lotteryId/entries")
+
+        lotteryEntryRef.document(lotteryEntryId).set(lotteryEntry)
     }
 
-
+    /*
     fun deleteLottery(lotteryEntryId: String){
         lotteriesEntryRef.document(lotteryEntryId).delete() // need to check if this also affects lotteries, reservations, availabity, iamges??? frick
 
     }
+    */
+
+    fun getLotteryEntriesByLotteryId(
+        lotteryId: String,
+        result: (List<LotteryEntry>?) -> Unit
+    ){
+        val campsiteAvailabilityRef = db.collection("lotteries")
+            .document(lotteryId)
+            .collection("entries")
+            .get()
+            .addOnSuccessListener { documents ->
+
+                val entries : MutableList<LotteryEntry> = mutableListOf()
+
+                for (document in documents) {
+                    val entry = document.toObject(LotteryEntry::class.java)
+
+                    entries.add(entry)
+                }
+
+                result(entries)
+            }
+            .addOnFailureListener { exception ->
+                result(null)
+            }
+
+    }
+
+
 
     init {
         lotteriesEntryRef.addSnapshotListener { snapshot, error ->
@@ -94,10 +129,6 @@ class LotteryEntryRepository {
 
     }
 
-    // update each
 
-    fun getLotteriesByUser(){
-
-    }
 
 }

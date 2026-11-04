@@ -60,7 +60,8 @@ class ProfileRepository {
          ChatGPT with the following prompt:
          "how to make sure a testcase wait for the firebase to add the object and then return id? cuz it fails and idk why" followed by "how this task and await stuff works? can you provide an example please?"
          03-11-2026.*/
-        Tasks.await(profileRef.set(profile))
+        profileRef.set(profile)
+        //Tasks.await(profileRef.set(profile))
 
         return profileRef.id
     }
