@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavController
+import com.example.cipherappproject.database.models.Campsite
 
 /**
  * Home screen for entrants, allows searching from user input, and displays a list of campsites

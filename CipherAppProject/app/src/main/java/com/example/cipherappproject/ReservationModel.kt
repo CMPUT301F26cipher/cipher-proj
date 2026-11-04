@@ -1,5 +1,6 @@
 package com.example.cipherappproject
 
+import com.example.cipherappproject.database.models.Campsite
 import java.util.Date
 
 class ReservationModel(

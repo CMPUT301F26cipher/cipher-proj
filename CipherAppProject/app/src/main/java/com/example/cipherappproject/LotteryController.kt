@@ -1,5 +1,7 @@
 package com.example.cipherappproject
 
+import com.example.cipherappproject.database.models.Lottery
+
 /**
  * Handles owner lottery creation and validation for US 02.04.01, 02.04.05,
  * and 02.04.07.

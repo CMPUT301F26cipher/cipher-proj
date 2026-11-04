@@ -21,5 +21,28 @@ data class CampsiteAvailability (
     val startDate: String = "",
     val endDate: String = "",
     var status: String = "" // can change --> useful for log too
-)
+){
+
+    fun getCampsiteAvailabilityId():String {
+        return campsiteAvailabilityId
+    }
+
+    fun getCampsiteId():String {
+        return campsiteId
+    }
+
+    fun getStartDate():String {
+        return startDate
+    }
+
+    fun getEndDate():String {
+        return endDate
+    }
+
+    fun getStatus():String {
+        return status
+    }
+
+
+}
 
