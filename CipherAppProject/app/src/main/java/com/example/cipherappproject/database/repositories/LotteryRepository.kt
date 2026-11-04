@@ -10,8 +10,9 @@ Purpose: Manage database methods for LotteryRepository
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-2026-02-24  Sofia      1.01     added skeleton
-2026-03-22  Sofia      1.01     added query get by id
+2026-03-27  Sofia      1.01     added skeleton
+2026-04-10  Sofia      1.02     added query get by id
+2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -19,6 +20,7 @@ NA
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.cipherappproject.database.models.Lottery
+import com.example.cipherappproject.database.models.LotteryEntry
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -61,7 +63,8 @@ class LotteryRepository {
         )
 
         // save the object in the firebase
-        Tasks.await(lotteryRef.set(lottery))
+        lotteryRef.set(lottery)
+        //Tasks.await(lotteryRef.set(lottery))
 
         return lotteryRef.id
 
@@ -71,11 +74,18 @@ class LotteryRepository {
         lotteriesRef.document(lottery.getLotteryId()).set(lottery)
     }
 
+    fun getLotteriesByOwnerId(
+        ownerId: String,
+        result: (List<Lottery>?) -> Unit
+    ){
 
+    }
+
+    /*
     fun deleteLottery(lotteryId: String){
         lotteriesRef.document(lotteryId).delete() // need to check if this also affects lotteries, reservations, availabity, iamges??? frick
 
-    }
+    }*/
 
     init {
         lotteriesRef.addSnapshotListener { snapshot, error ->

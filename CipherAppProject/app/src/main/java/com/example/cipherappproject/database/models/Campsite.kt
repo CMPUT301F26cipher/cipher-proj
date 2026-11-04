@@ -10,8 +10,8 @@ Purpose: Manage database for the object as Campsite
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-2026-02-24  Sofia      1.01     added skeleton
-2026-03-22  Sofia      1.01     fixed getters and setters
+2026-03-27  Sofia      1.01     added skeleton
+2026-03-10  Sofia      1.02     fixed getters and setters
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA

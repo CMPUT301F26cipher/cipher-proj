@@ -10,8 +10,9 @@ Purpose: Manage database methods for ReservationRepository
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-2026-02-24  Sofia      1.01     added skeleton
-2026-03-22  Sofia      1.01     added query get by id
+2026-03-27  Sofia      1.01     added skeleton
+2026-04-10  Sofia      1.02     added query get by id
+2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -20,6 +21,7 @@ NA
 import androidx.compose.runtime.mutableStateListOf
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.Lottery
+import com.example.cipherappproject.database.models.Profile
 import com.example.cipherappproject.database.models.Reservation
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
@@ -56,30 +58,25 @@ class ReservationRepository {
             createdAt = createdAt
 
         )
-
         // save the object in the firebase
-        Tasks.await(reservationRef.set(reservation))
+        reservationRef.set(reservation)
+        //Tasks.await(reservationRef.set(reservation))
 
         return reservationRef.id
-
-
     }
 
     fun updateReservation(reservation: Reservation){
         reservationsRef.document(reservation.getReservationId()).set(reservation)
     }
 
-    fun getReservationsByUser(){
+    fun getReservationsByUserId(
+        userId: String,
+        result: (List<Reservation?>) -> Unit
+
+    ){
 
     }
 
-    fun getReservationByUser(){
-
-    }
-
-    fun changeReservationStatus(){
-
-    }
 
     fun getReservationById(
         reservationId: String,

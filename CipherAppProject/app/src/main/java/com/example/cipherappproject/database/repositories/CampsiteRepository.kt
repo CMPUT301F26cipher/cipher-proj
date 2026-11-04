@@ -10,8 +10,9 @@ Purpose: Manage database methods for CampsiteRepository
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-2026-02-24  Sofia      1.01     added skeleton
-2026-03-22  Sofia      1.01     added query get by id
+2026-03-27  Sofia      1.01     added skeleton
+2026-04-10  Sofia      1.02     added query get by id
+2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -86,7 +87,8 @@ class CampsiteRepository {
         )
 
         // save the object in the firebase
-        Tasks.await(campsiteRef.set(campsite))
+        campsiteRef.set(campsite)
+        //Tasks.await(campsiteRef.set(campsite))
 
         return campsiteRef.id
     }
