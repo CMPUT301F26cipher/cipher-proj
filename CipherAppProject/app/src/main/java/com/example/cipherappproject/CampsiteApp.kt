@@ -25,8 +25,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 /**
- * Origin of all navigation, yet to implement nav-bar, and need to implement
- * user types, which will change the start destination and nav-bar options
+ * Origin of all navigation, handles persistence of nav-bar and title bar
+ *
+ * Outstanding issue: implement user types, which will change the start destination and nav-bar options
+ */
+/*
+ * Built by Bailey Nov 2 2026
+ * Updates:
  *
  */
 

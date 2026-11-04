@@ -1,22 +1,4 @@
 package com.example.cipherappproject.database.models
-
-/*
---------------------------------------------------------------------------------------
-Program Name: Campsite.kt
-Date Written: October 27, 2026
-Author: Sofia Arturo Gomez
-Purpose: Manage database for the object as Campsite
---------------------------------------------------------------------------------------
-Modification History:
---------------------------------------------------------------------------------------
-Date        Person     CSR#     Description
-2026-03-27  Sofia      1.01     added skeleton
-2026-03-10  Sofia      1.02     fixed getters and setters
---------------------------------------------------------------------------------------
-Future Enhancements
-NA
- */
-
 /**
  * Represents a Campsite main attributes and status in relation with the Firebase database.
  *
@@ -39,99 +21,43 @@ NA
  */
 
 data class Campsite (
-    private val campsiteId: String = "",
-    private val ownerId: String = "",
-    private var campsiteName: String = "",
-    private val mapLocation: List<String> = emptyList(), // format latitude and longitude and name location // read only
-    private var description: String = "",
-    private val amenities: MutableList<String> = mutableListOf(),
-    private var maxGuests: Int = 0,
-    private var pricePerNight: Float = 0.0f, // NEED TO REVIEW THIS --> we need to worry about precision and losing money?
-    private var imagePath: String = "",
-    private val tags: MutableList<String> = mutableListOf(),
-    private var qrCodeImagePath: String = ""
+    val campsiteId: String = "",
+    val ownerId: String = "",
+    var campsiteName: String = "",
+    val mapLocation: String = "",
+    var description: String = "",
+    val amenities: List<String> = emptyList(),
+    val maxGuests: Int = 0,
+    val pricePerNight: Float = 0.0f, // NEED TO REVIEW THIS --> we need to worry about precision and losing money?
+    val imagePath: String = "",
+    val tags: List<String> = emptyList(),
+    val qrCodeImagePath: String = ""
 ){
-    fun getCampsiteAmenities(): List<String> {
-        return amenities
+    // WILL FOLLOW A SIMILAR FORMAT TO PROFILE
+    fun setCampsiteName() {
+
     }
 
-    fun addCampsiteAmenity(amenity: String) {
-        amenities.add(amenity)
+    fun setCampsiteLocation() {
     }
 
-    fun removeCampsiteAmenity(amenity: String) {
-        amenities.remove(amenity)
-    }
-    fun getCampsiteId(): String {
-        return campsiteId
+    fun setCampsiteDescription() {
     }
 
-    fun getCampsiteOwnerId(): String {
-        return ownerId
+    fun setCampsiteMaxGuests() {
     }
 
-    fun getCampsiteName(): String {
-        return campsiteName
+    fun setCampsitePricePerNight() {
+
     }
 
-    fun setCampsiteName(name: String) {
-        campsiteName = name
+    fun setCampsiteImagePath() {
     }
 
-    fun getCampsiteLocation(): List<String> {
-        return mapLocation
+    fun setCampsiteTags() {
     }
 
-    fun getCampsiteDescription(): String {
-        return description
-    }
-
-    fun setCampsiteDescription(desc: String) {
-        description = desc
-    }
-
-    fun getCampsiteMaxGuests(): Int {
-        return maxGuests
-    }
-
-    fun setCampsiteMaxGuests(numGuests: Int) {
-        maxGuests = numGuests
-    }
-
-    fun getCampsitePricePerNight(): Float {
-        return pricePerNight
-    }
-
-    fun setCampsitePricePerNight(price: Float) {
-        pricePerNight = price
-    }
-
-    fun getCampsiteImagePath(): String {
-        return imagePath
-    }
-
-    fun setCampsiteImagePath(path: String) {
-        imagePath = path
-    }
-
-    fun getCampsiteTags(): List<String> {
-        return tags
-    }
-
-    fun addCampsiteTag(tag: String) {
-        tags.add(tag)
-    }
-
-    fun removeCampsiteTag(tag: String) {
-        tags.remove(tag)
-    }
-
-    fun getCampsiteQrCodeImagePath(): String {
-        return qrCodeImagePath
-    }
-
-    fun setCampsiteQrCodeImagePath(path: String) {
-        qrCodeImagePath = path
+    fun setCampsiteQrCodeImagePath() {
     }
 }
 

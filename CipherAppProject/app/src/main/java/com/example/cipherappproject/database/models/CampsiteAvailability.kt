@@ -1,23 +1,4 @@
 package com.example.cipherappproject.database.models
-
-/*
---------------------------------------------------------------------------------------
-Program Name: CampsiteAvailability.kt
-Date Written: October 27, 2026
-Author: Sofia Arturo Gomez
-Purpose: Manage database for the object as CampsiteAvailability
---------------------------------------------------------------------------------------
-Modification History:
---------------------------------------------------------------------------------------
-Date        Person     CSR#     Description
-2026-03-27  Sofia      1.01     added skeleton
-2026-03-10  Sofia      1.02     fixed getters and setters
---------------------------------------------------------------------------------------
-Future Enhancements
-NA
- */
-
-
 /**
  * Represents a CampsiteAvailability main attributes and status in relation with the Firebase database.
  *
@@ -35,33 +16,10 @@ NA
  */
 
 data class CampsiteAvailability (
-    private val campsiteAvailabilityId: String = "",
-    private val campsiteId: String = "",
-    private val startDate: String = "",
-    private val endDate: String = "",
-    private var status: String = "" // can change --> useful for log too
-){
-
-    fun getCampsiteAvailabilityId():String {
-        return campsiteAvailabilityId
-    }
-
-    fun getCampsiteAvailabilityCampsiteId():String {
-        return campsiteId
-    }
-
-    fun getCampsiteAvailabilityStartDate():String {
-        return startDate
-    }
-
-    fun getCampsiteAvailabilityEndDate():String {
-        return endDate
-    }
-
-    fun getCampsiteAvailabilityStatus():String {
-        return status
-    }
-
-
-}
+    val campsiteAvailabilityId:String = "",
+    val campsiteId: String = "",
+    val startDate: String = "",
+    val endDate: String = "",
+    var status: String = "" // can change --> useful for log too
+){ }
 

@@ -67,8 +67,8 @@ class CampsiteAvailabilityRepository {
     }
 
     fun updateCampsiteAvailability(campsiteAvailability: CampsiteAvailability){
-        val campsiteAvailabilityId = campsiteAvailability.getCampsiteAvailabilityId()
-        val campsiteId = campsiteAvailability.getCampsiteAvailabilityCampsiteId()
+        val campsiteAvailabilityId = campsiteAvailability.campsiteAvailabilityId
+        val campsiteId = campsiteAvailability.campsiteId
 
 
         val campsiteAvailabilityRef = db.collection("campsites/$campsiteId/availability")

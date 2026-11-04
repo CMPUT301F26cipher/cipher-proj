@@ -9,7 +9,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavController
-
+/*
+ * Built by Bailey
+ * Nov 2 2026
+ * Updates:
+ *
+ */
 @Composable
 fun ProfileView(
     navController: NavController
