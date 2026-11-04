@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.cipherappproject.database.models.Campsite
 
 /**
  * Displays summary of a given campsite. Is clickable, which allows navigation to the details on

@@ -1,4 +1,4 @@
-package com.example.cipherappproject
+package com.example.cipherappproject.database.models
 
 import kotlin.String
 
@@ -19,12 +19,10 @@ import kotlin.String
  *
  */
 data class LotteryEntry (
-    private val lotteryId: String = "",
-    private val userId: String = "",
+    val lotteryId: String = "",
+    val userId: String = "",
     // registered, winner, offerPending, notSelected, accepted, declined, expired, withdrawn, etc
-    private val status: List<String> = emptyList(),
+    var status: String = "registered",
     // Defined after the list users are in random order so that we can pick the next person in the list if needed and know their status too
-    private val positionLottery: Int = 0
-){
-    // WILL FOLLOW A SIMILAR FORMAT TO PROFILE
-}
+    var positionLottery: Int = -1 // means not added yet
+)

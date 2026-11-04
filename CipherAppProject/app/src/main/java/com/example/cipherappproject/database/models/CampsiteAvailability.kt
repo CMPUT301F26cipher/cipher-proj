@@ -1,4 +1,4 @@
-package com.example.cipherappproject
+package com.example.cipherappproject.database.models
 /**
  * Represents a CampsiteAvailability main attributes and status in relation with the Firebase database.
  *
@@ -16,13 +16,13 @@ package com.example.cipherappproject
  */
 
 data class CampsiteAvailability (
-    private val campsiteAvailabilityId:String = "",
-    private val campsiteId: String = "",
-    private val startDate: String = "",
-    private val endDate: String = "",
-    private val status: String = "" // NEED TO REVIEW THIS --> this class is just offered or can th owner cancel it?
-) {
-    // WILL FOLLOW A SIMILAR FORMAT TO PROFILE
+    val campsiteAvailabilityId:String = "",
+    val campsiteId: String = "",
+    val startDate: String = "",
+    val endDate: String = "",
+    var status: String = "" // can change --> useful for log too
+){
+
     fun getCampsiteAvailabilityId():String {
         return campsiteAvailabilityId
     }
@@ -45,3 +45,4 @@ data class CampsiteAvailability (
 
 
 }
+

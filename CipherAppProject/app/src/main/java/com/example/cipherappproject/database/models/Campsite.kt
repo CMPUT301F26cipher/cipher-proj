@@ -1,4 +1,4 @@
-package com.example.cipherappproject
+package com.example.cipherappproject.database.models
 /**
  * Represents a Campsite main attributes and status in relation with the Firebase database.
  *
@@ -7,7 +7,7 @@ package com.example.cipherappproject
  *
  * @property campsiteId use to uniquely identify each campsite within the database
  * @property ownerId use to identify to which owner is related to
- * @property campsiteName is the campsite name
+ * @property campsiteName is the campsite name,
  * @property mapLocation the path to the image with the location of the campsite
  * @property description the campsite description
  * @property amenities the campsite further features
@@ -21,17 +21,17 @@ package com.example.cipherappproject
  */
 
 data class Campsite (
-    private val campsiteId: String = "",
-    private val ownerId: String = "",
-    private val campsiteName: String = "",
-    private val mapLocation: String = "",
-    private val description: String = "",
-    private val amenities: List<String> = emptyList(),
-    private val maxGuests: Int = 0,
-    private val pricePerNight: Float = 0.0f, // NEED TO REVIEW THIS --> we need to worry about precision and losing money?
-    private val imagePath: String = "",
-    private val tags: List<String> = emptyList(),
-    private val qrCodeImagePath: String = ""
+    val campsiteId: String = "",
+    val ownerId: String = "",
+    var campsiteName: String = "",
+    val mapLocation: String = "",
+    var description: String = "",
+    val amenities: List<String> = emptyList(),
+    val maxGuests: Int = 0,
+    val pricePerNight: Float = 0.0f, // NEED TO REVIEW THIS --> we need to worry about precision and losing money?
+    val imagePath: String = "",
+    val tags: List<String> = emptyList(),
+    val qrCodeImagePath: String = ""
 ){
     // WILL FOLLOW A SIMILAR FORMAT TO PROFILE
     fun getCampsiteId(): String {
@@ -47,6 +47,7 @@ data class Campsite (
     }
 
     fun setCampsiteName() {
+
     }
 
     fun getCampsiteLocation(): String {
@@ -99,3 +100,6 @@ data class Campsite (
     fun setCampsiteQrCodeImagePath() {
     }
 }
+
+
+
