@@ -13,6 +13,7 @@ Date        Person     CSR#     Description
 2026-03-27  Sofia      1.01     added skeleton
 2026-04-10  Sofia      1.02     added query get by id
 2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
+2026-05-11  Justin              added a validation step as it verifies campsite ownership and saves lottery settings.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
