@@ -24,6 +24,8 @@ import com.example.cipherappproject.database.models.LotteryEntry
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.Source
 
 class LotteryRepository {
 
@@ -80,6 +82,69 @@ class LotteryRepository {
     ){
 
     }
+
+
+
+    /*
+        Verifies that selected campsites exist and belong to the owner, and then saves the lottery with a generated document ID
+
+        Report confirmed save success or an ownership/database error through callbacks. 
+
+     */
+    fun saveNewLottery( // THis function verifies campsite ownership and saves a new lottery. 
+        lottery: Lottery,
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        if (lottery.ownerId.isBlank()) {
+            onFailure("An owner is required.")
+            return
+        }
+
+        val campsiteIds = lottery.campsiteIds.distinct()
+
+        if (campsiteIds.isEmpty() || campsiteIds.any { it.isBlank() }) {
+            onFailure("Select at least one campsite.")
+            return
+        }
+
+        val campsiteReads = campsiteIds.map { campsiteId ->
+            db.collection("campsites")
+                .document(campsiteId)
+                .get(Source.SERVER)
+        }
+
+        Tasks.whenAllSuccess<DocumentSnapshot>(campsiteReads)
+            .addOnSuccessListener { documents ->
+                val ownsEveryCampsite = documents.all { document ->
+                    document.exists() &&
+                        document.getString("ownerId") == lottery.ownerId
+                }
+
+                if (!ownsEveryCampsite) {
+                    onFailure("You can only list campsites you own.")
+                } else {
+                    val reference = lotteriesRef.document()
+
+                    val savedLottery = lottery.copy(
+                        lotteryId = reference.id,
+                        campsiteIds = campsiteIds
+                    )
+
+                    reference.set(savedLottery)
+                        .addOnSuccessListener {
+                            onSuccess(reference.id)
+                        }
+                        .addOnFailureListener {
+                            onFailure("Could not save lottery. Please try again.")
+                        }
+                }
+            }
+            .addOnFailureListener {
+                onFailure("Could not verify the campsite ownership. Check your connection.")
+            }
+    }
+
 
     // Loads one lottery
     fun getLotteryById(
