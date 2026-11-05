@@ -1,6 +1,23 @@
-package com.example.cipherappproject
+package com.example.cipherappproject.database.models
 
 import kotlin.String
+
+/*
+--------------------------------------------------------------------------------------
+Program Name: LotteryEntry.kt
+Date Written: October 27, 2026
+Author: Sofia Arturo Gomez
+Purpose: Manage database for the object as LotteryEntry
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-03-27  Sofia      1.01     added skeleton
+2026-03-10  Sofia      1.02     fixed getters and setters
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
 
 /**
  * Represents a LotteryEntry main attributes and status in relation with the Firebase database.
@@ -19,12 +36,31 @@ import kotlin.String
  *
  */
 data class LotteryEntry (
+    private val lotteryEntryId: String = "",
     private val lotteryId: String = "",
     private val userId: String = "",
     // registered, winner, offerPending, notSelected, accepted, declined, expired, withdrawn, etc
-    private val status: List<String> = emptyList(),
+    private var status: String = "registered",
     // Defined after the list users are in random order so that we can pick the next person in the list if needed and know their status too
-    private val positionLottery: Int = 0
+    private var positionLottery: Int = -1 // means not added yet
 ){
-    // WILL FOLLOW A SIMILAR FORMAT TO PROFILE
+    fun getLotteryEntryId(): String {
+        return lotteryEntryId
+    }
+
+    fun getLotteryEntryLotteryId(): String {
+        return lotteryId
+    }
+
+    fun getLotteryEntryUserId(): String {
+        return userId
+    }
+
+    fun getLotteryEntryStatus(): String {
+        return status
+    }
+
+    fun getLotteryEntryPositionLottery(): Int {
+        return positionLottery
+    }
 }

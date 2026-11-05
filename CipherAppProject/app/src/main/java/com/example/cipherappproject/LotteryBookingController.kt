@@ -1,5 +1,7 @@
 package com.example.cipherappproject
 
+import com.example.cipherappproject.database.models.Lottery
+
 /**
  * Handles winning entrant campsite and night selection for US 01.04.01
  * and 01.04.02.

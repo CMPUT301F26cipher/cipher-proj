@@ -1,7 +1,7 @@
 
 Attendence
 - Madison
-- Justin
+- Justin -> (02.04.07, 02.04.05, 02.04.01, 01.04.02, 01.04.01)
 - Shira
 - Sofia
 - Hye-Sung

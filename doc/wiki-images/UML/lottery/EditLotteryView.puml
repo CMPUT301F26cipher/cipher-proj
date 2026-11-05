@@ -2,6 +2,17 @@
 class EditLotteryView {
     ' display current lottery information that can be editable
     
+    
+    ' textbox to set registration period
+    -registrationStartInput: TextField
+    -registrationEndInput: TextField
+
+    ' textbox to set booking period
+    -bookingStartInput: TextField
+    -bookingEndInput: TextField
+
+    ' textbox to set number of lottery winners
+    -waitlistCapacityInput: TextField
 
     ' --- methods ---
     +displayLottery(LotteryModel lottery): Unit
