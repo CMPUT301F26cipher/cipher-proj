@@ -18,23 +18,27 @@ class LotteryController {
         endDate: String,
         numberOfWinners: Int,
         capacity: Int? = null
-    ): Lottery {
+    ): com.example.cipherappproject.Lottery {
         // TODO: Validate settings and ownership, then construct a Lottery
+        return Lottery()
     }
 
     /** Checks date format and chronological order. */
     fun isValidRegistrationPeriod(startDate: String, endDate: String): Boolean {
         // TODO: Validate the registration period
+        return true
     }
 
     /** Checks that the winner count is positive. */
     fun isValidWinnerCount(numberOfWinners: Int): Boolean {
         // TODO: Validate winner count
+        return true
     }
 
     /** Checks unlimited capacity or the team's agreed capacity rules. */
     fun isValidCapacity(capacity: Int?, numberOfWinners: Int): Boolean {
         // TODO: Validate optional capacity
+        return true
     }
 }
 */

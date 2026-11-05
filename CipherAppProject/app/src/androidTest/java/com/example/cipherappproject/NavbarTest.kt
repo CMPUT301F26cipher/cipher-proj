@@ -9,7 +9,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-
+/*
+ * Built by Bailey
+ * Nov 2 2026
+ * Updates:
+ *
+ */
 @RunWith(AndroidJUnit4::class)
 class NavbarTest {
     @get:Rule

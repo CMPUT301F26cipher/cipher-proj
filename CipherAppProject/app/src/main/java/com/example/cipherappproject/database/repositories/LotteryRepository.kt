@@ -54,7 +54,7 @@ class LotteryRepository {
             lotteryId = lotteryRef.id,
             ownerId = ownerId,
             campsiteIds = campsiteIds,
-            numWinners = numWinner,
+            numWinner = numWinner,
             startDate = startDate,
             endDate = endDate,
             maxParticipants = maxParticipants,
@@ -71,7 +71,7 @@ class LotteryRepository {
     }
 
     fun updateLottery(lottery: Lottery){
-        lotteriesRef.document(lottery.getLotteryId()).set(lottery)
+        lotteriesRef.document(lottery.lotteryId).set(lottery)
     }
 
     fun getLotteriesByOwnerId(

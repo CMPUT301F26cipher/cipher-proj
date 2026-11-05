@@ -1,22 +1,4 @@
 package com.example.cipherappproject.database.models
-
-/*
---------------------------------------------------------------------------------------
-Program Name: Lottery.kt
-Date Written: October 27, 2026
-Author: Sofia Arturo Gomez
-Purpose: Manage database for the object as Lottery
---------------------------------------------------------------------------------------
-Modification History:
---------------------------------------------------------------------------------------
-Date        Person     CSR#     Description
-2026-03-27  Sofia      1.01     added skeleton
-2026-03-10  Sofia      1.02     fixed getters and setters
---------------------------------------------------------------------------------------
-Future Enhancements
-NA
- */
-
 /**
  * Represents a Lottery main attributes and status in relation with the Firebase database.
  *
@@ -28,7 +10,7 @@ NA
  * @property lotteryId use to uniquely identify each lottery within the database
  * @property ownerId use to identify to which owner is related to
  * @property campsiteIds use to identify to which campsite or campsites is related to
- * @property numWinners use to uniquely identify each profile within the database
+ * @property numWinner use to uniquely identify each profile within the database
  * @property startDate the opening date of the lottery
  * @property endDate the close date of the lottery
  * @property maxParticipants if owner decides a maximum number of participants
@@ -38,66 +20,24 @@ NA
  *
  */
 data class Lottery (
-    private val lotteryId: String = "",
-    private val ownerId: String = "",
+    val lotteryId: String = "",
+    val ownerId: String = "",
     // one lottery can be applicable to many lotteries
-    private val campsiteIds: MutableList<String> = mutableListOf(),
-    private var numWinners: Int = 0,
-    private var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
-    private var endDate: String = "",
-    private var maxParticipants: Int = -1, // is optional for the owner
-    private val status: String,
-    private val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
+    val campsiteIds: List<String> = emptyList(),
+    var numWinner: Int = 0,
+    var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
+    var endDate: String = "",
+    var maxParticipants: Int, // is optional for the owner
+    val status: String,
+    val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
 ) {
-        fun getLotteryId(): String {
-            return lotteryId
+        /** Sets a valid registration period. */
+        fun setRegistrationPeriod(start: String, end: String) {
+            // TODO: Validate dates and update startDate and endDate
         }
 
-        fun getLotteryOwnerId(): String {
-            return ownerId
-        }
-
-        fun getLotteryCampsiteIds(): List<String> {
-            return campsiteIds
-        }
-
-        fun addCampsiteAmenity(campsiteId: String) {
-            campsiteIds.add(campsiteId)
-        }
-
-        fun removeCampsiteAmenity(campsiteId: String) {
-            campsiteIds.remove(campsiteId)
-        }
-
-        fun getLotteryNumWinners(): Int {
-            return numWinners
-        }
-
-        fun setLotteryNumWinner(number: Int) {
-            numWinners = number
-        }
-
-        fun getLotteryStartDate(): String {
-            return startDate
-        }
-
-        fun getLotteryEndDate(): String {
-            return endDate
-        }
-
-        fun getLotteryMaxParticipants(): Int {
-            return maxParticipants
-        }
-
-        fun setLotteryMaxParticipants(numParticipants: Int) {
-            maxParticipants = numParticipants
-        }
-
-        fun getLotteryStatus(): String {
-            return status
-        }
-
-        fun getLotteryCreatedAt(): String {
-            return createdAt
+        /** Sets the optional capacity; null means unlimited. */
+        fun setMaxParticipants(capacity: Int?) {
+            // TODO: Validate and update maxParticipants
         }
     }

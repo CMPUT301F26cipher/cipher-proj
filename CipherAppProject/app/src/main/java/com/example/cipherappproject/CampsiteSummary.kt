@@ -25,16 +25,22 @@ import com.example.cipherappproject.database.models.Campsite
  * @param campsite gives details of the campsite to be summarized
  *
  */
+/*
+ * Built by Bailey
+ * Nov 2 2026
+ * Updates:
+ *
+ */
 @Composable
 fun CampsiteSummary(
     navController: NavController,
     campsite: Campsite,
 ){
     val campsite = remember { campsite }
-    val campsiteID = campsite.getCampsiteId()
-    val campsiteName = campsite.getCampsiteName()
-    val campsiteImagePath = campsite.getCampsiteImagePath() //TODO: implement getting picture
-    val campsitePrice = campsite.getCampsitePricePerNight()
+    val campsiteID = campsite.campsiteId
+    val campsiteName = campsite.campsiteName
+    val campsiteImagePath = campsite.imagePath //TODO: implement getting picture
+    val campsitePrice = campsite.pricePerNight
     val campsitePriceStr = "$$campsitePrice" //TODO: must reformat once campsite price type is finalized
 
     Box(
