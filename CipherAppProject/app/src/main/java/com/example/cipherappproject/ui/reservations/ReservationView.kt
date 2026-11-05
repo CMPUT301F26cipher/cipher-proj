@@ -103,6 +103,8 @@ fun DisplayListContent(reservations: List<ReservationModel>) {
  * Display SINGLE reservation row, including the campsite name, campsite image, name of user, and
  * booking period
  *
+ * @param reservation 
+ * @param onCancelClick
  */
 @Composable
 fun ReservationRow(reservation: ReservationModel, onCancelClick: () -> Unit = {}) {
