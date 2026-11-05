@@ -20,9 +20,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.vectorResource
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.cipherappproject.ui.campsite.CampsiteDetailView
+import com.example.cipherappproject.ui.lottery.PLACEHOLDER_USER_ID
+import com.example.cipherappproject.ui.lottery.lotteryScreens
 
 /**
  * Origin of all navigation, handles persistence of nav-bar and title bar
@@ -86,10 +90,20 @@ fun CampsiteApp(){
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("search"){
-                CampsiteSearch(navController)
+                CampsiteSearch(
+                    onNavigateToCampsite = {
+                        navController.navigate(route = it.campsiteId)
+                    }
+                )
             }
             composable("profile"){
                 ProfileView(navController)
+            }
+            composable("lottery") {
+                lotteryScreens(
+                    navController = navController,
+                    currentUserId = PLACEHOLDER_USER_ID
+                )
             }
             //TODO: implement other navigation types (Owner, Admin)
         }
