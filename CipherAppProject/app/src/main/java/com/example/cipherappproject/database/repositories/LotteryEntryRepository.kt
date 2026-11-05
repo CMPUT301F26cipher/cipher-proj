@@ -102,6 +102,40 @@ class LotteryEntryRepository {
 
     }
 
+    fun getEntryForUser(
+        lotteryId: String,
+        userId: String,
+        result: (LotteryEntry?) -> Unit
+    ){
+        db.collection("lotteries")
+            .document(lotteryId)
+            .collection("entries")
+            .whereEqualTo("userId", userId)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { documents ->
+                result(documents.documents.firstOrNull()?.toObject(LotteryEntry::class.java))
+            }
+            .addOnFailureListener {
+                result(null)
+            }
+    }
+
+    fun updateEntryStatus(
+        lotteryId: String,
+        lotteryEntryId: String,
+        newStatus: String,
+        result: (Boolean) -> Unit
+    ){
+        db.collection("lotteries")
+            .document(lotteryId)
+            .collection("entries")
+            .document(lotteryEntryId)
+            .update("status", newStatus)
+            .addOnSuccessListener { result(true) }
+            .addOnFailureListener { result(false) }
+    }
+
 
 
     init {

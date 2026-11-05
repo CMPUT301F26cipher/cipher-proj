@@ -81,6 +81,22 @@ class LotteryRepository {
 
     }
 
+    // Loads one lottery
+    fun getLotteryById(
+        lotteryId: String,
+        result: (Lottery?) -> Unit
+    ){
+        lotteriesRef
+            .document(lotteryId)
+            .get()
+            .addOnSuccessListener { document ->
+                result(document.toObject(Lottery::class.java))
+            }
+            .addOnFailureListener {
+                result(null)
+            }
+    }
+
     /*
     fun deleteLottery(lotteryId: String){
         lotteriesRef.document(lotteryId).delete() // need to check if this also affects lotteries, reservations, availabity, iamges??? frick
