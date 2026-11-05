@@ -1,6 +1,9 @@
 package com.example.cipherappproject
 
 import com.example.cipherappproject.database.models.Lottery
+import com.example.cipherappproject.database.repositories.LotteryRepository
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * Handles owner lottery creation and validation for US 02.04.01, 02.04.05,
@@ -8,8 +11,9 @@ import com.example.cipherappproject.database.models.Lottery
  * Outstanding issues: implement logic and connect shared ownership/persistence
  * interfaces. Date semantics and capacity rules require team agreement.
  */
-/*
+
 class LotteryController {
+    private val repository by lazy { LotteryRepository() }
     /** Validates settings and constructs a lottery; persistence is separate. */
     fun createLottery(
         ownerId: String,
@@ -18,27 +22,151 @@ class LotteryController {
         endDate: String,
         numberOfWinners: Int,
         capacity: Int? = null
-    ): com.example.cipherappproject.Lottery {
-        // TODO: Validate settings and ownership, then construct a Lottery
-        return Lottery()
+    ): Lottery {
+        require(ownerId.isNotBlank()) { "Missing owner" }
+        require(campsiteIds.isNotEmpty()) { "Select at least one campsite" }
+        require(isValidRegistrationPeriod(startDate, endDate)) { "Invalid registration period" }
+        require(isValidWinnerCount(numberOfWinners)) { "Invalid number of winners" }
+        require(isValidCapacity(capacity, numberOfWinners)) { "Invalid capacity" }
+
+        return Lottery(
+            ownerId = ownerId,
+            campsiteIds = campsiteIds,
+            numWinner = numberOfWinners,
+            startDate = startDate.trim(),
+            endDate = endDate.trim(),
+            maxParticipants = capacity ?: LotteryConstants.UNLIMITED_PARTICIPANTS,
+            status = LotteryConstants.LOTTERY_OPEN,
+            createdAt = LocalDateTime.now().toString()
+        )
     }
 
     /** Checks date format and chronological order. */
     fun isValidRegistrationPeriod(startDate: String, endDate: String): Boolean {
-        // TODO: Validate the registration period
-        return true
+        val start = DateUtils.parse(startDate) ?: return false
+        val end = DateUtils.parse(endDate) ?: return false
+        return !end.isBefore(start)
     }
 
     /** Checks that the winner count is positive. */
     fun isValidWinnerCount(numberOfWinners: Int): Boolean {
-        // TODO: Validate winner count
-        return true
+        return numberOfWinners > 0
     }
 
     /** Checks unlimited capacity or the team's agreed capacity rules. */
     fun isValidCapacity(capacity: Int?, numberOfWinners: Int): Boolean {
-        // TODO: Validate optional capacity
-        return true
+        if (capacity == null) return true
+        return capacity >= numberOfWinners
+    }
+
+    // Added functions - Neth
+
+    fun validate(input: LotteryFormInput, today: LocalDate = LocalDate.now()): String? {
+        val winners = input.numWinners.trim().toIntOrNull()
+        val capacityIsNumberOrBlank =
+            input.capacity.isBlank() || input.capacity.trim().toIntOrNull() != null
+        val registrationEnd = DateUtils.parse(input.registrationEnd)
+
+        return when {
+            input.campsiteIds.isEmpty() ->
+                "Select at least one campsite"
+            !isValidRegistrationPeriod(input.registrationStart, input.registrationEnd) ->
+                "Registration dates must be yyyy-MM-dd, and it must end on or after the day it opens"
+            registrationEnd != null && registrationEnd.isBefore(today) ->
+                "Registration cannot end in the past"
+            winners == null || !isValidWinnerCount(winners) ->
+                "Number of winners must be a whole number above 0"
+            !capacityIsNumberOrBlank ->
+                "Waitlist capacity must be a number, or empty for unlimited"
+            !isValidCapacity(parseCapacity(input.capacity), winners) ->
+                "Waitlist capacity must be at least the number of winners"
+            else -> null
+        }
+    }
+
+    fun parseCapacity(capacityText: String): Int? = capacityText.trim().toIntOrNull()
+
+    fun canEdit(lottery: Lottery): Boolean = lottery.status == LotteryConstants.LOTTERY_OPEN
+
+    fun toFormInput(lottery: Lottery): LotteryFormInput {
+        val capacityText =
+            if (lottery.maxParticipants == LotteryConstants.UNLIMITED_PARTICIPANTS) ""
+            else lottery.maxParticipants.toString()
+
+        return LotteryFormInput(
+            campsiteIds = lottery.campsiteIds.toSet(),
+            registrationStart = lottery.startDate,
+            registrationEnd = lottery.endDate,
+            numWinners = lottery.numWinner.toString(),
+            capacity = capacityText
+        )
+    }
+
+    fun applyChanges(original: Lottery, input: LotteryFormInput): Lottery {
+        return original.copy(
+            campsiteIds = input.campsiteIds.toList(),
+            startDate = input.registrationStart.trim(),
+            endDate = input.registrationEnd.trim(),
+            numWinner = input.numWinners.trim().toInt(),
+            maxParticipants = parseCapacity(input.capacity) ?: LotteryConstants.UNLIMITED_PARTICIPANTS
+        )
+    }
+
+    fun loadLottery(lotteryId: String, onResult: (Lottery?) -> Unit) {
+        repository.getLotteryById(lotteryId, onResult)
+    }
+
+    fun saveNewLottery(lottery: Lottery): String {
+        return repository.createLottery(
+            ownerId = lottery.ownerId,
+            campsiteIds = lottery.campsiteIds.toMutableList(),
+            numWinner = lottery.numWinner,
+            startDate = lottery.startDate,
+            endDate = lottery.endDate,
+            maxParticipants = lottery.maxParticipants,
+            status = lottery.status,
+            createdAt = lottery.createdAt
+        )
+    }
+
+    fun createFromForm(ownerId: String, input: LotteryFormInput): String? {
+        val error = validate(input)
+        if (error != null) return error
+
+        val lottery = createLottery(
+            ownerId = ownerId,
+            campsiteIds = input.campsiteIds.toList(),
+            startDate = input.registrationStart,
+            endDate = input.registrationEnd,
+            numberOfWinners = input.numWinners.trim().toInt(),
+            capacity = parseCapacity(input.capacity)
+        )
+        saveNewLottery(lottery)
+        return null
+    }
+
+    fun updateLottery(original: Lottery, input: LotteryFormInput): String? {
+        if (!canEdit(original)) {
+            return "This lottery has already been drawn and can no longer be edited"
+        }
+        val error = validate(input)
+        if (error != null) return error
+
+        repository.updateLottery(applyChanges(original, input))
+        return null
     }
 }
-*/
+
+/**
+ * What the owner has typed into the lottery form.
+ *
+ * @property campsiteIds the owner's campsites included in this lottery (US 02.04.02)
+ * @property capacity optional waitlist capacity; blank means unlimited (US 02.04.07)
+ */
+data class LotteryFormInput(
+    val campsiteIds: Set<String> = emptySet(),
+    val registrationStart: String = "",
+    val registrationEnd: String = "",
+    val numWinners: String = "",
+    val capacity: String = ""
+)

@@ -63,4 +63,24 @@ data class LotteryEntry (
     fun getLotteryEntryPositionLottery(): Int {
         return positionLottery
     }
+
+    /*
+     * Suggested renames so implementation is cleaner and matches Profile.kt etc. - Neth
+     */
+
+    fun getLotteryId(): String {
+        return lotteryId
+    }
+
+    fun getUserId(): String {
+        return userId
+    }
+
+    fun getStatus(): String {
+        return status
+    }
+
+    fun getPositionLottery(): Int {
+        return positionLottery
+    }
 }

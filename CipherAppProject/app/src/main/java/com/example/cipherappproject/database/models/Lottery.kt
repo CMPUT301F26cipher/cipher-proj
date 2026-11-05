@@ -27,8 +27,8 @@ data class Lottery (
     var numWinner: Int = 0,
     var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
     var endDate: String = "",
-    var maxParticipants: Int, // is optional for the owner
-    val status: String,
+    var maxParticipants: Int = 0, // is optional for the owner
+    val status: String = "open",
     val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
 ) {
         /** Sets a valid registration period. */
