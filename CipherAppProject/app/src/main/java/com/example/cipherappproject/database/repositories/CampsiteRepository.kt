@@ -118,7 +118,10 @@ class CampsiteRepository {
      *         - Or the exception
      * @return nullable Campsite object
      */
-    /*Taken, learned and improved from OpenAI, ChatGPT on the subject */
+    
+    /*Taken, learned and improved from OpenAI, ChatGPT on 2026-06-11 on the subject "How does addOnSuccessListener works and how to implement further errors or assertions as python does with ValueError", "How Result works Result can you do an example about it and how can you pass an error? how does work Try else here like python?, Examples please? "*/
+    /*Also taken from https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-result/  and https://www.baeldung.com/kotlin/result-class*/
+
     fun getCampsiteById(
         campsiteId: String,
         result: (Result<Campsite>) -> Unit

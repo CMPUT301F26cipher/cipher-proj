@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicReference
 
 class DatabaseUnitTest {
 
+    /*Some parts of this file were adapted from OpenAI and ChatGPT suggestions or responses, or also internet particularly regarding testing and simplifying object creation for quicker test setup. However, the overall ideas, design decisions, and implementation are my own unless otherwise specified.Thank you.*/
+
 /*
     @Test
     fun addCampsiteTest() {
@@ -44,6 +46,7 @@ class DatabaseUnitTest {
         // Extract campsite ID or throw the Firebase exception
         val id = result.getOrThrow()
 
+        // https://developer.android.com/reference/android/util/Log?_gl=1*1sppqts*_up*MQ..*_ga*MTI0MDY1MDM0Ny4xNzk0MDA4OTMy*_ga_6HH9YJMN9M*czE3OTQwMDg5MzIkbzEkZzAkdDE3OTQwMDg5MzIkajYwJGwwJGg1MTA0NzgzNjY.#d(java.lang.String,%20java.lang.String)
         Log.d("CampsiteTest", "Created campsite: $id")
     }*/
 
@@ -163,24 +166,32 @@ class DatabaseUnitTest {
 
         Log.d("CampsiteTest", "Campsite updated and verified successfully")*/
 
-
+    /*Taken and learn from OpenAI, ChatGPT on 06-11-2026, with the subject of: "How to make sure the test case wait for
+    firebase CRUD operations and if takes too much time exit the test?" */
     // Helper function to wait for Firebase callbacks
     private fun <T> awaitCallback(
         register: ((T) -> Unit) -> Unit
     ): T {
 
+        // start with count 1 and the test wait until it reaches 0
         val latch = CountDownLatch(1)
+
+        // get the object or id of result --> T is a generic type
         val result = AtomicReference<T>()
 
+
+        // register takes the callback
         register { value ->
-            result.set(value)
-            latch.countDown()
+            result.set(value) // store whatever  firebase returns
+            latch.countDown() // decreases from 1 to 0
         }
 
+        // wait until either: 1. countDown = 0 or 2. pass 15 seconds
         check(latch.await(15, TimeUnit.SECONDS)) {
             "Firebase callback timed out"
         }
 
+        // get and return the value of result
         return result.get()
     }
 }
