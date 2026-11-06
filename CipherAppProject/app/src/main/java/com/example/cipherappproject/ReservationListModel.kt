@@ -28,7 +28,7 @@ NA
 
 //TODO: mod to account for db reservation, change to only handle the logic side of things?
 
-
+/*
 class ReservationListModel(
     userID: String = "",
     // START OF AI GEN CONTENT
@@ -110,3 +110,4 @@ class ReservationListModel(
 
 
 }
+*/

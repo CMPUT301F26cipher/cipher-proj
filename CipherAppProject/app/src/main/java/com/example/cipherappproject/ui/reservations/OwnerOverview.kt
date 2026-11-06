@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.repositories.CampsiteRepository
 
 /*
@@ -38,7 +39,12 @@ NA
  */
 
 @Composable
-fun OwnerOverview() {
+fun OwnerOverview(
+    ownerId: String,
+    onRegisterClick: () -> Unit = {},
+    onCampsiteClick: (Campsite) -> Unit = {}
+) {
+
     val repository = remember { CampsiteRepository() }
 
     val campsites = repository.campsites.filter {
@@ -86,7 +92,7 @@ fun OwnerOverview() {
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = campsite)
+                        Text(text = campsite.campsiteName)
                     }
                 }
             }

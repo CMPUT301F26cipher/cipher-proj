@@ -1,5 +1,5 @@
 package com.example.cipherappproject.ui.reservations
-
+/*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -155,3 +155,4 @@ fun ReservationRow(reservation: ReservationModel, onCancelClick: () -> Unit = {}
 fun ReservationPreview() {
     ReservationScreen()
 }
+*/
