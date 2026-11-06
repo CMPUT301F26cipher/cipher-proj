@@ -20,6 +20,8 @@ Date        Person     CSR#     Description
 2026-11-04  Sofia       1.02     added query get by id
 2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
+=======
+2026-11-6   Hye Sung    1.01     added getting lottery by campsite Id
 >>>>>>> faa8a655a7ff7e4cb90b6973c65a07933677cf62
 --------------------------------------------------------------------------------------
 Future Enhancements
@@ -224,6 +226,34 @@ class LotteryRepository {
                 result(null)
             }
     }
+
+
+    /**
+     * Finds lotteries associated with a campsite
+     * @param campsiteId
+     * @param result
+     *         - if successful, returns a list of lotteries associated with a campsite
+     *         - if not, returns null
+     * */
+
+    fun getLotteryByCampsiteId(
+        campsiteId: String,
+        result: (List<Lottery>?) -> Unit
+    ) {
+        lotteriesRef
+            .whereArrayContains("campsiteIds", campsiteId)
+            .get()
+            .addOnSuccessListener { documents ->
+                val lotteries = documents.mapNotNull {
+                    it.toObject(Lottery::class.java)
+                }
+                result(lotteries)
+            }
+            .addOnFailureListener {
+                result(null)
+            }
+    }
+
 
     /*
     fun deleteLottery(lotteryId: String){

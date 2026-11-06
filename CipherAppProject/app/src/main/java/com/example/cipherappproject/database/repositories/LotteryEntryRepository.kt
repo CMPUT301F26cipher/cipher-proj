@@ -209,6 +209,7 @@ class LotteryEntryRepository {
 
 
 
+
     init {
         lotteriesEntryRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
