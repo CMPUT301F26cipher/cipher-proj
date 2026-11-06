@@ -13,6 +13,8 @@ Date        Person     CSR#     Description
 2026-02-24  Sofia      1.01     added skeleton
 2026-03-22  Sofia      1.02     added query get by id
 2026-11-06  Sofia      1.03     delete getters and setters. Set the attributes to public.
+2026-03-22  Sofia      1.01     added query get by id
+2026-11-06  Madison             added query get by deviceId
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -152,6 +154,40 @@ class ProfileRepository {
                 result(null)
             }
     }
+
+    /**
+     * get one single Profile object
+     *
+     * @param deviceId
+     * @param result lamba function that provide if:
+     *      - successfully then it returns a Profile
+     *      - not successfully so it returns null
+     * @return nullable Profile
+     */
+    /*Addition by Madison Levy, taken and learned from Sofia Arturo Gomez's getProfileById function and firebase documentation*/
+    fun getProfileByDeviceId(
+        deviceId: String,
+        result: (Profile?) -> Unit
+    ){ // use getProfileById("id"){ profile -> return something so here can be if or something like that
+        profilesRef
+            .whereEqualTo("deviceId", deviceId)
+            .get()
+            .addOnSuccessListener { documents ->
+
+                for (document in documents) {
+                    val profile = document.toObject(Profile::class.java)
+                    result(profile)
+                    return@addOnSuccessListener
+                }
+
+                // No matching profile was found
+                result(null)
+            }
+            .addOnFailureListener { exception ->
+                result(null)
+            }
+    }
+
 
 
 
