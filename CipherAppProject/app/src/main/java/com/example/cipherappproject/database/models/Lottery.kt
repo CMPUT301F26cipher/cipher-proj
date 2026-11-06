@@ -45,8 +45,8 @@ data class Lottery (
     private var numWinners: Int = 0,
     private var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
     private var endDate: String = "",
-    private var maxParticipants: Int?, // is optional for the owner
-    private val status: String,
+    private var maxParticipants: Int? = null, // is optional for the owner
+    private val status: String = "",
     private val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
 ) {
     fun getLotteryId(): String {
