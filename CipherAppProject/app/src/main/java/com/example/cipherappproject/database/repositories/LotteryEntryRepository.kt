@@ -10,9 +10,10 @@ package com.example.cipherappproject.database.repositories
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-2026-03-27  Sofia      1.01     added skeleton
-2026-04-10  Sofia      1.02     added query get by id
-2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
+2026-10-27  Sofia       1.01     added skeleton
+2026-11-04  Sofia       1.02     added query get by id
+2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
+2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -34,13 +35,28 @@ class LotteryEntryRepository {
     val lotteries: List<LotteryEntry>
         get() = _allLotteriesEntries
 
+
+    /**
+     * Creates behinds a LotteryEntry object and add it to the firebase database
+     * with a random and unique id.
+     *
+     * @param lotteryId unique identifier of the campsite within the database
+     * @param userId single user entry
+     * @param status store the lottery status
+     * @param positionLottery user entry in the list after randomization
+     * @param result lamba function that provide if:
+     *      - The object was added successfully then it returns the id of that object
+     *      - The object was not added not successfully so it returns null
+     * @return nullable string
+     */
     fun addLotteryEntry(
         lotteryId: String,
         userId: String,
         status: String,
         positionLottery: Int,
+        result: (String?) -> Unit
 
-    ) : String {
+    ){
         // create a reference and id to the new profile
         val lotteryEntryRef = db.collection("lotteries/$lotteryId/entries").document()
 
@@ -54,19 +70,44 @@ class LotteryEntryRepository {
         )
 
         // save the object in the firebase
-        Tasks.await(lotteryEntryRef.set(lotteryEntry))
+        //Tasks.await(lotteryEntryRef.set(lotteryEntry))
+        lotteryEntryRef
+            .set(lotteryEntry)
+            .addOnSuccessListener {
+                result(lotteryEntryRef.id)
+            }
 
-        return lotteryEntryRef.id
-
+            .addOnFailureListener {
+                result(null)
+            }
     }
 
-    fun updateLotteryEntry(lotteryEntry: LotteryEntry){
-        val lotteryId = lotteryEntry.getLotteryEntryLotteryId()
+    /**
+     * Updates behinds a LotteryEntry object into the firebase database .
+     *
+     * @param lotteryEntry lotteryEntry object
+     * @param result lamba function that provide if:
+     *      - successfully then it returns a boolean as true
+     *      - not successfully so it returns a boolean as false
+     * @return nullable string
+     */
+    fun updateLotteryEntry(
+        lotteryEntry: LotteryEntry,
+        result: (Boolean) -> Unit
+    ){
+        val lotteryId = lotteryEntry.getLotteryId()
         val lotteryEntryId = lotteryEntry.getLotteryEntryId()
 
         val lotteryEntryRef = db.collection("lotteries/$lotteryId/entries")
 
-        lotteryEntryRef.document(lotteryEntryId).set(lotteryEntry)
+        lotteryEntryRef.document(lotteryEntryId)
+            .set(lotteryEntry)
+            .addOnSuccessListener {
+                result(true)
+            }
+            .addOnFailureListener {
+                result(false)
+            }
     }
 
     /*
@@ -76,6 +117,15 @@ class LotteryEntryRepository {
     }
     */
 
+    /**
+     * retrieves LotteryEntry
+     *
+     * @param lotteryId
+     * @param result lamba function that provide if:
+     *      - successfully then it returns the Campsite object
+     *      - not successfully so it returns null
+     * @return nullable LotteryEntry object
+     */
     fun getLotteryEntriesByLotteryId(
         lotteryId: String,
         result: (List<LotteryEntry>?) -> Unit
@@ -102,6 +152,16 @@ class LotteryEntryRepository {
 
     }
 
+    /**
+     * retrieves LotteryEntry object by UserId
+     *
+     * @param lotteryId
+     * @param userId
+     * @param result lamba function that provide if:
+     *      - successfully then it returns the Campsite object
+     *      - not successfully so it returns null
+     * @return nullable LotteryEntry object
+     */
     fun getEntryForUser(
         lotteryId: String,
         userId: String,
@@ -121,6 +181,17 @@ class LotteryEntryRepository {
             }
     }
 
+    /**
+     * update a single LotteryEntry Status
+     *
+     * @param lotteryId
+     * @param lotteryEntryId
+     * @param newStatus
+     * @param result lamba function that provide if:
+     *      - successfully then it returns the Campsite object
+     *      - not successfully so it returns null
+     * @return nullable LotteryEntry object
+     */
     fun updateEntryStatus(
         lotteryId: String,
         lotteryEntryId: String,

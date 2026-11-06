@@ -37,14 +37,29 @@ class ReservationRepository {
         get() = _allReservations
 
 
+    /**
+     * Creates behinds a Reservation object and add it to the firebase
+     * database with a random and unique id.
+     *
+     * @param userId
+     * @param campsiteId
+     * @param lotteryId
+     * @param status
+     * @param createdAt
+     * @param result lamba function that provide if:
+     *      - The object was added successfully then it returns the id of that object
+     *      - The object was not added not successfully so it returns null
+     * @return nullable string with the id of the created object
+     */
     fun createReservation(
         userId: String,
         campsiteId: String,
         lotteryId: String,
         status: String,
-        createdAt: String
+        createdAt: String,
+        result: (String?) -> Unit
 
-    ): String {
+    ){
         // create a reference and id to the new document
         val reservationRef = reservationsRef.document()
 
@@ -58,26 +73,65 @@ class ReservationRepository {
             createdAt = createdAt
 
         )
-        // save the object in the firebase
-        reservationRef.set(reservation)
+
         //Tasks.await(reservationRef.set(reservation))
+        // save the object in the firebase
+        reservationRef
+            .set(reservation)
+            .addOnSuccessListener {
+                result(reservationRef.id)
+            }
+            .addOnFailureListener {
+                result(null)
+            }
 
-        return reservationRef.id
+
+
     }
 
-    fun updateReservation(reservation: Reservation){
-        reservationsRef.document(reservation.getReservationId()).set(reservation)
+    /**
+     * Updates a Reservation object
+     *
+     * @param reservation object
+     * @param result lamba function that provide if:
+     *      - successfully then it returns a boolean as true
+     *      - not successfully so it returns a boolean as false
+     * @return Boolean
+     */
+    fun updateReservation(
+        reservation: Reservation,
+        result: (Boolean) -> Unit
+
+    ){
+        reservationsRef.document(reservation.getReservationId())
+            .set(reservation)
+            .addOnSuccessListener {
+                result(true)
+            }
+            .addOnFailureListener {
+                result(false)
+            }
     }
 
+    /*
     fun getReservationsByUserId(
         userId: String,
         result: (List<Reservation?>) -> Unit
 
     ){
 
-    }
+    }*/
 
 
+    /**
+     * get one single Reservation object
+     *
+     * @param reservationId
+     * @param result lamba function that provide if:
+     *      - successfully then it returns a Reservation
+     *      - not successfully so it returns null
+     * @return nullable Reservation
+     */
     fun getReservationById(
         reservationId: String,
         result: (Reservation?) -> Unit
