@@ -37,10 +37,10 @@ fun CampsiteSummary(
     campsite: Campsite,
 ){
     val campsite = remember { campsite }
-    val campsiteID = campsite.campsiteId
-    val campsiteName = campsite.campsiteName
-    val campsiteImagePath = campsite.imagePath //TODO: implement getting picture
-    val campsitePrice = campsite.pricePerNight
+    val campsiteID = campsite.getCampsiteId()
+    val campsiteName = campsite.getCampsiteName()
+    val campsiteImagePath = campsite.getCampsiteImagePath() //TODO: implement getting picture
+    val campsitePrice = campsite.getCampsitePricePerNight()
     val campsitePriceStr = "$$campsitePrice" //TODO: must reformat once campsite price type is finalized
 
     Box(
