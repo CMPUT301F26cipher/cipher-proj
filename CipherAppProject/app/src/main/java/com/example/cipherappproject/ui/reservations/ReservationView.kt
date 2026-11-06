@@ -24,17 +24,40 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.ReservationModel
 import com.example.cipherappproject.ReservationModel.Status
+import com.example.cipherappproject.database.models.Profile
+import com.example.cipherappproject.database.repositories.ReservationRepository
 
-//
+/*
+--------------------------------------------------------------------------------------
+Program Name: Reservation.kt
+Date Written: November 5, 2026
+Author: Shira Li
+Purpose: Reservation display screen for both past and active reservations, and for
+both Entrants and Owners
+US: 02.07.01, 02.07.02 (owners), 01.06.01, 01.06.02 (entrants)
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-05  Shira      1.01     Modifying to fit DB variables
+2026-
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
 // Google, Gemini Flash, "syntax for button in kotlin android studio", 2026-10-27
 
+// acts like a watchdog, only becomes active when time of closest end booking date is notif
+
 /**
- * Displays the active reservation screen
+ * Displays the reservation screen
  *
- * @param
+ *
  */
 @Composable
 fun ReservationScreen() {
+
     //rememberSaveable ensure if phone is rotated does not reset status
     var currentStatus by rememberSaveable { mutableStateOf(Status.ACTIVE) }
 
@@ -43,7 +66,7 @@ fun ReservationScreen() {
         Spacer(modifier = Modifier.height(8.dp))
         ReservationStatusSelector(currentStatus, onStatusSelected = { newStatus -> currentStatus = newStatus})
 
-        DisplayListContent(emptyList())
+        DisplayListContent()
     }
 
 
@@ -53,7 +76,7 @@ fun ReservationScreen() {
  * Displays the row of status buttons,
  *
  * @param selectedStatus
- *
+ * @param onStatusSelected
  */
 @Composable
 fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status) -> Unit) {
@@ -73,15 +96,17 @@ fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status)
 
 
 /**
- * Display list of active reservation according to current active user type (entrants, owners,
+ * Display list of reservation by
+ * according to current active user type (entrants, owners,
  * admin)
  *
- * @param userType
+ * @param userID string representing the user
  * @param
  * @return
  */
 @Composable
-fun DisplayListContent(reservations: List<ReservationModel>) {
+fun DisplayListContent(userID: String) {
+    val reservations = ReservationRepository.getReservationById(userID)
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -89,6 +114,7 @@ fun DisplayListContent(reservations: List<ReservationModel>) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (reservations.isNotEmpty()) {
+            // goes through list of reservations that
             items(reservations) { reservation ->
                 ReservationRow(reservation)
                 HorizontalDivider()
@@ -103,7 +129,7 @@ fun DisplayListContent(reservations: List<ReservationModel>) {
  * Display SINGLE reservation row, including the campsite name, campsite image, name of user, and
  * booking period
  *
- * @param reservation 
+ * @param reservation
  * @param onCancelClick
  */
 @Composable
@@ -113,7 +139,7 @@ fun ReservationRow(reservation: ReservationModel, onCancelClick: () -> Unit = {}
         verticalAlignment = Alignment.CenterVertically
     ) {
         //TODO: Display image of campsite
-
+        Text()
         Column(modifier = Modifier.weight(1f)) {
             //TODO: Display {campsite name},{username | booking period}
             Text("CAMPSITE X")
