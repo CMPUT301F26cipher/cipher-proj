@@ -58,10 +58,9 @@ fun EditLotteryView(
             errorMessage = errorMessage,
             saveLabel = "Save Changes",
             onSave = {
-                val error = controller.updateLottery(lottery, input)
-                errorMessage = error
-                if (error == null) {
-                    navController.popBackStack()
+                errorMessage = controller.updateLottery(lottery, input) { saved ->
+                    if (saved) navController.popBackStack()
+                    else errorMessage = "Could not save changes. Please try again."
                 }
             }
         )

@@ -89,10 +89,10 @@ class LotteryBookingController {
         return null
     }
 
-    /** Requests available nights from the team's availability component. */
-    fun getAvailableNights(lotteryId: String, campsiteId: String): Set<String> {
-        TODO("Load available nights")
-    }
+//    /** Requests available nights from the team's availability component. */
+//    fun getAvailableNights(lotteryId: String, campsiteId: String): Set<String> {
+//        TODO("Load available nights")
+//    }
 
     /** Adds an available night according to the agreed stay rules. */
     fun selectNight(night: String) {
