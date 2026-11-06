@@ -1,4 +1,5 @@
 package com.example.cipherappproject.ui.campsite
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,7 +24,7 @@ US: 02.01.03
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-2026-11-05  Shira      1.01     Modifying to fit DB variables
+2026-11-05  Hye Sung   1.01     Modifying to fit DB variables
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -176,7 +177,7 @@ fun EditCampsiteView(
                 onClick = {
 
                     val guests = maxGuests.toIntOrNull()
-                    val price = pricePerNight.toFloatOrNull()
+                    val price = pricePerNight.toFloatOrNull()?.toDouble()
 
                     when {
                         campsiteName.isBlank() -> {
@@ -208,7 +209,7 @@ fun EditCampsiteView(
                                 amenities = amenities
                                     .split(",")
                                     .map { it.trim() }
-                                    .filter { it.isNotEmpty() },
+                                    .filter { it.isNotEmpty() } as MutableList<String>,
 
                                 maxGuests = guests,
                                 pricePerNight = price,
@@ -217,7 +218,7 @@ fun EditCampsiteView(
                                 tags = tags
                                     .split(",")
                                     .map { it.trim() }
-                                    .filter { it.isNotEmpty() }
+                                    .filter { it.isNotEmpty() } as MutableList<String>
                             )
 
                             repository.updateCampsite(
@@ -236,7 +237,6 @@ fun EditCampsiteView(
                         }
                     }
                 },
-
                 enabled = !isSaving,
                 modifier = Modifier.weight(1f)
             ) {
