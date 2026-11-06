@@ -19,6 +19,25 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.Button
 import androidx.compose.ui.unit.dp
 
+/*
+--------------------------------------------------------------------------------------
+Program Name: Reservation.kt
+Date Written: November 5, 2026
+Author: Shira Li
+Purpose: Reservation display screen for both past and active reservations, and for
+both Entrants and Owners
+US: 02.01.01
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-05  Shira      1.01     Modifying to fit DB variables
+2026-
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
 /**
  * Display
  */

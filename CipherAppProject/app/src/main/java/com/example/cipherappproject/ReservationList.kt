@@ -9,7 +9,7 @@ import java.util.Date
 
 /*
 --------------------------------------------------------------------------------------
-Program Name: ReservationListModel.kt
+Program Name: ReservationList.kt
 Date Written: November 5, 2026
 Author: Shira Li
 Purpose: Reservation display screen for both past and active reservations, and for
@@ -26,10 +26,7 @@ Future Enhancements
 NA
  */
 
-//TODO: mod to account for db reservation, change to only handle the logic side of things?
-
-
-class ReservationListModel(
+class ReservationList(
     userID: String = "",
     // START OF AI GEN CONTENT
     // This section uses formatting generate by the following prompt:
@@ -44,7 +41,6 @@ class ReservationListModel(
 ) {
     // keeps state of last time updated status
     var lastTimeChecked by mutableStateOf(Date())
-
     /**
      * Makes the lists (reservations, activeReservations, pastReservations, cancelledReservations)
      * update when
@@ -66,9 +62,6 @@ class ReservationListModel(
     private val pastReservations by derivedStateOf {
         lastTimeChecked
         reservations.filter { it.getStatus() == "past" } }
-    private val cancelledReservation by derivedStateOf  {
-        lastTimeChecked
-        reservations.filter { it.getStatus() == "cancelled" } }
 
     private val nextExpiry by derivedStateOf { activeReservations.minOfOrNull { it.getBookEndDate() } }
 
@@ -78,11 +71,7 @@ class ReservationListModel(
 
     fun getActiveReservations() = activeReservations
     fun getPastReservation() = pastReservations
-    fun getCancelledReservations() = cancelledReservation
 
-
-
-    // TODO: use derivatedstate for cancelled reservaation status update with the controller
     /**
      * Update status of current user's reservations for active
      */
@@ -90,7 +79,7 @@ class ReservationListModel(
 
         for (r in reservations){
             r.getStatus() = when {
-
+                "active"
             }
         }
     }
@@ -98,15 +87,24 @@ class ReservationListModel(
     ////////////////////////////////////// UI STATE FUNC //////////////////////////////////////////
 
     /**
-     * Holds the current status of current reservation, note it is
-     * calculated each time it is read
-     *
+     * Holds the current button status of which reservation list to be displayed, note that the
+     * status is calculated each time it is read
      */
-    val status: Status get() = when {
+    val buttonStatus: Status get() = when {
         ReservationRepository.getCancel() -> Status.CANCELLED
         bookingEnd.before(Date()) -> Status.PAST
         else -> Status.ACTIVE.name()
     }
 
+    fun getButtonStatus() = buttonStatus
+
+    ////////////////////////////////////// PART 4 STUFF DO LATER //////////////////////////////////////////
+    //    private val cancelledReservation by derivedStateOf  {
+    //        lastTimeChecked
+    //        reservations.filter { it.getStatus() == "cancelled" } }
+    //
+    //    fun getCancelledReservations() = cancelledReservation
+
+    // TODO: use derivatedstate for cancelled reservaation status update with the controller
 
 }
