@@ -13,7 +13,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-05  Shira      1.01     Modifying to fit DB variables
-2026-
+2026-11-05  Shira      1.02     Fixed Date mismatch types
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -21,34 +21,45 @@ NA
 
 
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.example.cipherappproject.DateUtils
+import com.example.cipherappproject.database.models.Reservation
 import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.repositories.ProfileRepository
 import com.example.cipherappproject.database.repositories.ReservationRepository
+import java.time.LocalDate
 import java.util.Date
 
+// This file contains sections that uses formatting generate by the following prompt:
+// Anthropic, Claude Opus 5.5, “clarify if i pull a copy of a list from a firebase database,
+// should that be in a model then the model call the view to update it? or should it only be
+// some times if the data needs to be sorted into different lists?”, 2026-11-05
+// "what if the repo already has getters and setters?"
+// ...
+// "if i don't want to keep updating it constantly by time is there a way that i can update it
+// only if i read that the date has passed?"
 class ReservationList(
-
     userID: String = "",
-    // START OF AI GEN CONTENT
-    // This section uses formatting generate by the following prompt:
-    // Anthropic, Claude Opus 5.5, “clarify if i pull a copy of a list from a firebase database,
-    // should that be in a model then the model call the view to update it? or should it only be
-    // some times if the data needs to be sorted into different lists?”, 2026-11-05
-    // "what if the repo already has getters and setters?"
-    // ...
-    // "if i don't want to keep updating it constantly by time is there a way that i can update it
-    // only if i read that the date has passed?"
+) {
     private val reservationRepo: ReservationRepository = ReservationRepository(),
     private val campsiteRepo: CampsiteRepository = CampsiteRepository()
 
-) {
+    private val profileRepo: ProfileRepository = ProfileRepository()
+
+
+    ////////////////////////////////////// UI STATE //////////////////////////////////////////
+    enum class Status {ACTIVE, CANCELLED, PAST}
+
+
     // keeps state of last time updated status
-    var lastTimeChecked by mutableStateOf(Date())
+    var lastTimeChecked by mutableStateOf(LocalDate.now())
     /**
      * Makes the lists (reservations, activeReservations, pastReservations, cancelledReservations)
      * update when
      */
-    fun refreshTime() { lastTimeChecked = Date()
+    fun refreshTime() { lastTimeChecked = LocalDate.now()
     }
 
     // derivedStateOf will remember results and only re-filter when there is change
@@ -63,61 +74,21 @@ class ReservationList(
     }
     private val activeReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.getStatus() == "active" }
+        reservations.filter { it.getStatus() == "active" && DateUtils.parse(it.getBookEndDate())?.isBefore(lastTimeChecked) == false }
     }
     private val pastReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.getStatus() == "past" }
+        reservations.filter { it.getStatus() == "past" || (it.getStatus() !== "cancelled" && DateUtils.parse(it.getBookEndDate())?.isBefore(lastTimeChecked) == true ) }
     }
 
     private val nextExpiry by derivedStateOf { activeReservations.minOfOrNull { it.getBookEndDate() } }
 
-    fun getNextExpiry(): Date? = nextExpiry
-    // END OF AI GEN CONTENT
-    enum class Status {ACTIVE, CANCELLED, PAST}
+    fun getNextExpiry(): LocalDate? = nextExpiry
 
     fun getActiveReservations() = activeReservations
-    fun getPastReservation() = pastReservations
+    fun getPastReservations() = pastReservations
 
-    /**
-     * Update status of current user's reservations for active
-     */
-    fun updateReservationListStatus() {
 
-        for (r in reservations){
-            r.getStatus() = when {
-                "active"
-            }
-        }
-    }
-
-    ////////////////////////////////////// UI STATE FUNC //////////////////////////////////////////
-
-    /**
-     * Holds the current button status of which reservation list to be displayed, note that the
-     * status is calculated each time it is read
-     */
-    val buttonStatus: Status get() = when {
-        ReservationRepository.getCancel() -> Status.CANCELLED
-        bookingEnd.before(Date()) -> Status.PAST
-        else -> Status.ACTIVE.name()
-    }
-
-    fun getButtonStatus() = buttonStatus
-
-    ////////////////////////////////////// CAMPSITES RESERVATION HELPERS //////////////////////////////////////////
-
-    /**
-     *
-     * @return bookingPeriod formatted string of booking period
-     */
-    fun formattedBookingPeriod() {}
-
-    fun formattedUserName() {}
-
-    fun formattedCampsiteName() {}
-
-    fun getCampsiteImg() {}
 
     ////////////////////////////////////// PART 4 STUFF DO LATER //////////////////////////////////////////
     //    private val cancelledReservation by derivedStateOf  {
@@ -127,5 +98,27 @@ class ReservationList(
     //    fun getCancelledReservations() = cancelledReservation
 
     // TODO: use derivatedstate for cancelled reservaation status update with the controller
+
+}
+
+class ReservationListHelpers() {
+
+    ////////////////////////////////////// CAMPSITES RESERVATION HELPERS //////////////////////////////////////////
+    /**
+     *
+     * @return bookingPeriod formatted string of booking period
+     */
+    fun formattedBookingPeriod(reservation: Reservation) {
+        return
+    }
+
+    fun formattedUserName(reservation: Reservation) {
+
+
+    }
+
+    fun formattedCampsiteName(reservation: Reservation) {}
+
+    fun getCampsiteImg(reservation: Reservation) {}
 
 }

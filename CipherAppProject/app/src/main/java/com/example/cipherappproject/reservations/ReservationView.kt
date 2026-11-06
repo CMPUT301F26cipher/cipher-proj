@@ -23,8 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.cipherappproject.ReservationModel.Status
+import com.example.cipherappproject.reservations.ReservationList.Status
 import com.example.cipherappproject.database.models.Reservation
+import kotlin.collections.emptyList
 
 /*
 --------------------------------------------------------------------------------------
@@ -48,6 +49,10 @@ NA
 // Google, Gemini Flash, "syntax for button in kotlin android studio", 2026-10-27
 
 // acts like a watchdog, only becomes active when time of closest end booking date is notif
+// TODO: Write TEST cases
+// TODO: fix status
+// TODO: fix date conversion for checking booking
+// TODO: test with dummy values
 
 /**
  * Displays the reservation screen where users can click between 3 different reservations statuses
@@ -76,7 +81,7 @@ fun ReservationScreen(userID: String) {
 /**
  * Displays the row of status buttons, with the current acitve tab in a different colour
  *
- * @param selectedStatus
+ * @param selectedStatus status of current active tab
  * @param onStatusSelected
  */
 @Composable
@@ -88,7 +93,11 @@ fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status)
     ){
         for (status in Status.entries) {
             Spacer(modifier = Modifier.width(8.dp))
-            Button( onClick = { onStatusSelected(status) }) {
+            Button(
+                onClick = { onStatusSelected(status) },
+                colors = if (status == selectedStatus)
+
+                ) {
                 Text(status.toString())
             }
         }
@@ -99,11 +108,16 @@ fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status)
 /**
  * Display list of reservation by according to current active user type (entrants, owners, admin)
  *
- * @param reservations
- * @param status
+ * @param reservationsList reservation list hold the current user's reservation
+ * @param status selected button status, which determines which list is shown
  */
 @Composable
-fun DisplayListContent(reservations: ReservationList, status: Status) {
+fun DisplayListContent(reservationsList: ReservationList, status: String) {
+    val reservations = when (status) {
+        "active" -> reservationsList.getActiveReservations()
+        "past" -> reservationsList.getPastReservations()
+        else -> emptyList()
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -112,7 +126,12 @@ fun DisplayListContent(reservations: ReservationList, status: Status) {
         if (reservations.isNotEmpty()) {
             // goes through list of reservations that
             items(reservations) { reservation ->
-                ReservationRow(reservation)
+                ReservationRow(
+                     reservations.getCampsiteImg(reservation),
+                    reservations.formattedCampsiteName(reservation),
+                    reservations.formattedUserName(reservation),
+                    reservations.formattedBookingPeriod(reservation)
+                    )
                 HorizontalDivider()
             }
         } else {
