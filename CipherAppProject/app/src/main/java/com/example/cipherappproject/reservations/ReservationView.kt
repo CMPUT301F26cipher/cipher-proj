@@ -53,11 +53,11 @@ NA
  * Displays the reservation screen where users can click between 3 different reservations statuses
  * (active, past, cancelled) and see the list of their most recent reservations
  *
- * @param userID string representing the user
+ * @param userID string representing the user, used to load reservations
  */
 @Composable
 fun ReservationScreen(userID: String) {
-    val reservations by rememberSaveable { ReservationList(userID) }
+    val reservations = remember { ReservationList(userID) }
     //rememberSaveable ensure if phone is rotated does not reset status
     var currentStatus by rememberSaveable { mutableStateOf(Status.ACTIVE) }
 
@@ -71,8 +71,6 @@ fun ReservationScreen(userID: String) {
 
         DisplayListContent(reservations, currentStatus)
     }
-
-
 }
 
 /**
