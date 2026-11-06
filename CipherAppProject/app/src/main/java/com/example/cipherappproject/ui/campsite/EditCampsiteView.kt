@@ -15,10 +15,10 @@ import com.example.cipherappproject.database.repositories.CampsiteRepository
 
 /*
 --------------------------------------------------------------------------------------
-Program Name:
-Date Written:
-Author:
-Purpose:
+Program Name: EditCampsiteView
+Date Written: 2026-11-05
+Author: Hye-Sung
+Purpose: To update details about a campsite as an owner
 US: 02.01.03
 --------------------------------------------------------------------------------------
 Modification History:
