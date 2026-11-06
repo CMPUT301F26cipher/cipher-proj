@@ -32,50 +32,62 @@ fun EntrantCampsiteView(campsiteId: String) {
         Text(text = "Campsite details will show here. (id: $campsiteId)")
     }
 
-//    var tempCampsite=Campsite()
-//
+    var tempCampsite = Campsite()
+
+    CampsiteRepository().getCampsiteById(campsiteId) { result ->
+
+        try {
+            val campsite = result.getOrThrow()
+
+        } catch (e: Exception){
+            throw e
+        }
+    }
+
+
 //    try {
 //        CampsiteRepository().getCampsiteById(campsiteId) { tempCampsite = it }
 //    } catch(e: NullPointerException) {
 //        throw e
 //    }
 //    val campsite = tempCampsite
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .verticalScroll(rememberScrollState())
-//            .padding(16.dp),
-//        verticalArrangement = Arrangement.spacedBy(12.dp)
-//    ) {
-//
-//        Text(
-//            text = campsite.campsiteName,
-//            style = MaterialTheme.typography.headlineMedium
-//        )
-//
-//        Text("Description: ${campsite.description}")
-//
-//        Text(
-//            "Amenities: ${
-//                campsite.amenities.joinToString(", ")
-//            }"
-//        )
-//
-//        Text(
-//            "Maximum Occupancy: ${campsite.maxGuests}"
-//        )
-//
-//        Text(
-//            "Location: ${campsite.mapLocation[0]}, ${campsite.mapLocation[1]}"
-//        )
-//
-//        Text(
-//            "Tags: ${campsite.tags.joinToString(", ")}"
-//        )
-//
-////        if (campsite.image != null) {
-////            Text("Image: ${campsite.image}")
-////        }
-//    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+
+
+        Text(
+            text = campsite.campsiteName,
+            style = MaterialTheme.typography.headlineMedium
+        )
+
+        Text("Description: ${campsite.description}")
+
+        Text(
+            "Amenities: ${
+                campsite.amenities.joinToString(", ")
+            }"
+        )
+
+        Text(
+            "Maximum Occupancy: ${campsite.maxGuests}"
+        )
+
+        Text(
+            "Location: ${campsite.mapLocation[0]}, ${campsite.mapLocation[1]}"
+        )
+
+        Text(
+            "Tags: ${campsite.tags.joinToString(", ")}"
+        )
+
+//        if (campsite.image != null) {
+//            Text("Image: ${campsite.image}")
+//        }
+    }
 }

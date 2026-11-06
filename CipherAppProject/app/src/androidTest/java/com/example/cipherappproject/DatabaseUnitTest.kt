@@ -19,21 +19,21 @@ class DatabaseUnitTest {
         val repository = CampsiteRepository()
 
         // Create dummy campsite data
-        val campsiteName = "Alberta Campsite"
+        val campsiteName = "Edmonton Campsite"
 
-        val amenities = mutableListOf("Wi-Fi", "Parking", "Firepit")
-        val tags = mutableListOf("Nature", "Camping", "Lake")
+        val amenities = mutableListOf("Parking", "Firepit")
+        val tags = mutableListOf("Nature", "Lake")
 
-        // Add campsite to Firestore and wait for its ID
-        val campsiteId = awaitCallback<String?> { callback ->
+        // Add campsite to Firestore and wait for the result
+        val result = awaitCallback<Result<String>> { callback ->
             repository.addCampsite(
                 ownerId = "dvIxoQNArr16yanGiCLY",
                 campsiteName = campsiteName,
-                mapLocation = listOf("53.5461", "-113.4938", "Test name"),
+                mapLocation = listOf("67.564", "-22.3", "Test name"),
                 description = "Dummy campsite for repository testing",
                 amenities = amenities,
-                maxGuests = 4,
-                pricePerNight = 75.0,
+                maxGuests = 10,
+                pricePerNight = 47.0,
                 imagePath = "test/campsite.jpg",
                 tags = tags,
                 qrCodeImagePath = "test/qrcode.png",
@@ -41,18 +41,15 @@ class DatabaseUnitTest {
             )
         }
 
-        // Check that the campsite was created
-        TestCase.assertNotNull("Campsite ID should not be null", campsiteId)
-
-        val id = requireNotNull(campsiteId)
+        // Extract campsite ID or throw the Firebase exception
+        val id = result.getOrThrow()
 
         Log.d("CampsiteTest", "Created campsite: $id")
+    }*/
 
-    }
-*/
-    /*
+
     @Test
-    fun getCampsiteByIdTest(){
+    fun getCampsiteByIdTest() {
         val repository = CampsiteRepository()
 
         // Create dummy campsite data
@@ -64,20 +61,19 @@ class DatabaseUnitTest {
         val id = "WVJx8bVdgKXoccXkF5sP"
 
         // Retrieve campsite from Firestore
-        val retrievedCampsite = awaitCallback<Campsite?> { callback ->
+        val result = awaitCallback<Result<Campsite>> { callback ->
             repository.getCampsiteById(id, callback)
         }
 
-        TestCase.assertNotNull("Campsite should exist in Firestore", retrievedCampsite)
-
-        val actualCampsite = requireNotNull(retrievedCampsite)
+        // Extract retrieved campsite
+        val actualCampsite = result.getOrThrow()
 
         // Check that the retrieved object matches the original data
         val expectedCampsite = Campsite(
             campsiteId = id,
             ownerId = "dvIxoQNArr16yanGiCLY",
             campsiteName = campsiteName,
-            mapLocation = listOf("53.5461", "-113.4938", "Test name"),
+            mapLocation = listOf("53.5461", "-113.4938", "Test location"),
             description = "Dummy campsite for repository testing",
             amenities = amenities,
             maxGuests = 4,
@@ -88,10 +84,10 @@ class DatabaseUnitTest {
         )
 
         Assert.assertEquals(expectedCampsite, actualCampsite)
-        Log.d("CampsiteTest", "Campsite retrieved, name $campsiteName")
 
+        Log.d("CampsiteTest", "Campsite retrieved, name $campsiteName")
         Log.d("CampsiteTest", "Campsite retrieved successfully")
-    }*/
+    }
 
     /*
     @Test

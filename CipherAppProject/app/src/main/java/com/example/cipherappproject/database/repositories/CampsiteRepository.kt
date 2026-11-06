@@ -71,7 +71,7 @@ class CampsiteRepository {
         imagePath: String,
         tags: MutableList<String>,
         qrCodeImagePath: String,
-        result: (String?) -> Unit
+        result: (Result<String>) -> Unit
 
     ){
         // create a reference and id to the new campsite
@@ -97,13 +97,12 @@ class CampsiteRepository {
         campsiteRef
             .set(campsite)
             .addOnSuccessListener {
-                result(campsiteRef.id)
-            }
-            .addOnFailureListener {
-                result(null)
-            }
+                result(Result.success(campsiteRef.id))
 
-
+            }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
+            }
 
     }
 
@@ -113,17 +112,30 @@ class CampsiteRepository {
      * @param campsiteId
      * @param result lamba function that provide if:
      *      - successfully then it returns the Campsite object
-     *      - not successfully so it returns null
+     *      - not successfully so it returns the reason of failure such as:
+     *         - Campsite does not exist.
+     *         - Failed to convert document to Campsite.
+     *         - Or the exception
      * @return nullable Campsite object
      */
+    /*Taken, learned and improved from OpenAI, ChatGPT on the subject */
     fun getCampsiteById(
         campsiteId: String,
-        result: (Campsite) -> Unit
+        result: (Result<Campsite>) -> Unit
     ){
         campsitesRef
             .document(campsiteId)
             .get()
             .addOnSuccessListener { document ->
+
+
+                // Check if document exists
+                if (!document.exists()) {
+                    result(Result.failure(
+                        NoSuchElementException("Campsite does not exist.")
+                    ))
+                    return@addOnSuccessListener
+                }
 
                 /*learn and taken form https://medium.com/@ender.koca94/effective-data-modeling-in-firebase-cloud-firestore-using-kotlin-0a3224d84bb8*/
                 val campsite = document.toObject(Campsite::class.java)
@@ -133,14 +145,22 @@ class CampsiteRepository {
                 Log.d("CampsiteTest", "Mapped object: $campsite")
 
 
-                // to avoid :type use lamba
-                if (campsite != null) {
-                    result(campsite)
-                } else throw NullPointerException()
+                // Check if conversion was successful
+                if (campsite == null) {
+                    result(Result.failure(
+                        IllegalStateException("Failed to convert document to Campsite.")
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                // Return successfully retrieved campsite
+                result(Result.success(campsite))
 
             }
+
+            // If any other error
             .addOnFailureListener { exception ->
-                throw NullPointerException()
+                result(Result.failure(exception))
             }
     }
 
@@ -148,22 +168,22 @@ class CampsiteRepository {
      * Updates behinds a Campsite object into the firebase database .
      *
      * @param campsite Campsite object
-     * @param result lamba function that provide if:
-     *      - successfully then it returns a boolean as true
-     *      - not successfully so it returns a boolean as false
+     * @param result lamba function as callback that provide if:
+     *      - Result.success(Unit) if successfully
+     *      - Result.failure(exception) if not successful
      * @return nullable string
      */
     fun updateCampsite(
         campsite: Campsite,
-        result: (Boolean) -> Unit
+        result: (Result<Unit>) -> Unit
     ) {
         campsitesRef.document(campsite.campsiteId)
             .set(campsite)
             .addOnSuccessListener {
-                result(true)
+                result(Result.success(Unit))
             }
-            .addOnFailureListener {
-                result(false)
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
             }
     }
 
