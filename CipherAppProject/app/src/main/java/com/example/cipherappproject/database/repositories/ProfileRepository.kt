@@ -13,7 +13,6 @@ Date        Person     CSR#     Description
 2026-02-24  Sofia      1.01     added skeleton
 2026-03-22  Sofia      1.02     added query get by id
 2026-11-06  Sofia      1.03     delete getters and setters. Set the attributes to public.
-2026-03-22  Sofia      1.01     added query get by id
 2026-11-06  Madison             added query get by deviceId
 --------------------------------------------------------------------------------------
 Future Enhancements
