@@ -33,7 +33,7 @@ import com.example.cipherappproject.database.models.Campsite
  */
 @Composable
 fun CampsiteSummary(
-    navController: NavController,
+    onClick: () -> Unit,
     campsite: Campsite,
 ){
     val campsite = remember { campsite }
@@ -51,7 +51,7 @@ fun CampsiteSummary(
                     vertical = 5.dp
                 )
                 .clickable(enabled = true){
-                    navController.navigate(campsiteID)
+                    onClick()
                 }
                 .background(color = MaterialTheme.colorScheme.primaryContainer)
     ) {

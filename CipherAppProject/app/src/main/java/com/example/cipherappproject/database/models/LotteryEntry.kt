@@ -12,8 +12,9 @@ Purpose: Manage database for the object as LotteryEntry
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-2026-03-27  Sofia      1.01     added skeleton
-2026-03-10  Sofia      1.02     fixed getters and setters
+2026-10-27  Sofia      1.01     added skeleton
+2026-11-03  Sofia      1.02     fixed getters and setters
+2026-11-03  Sofia      1.03     fixed getters and setters names
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -40,33 +41,13 @@ data class LotteryEntry (
     private val lotteryId: String = "",
     private val userId: String = "",
     // registered, winner, offerPending, notSelected, accepted, declined, expired, withdrawn, etc
-    private var status: String = "registered",
+    private var status: String = "",
     // Defined after the list users are in random order so that we can pick the next person in the list if needed and know their status too
-    private var positionLottery: Int = -1 // means not added yet
+    private var positionLottery: Int? // means not added yet
 ){
     fun getLotteryEntryId(): String {
         return lotteryEntryId
     }
-
-    fun getLotteryEntryLotteryId(): String {
-        return lotteryId
-    }
-
-    fun getLotteryEntryUserId(): String {
-        return userId
-    }
-
-    fun getLotteryEntryStatus(): String {
-        return status
-    }
-
-    fun getLotteryEntryPositionLottery(): Int {
-        return positionLottery
-    }
-
-    /*
-     * Suggested renames so implementation is cleaner and matches Profile.kt etc. - Neth
-     */
 
     fun getLotteryId(): String {
         return lotteryId
@@ -80,7 +61,7 @@ data class LotteryEntry (
         return status
     }
 
-    fun getPositionLottery(): Int {
+    fun getPositionLottery(): Int? {
         return positionLottery
     }
 }
