@@ -1,9 +1,12 @@
 package com.example.cipherappproject
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -13,7 +16,6 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
@@ -24,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavController
@@ -46,12 +49,14 @@ import com.example.cipherappproject.ui.registration.Registration
 /**
  * Origin of all navigation, handles persistence of nav-bar and title bar
  *
- * Outstanding issue: implement user types, which will change the start destination and nav-bar options
+ * The user's role (entrant/owner) comes from their Profile, loaded by device ID on startup.
+ * Devices without a profile are sent to registration first.
  */
 /*
  * Built by Bailey Nov 2 2026
  * Updates:
  * Updated By Madison Nov 6 2026 - integrated registration
+ * Updated Nov 6 2026 - removed temporary role switch button, pass current user id to screens
  *
  */
 
@@ -169,16 +174,6 @@ fun CampsiteApp(){
                                 }
                             },
                             actions = {
-                                // TEMPORARY: remove once login sets the role
-                                TextButton(
-                                    onClick = {
-                                        role =
-                                            if (role == UserRole.ENTRANT) UserRole.OWNER else UserRole.ENTRANT
-                                    },
-                                    modifier = Modifier.testTag("switchRoleButton")
-                                ) {
-                                    Text(if (role == UserRole.ENTRANT) "Owner view" else "Entrant view")
-                                }
                                 // Entrant: received notifications, Owner: sent notifications
                                 IconButton(
                                     onClick = {
@@ -238,7 +233,7 @@ fun CampsiteApp(){
                             EntrantCampsiteView(campsiteId)
                         }
                         composable(AppRoutes.ENTRANT_RESERVATIONS) {
-                            ReservationScreen(userID = "", isOwner = false)
+                            ReservationScreen(userID = currentUserId, isOwner = false)
                         }
                         composable(AppRoutes.ENTRANT_LOTTERIES) {
                             EntrantLotteriesView(navController, currentUserId)
@@ -255,13 +250,13 @@ fun CampsiteApp(){
 
                         // Owner
                         composable(AppRoutes.OWNER_CAMPSITES) {
-                            OwnerOverview(ownerId = "")
+                            OwnerOverview(ownerId = currentUserId)
                         }
                         composable(AppRoutes.OWNER_LOTTERIES) {
                             OwnerLotteriesView(navController, currentUserId)
                         }
                         composable(AppRoutes.OWNER_RESERVATIONS) {
-                            ReservationScreen(userID = "", isOwner = true)
+                            ReservationScreen(userID = currentUserId, isOwner = true)
                         }
                         composable(AppRoutes.OWNER_NOTIFICATIONS) {
                             SentNotificationView()
@@ -291,6 +286,13 @@ fun CampsiteApp(){
                         //TODO: implement Admin navigation
                     }
                 }
+            }
+        }
+
+        // Still looking up the device's profile
+        else -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
         }
     }
