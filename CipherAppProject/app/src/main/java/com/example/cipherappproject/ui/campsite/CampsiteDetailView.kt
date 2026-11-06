@@ -7,52 +7,37 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.cipherappproject.CampsiteInfoModel
+import com.example.cipherappproject.database.models.Campsite
 
 @Composable
 fun CampsiteDetailView(
-    campsite: CampsiteInfoModel,
+    campsite: Campsite,
+    isOwner: Boolean,
     onEditClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = Modifier.padding(20.dp)
     ) {
-
         Text(
-            text = campsite.campsiteName,
+            text = campsite.getCampsiteName(),
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Text("Description: ${campsite.description}")
+        Text(campsite.getCampsiteDescription())
 
         Text(
-            "Amenities: ${
-                campsite.amenities.joinToString(", ")
-            }"
+            "Maximum Guests: ${campsite.getCampsiteMaxGuests()}"
         )
 
         Text(
-            "Maximum Occupancy: ${campsite.maxOccupancy}"
+            "Price per Night: $${campsite.getCampsitePricePerNight()}"
         )
 
-        Text(
-            "Location: ${campsite.latitude}, ${campsite.longitude}"
-        )
-
-        Text(
-            "Tags: ${campsite.tags.joinToString(", ")}"
-        )
-
-        if (campsite.image != null) {
-            Text("Image: ${campsite.image}")
-        }
-
-        Button(onClick = onEditClick) {
-            Text("Edit Campsite")
+        if (isOwner) {
+            Button(onClick = onEditClick) {
+                Text("Edit Campsite")
+            }
         }
     }
 }
+
