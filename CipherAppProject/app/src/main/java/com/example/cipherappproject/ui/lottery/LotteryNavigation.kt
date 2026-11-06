@@ -12,7 +12,7 @@ import androidx.navigation.navArgument
  *
  * Routes:
  *  - owner/lotteries
- *  - owner/lotteries/create
+ *  - owner/lotteries/create-lottery
  *  - owner/lotteries/{lotteryId}/edit
  *  - lottery/{lotteryId}/result
  *
@@ -21,7 +21,7 @@ import androidx.navigation.navArgument
  */
 object LotteryRoutes {
     const val OWNER_LOTTERIES = "owner/lotteries"
-    const val CREATE = "owner/lotteries/create"
+    const val CREATE = "owner/lotteries/create-lottery"
     const val EDIT = "owner/lotteries/{lotteryId}/edit"
     const val RESULT = "lottery/{lotteryId}/result"
     const val CREATE_WITH_CAMPSITE = "$CREATE?campsiteId={campsiteId}"
