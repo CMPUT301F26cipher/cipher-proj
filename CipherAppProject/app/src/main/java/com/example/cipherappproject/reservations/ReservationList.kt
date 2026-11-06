@@ -41,7 +41,7 @@ import java.util.Date
 // "if i don't want to keep updating it constantly by time is there a way that i can update it
 // only if i read that the date has passed?"
 class ReservationList(
-    userID: String = "",
+    userID: String = ""
 ) {
     private val reservationRepo: ReservationRepository = ReservationRepository()
 
@@ -69,20 +69,20 @@ class ReservationList(
         lastTimeChecked
         reservationRepo.reservations.filter { it.getUserId() == userID }
     }
-    private val activeReservations by derivedStateOf {
+    private val _activeReservations by derivedStateOf {
         lastTimeChecked
         reservations.filter { it.getStatus() == "active" && !DateUtils.parse(it.getBookEndDate())!!.isBefore(lastTimeChecked) }
     }
-    private val pastReservations by derivedStateOf {
+    private val _pastReservations by derivedStateOf {
         lastTimeChecked
         reservations.filter { it.getStatus() == "past" || (it.getStatus() != "cancelled" && DateUtils.parse(it.getBookEndDate())!!.isBefore(lastTimeChecked)) }
     }
 
-    private val nextExpiry by derivedStateOf { activeReservations.minOfOrNull { DateUtils.parse(it.getBookEndDate())!! } }
-    fun getNextExpiry(): LocalDate? = nextExpiry
+    private val _nextExpiry by derivedStateOf { _activeReservations.minOfOrNull { DateUtils.parse(it.getBookEndDate())!! } }
+    fun getNextExpiry(): LocalDate? = _nextExpiry
 
-    fun getActiveReservations() = activeReservations
-    fun getPastReservations() = pastReservations
+    fun getActiveReservations() = _activeReservations
+    fun getPastReservations() = _pastReservations
 
 
 
@@ -98,25 +98,22 @@ class ReservationList(
 }
 
 class ReservationListHelpers() {
+    private val reservationRepo: ReservationRepository = ReservationRepository()
     private val campsiteRepo: CampsiteRepository = CampsiteRepository()
     private val profileRepo: ProfileRepository = ProfileRepository()
 
+    //private val campsite = campsiteRepo.getCampsiteById()
     ////////////////////////////////////// CAMPSITES RESERVATION HELPERS //////////////////////////////////////////
     /**
      *
      * @return bookingPeriod formatted string of booking period
      */
-    fun formattedBookingPeriod(reservation: Reservation) {
-        return
-    }
+    fun formattedBookingPeriod() = ""
 
-    fun formattedUserName(reservation: Reservation) {
+    fun formattedUserName() = "Campsite"
 
+    fun formattedCampsiteName() = "user"
 
-    }
-
-    fun formattedCampsiteName(reservation: Reservation) {}
-
-    fun getCampsiteImg(reservation: Reservation) {}
+    fun getCampsiteImg() = "Date"
 
 }

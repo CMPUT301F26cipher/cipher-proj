@@ -9,26 +9,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.reservations.ReservationList.Status
-import com.example.cipherappproject.database.models.Reservation
-import java.time.ZoneId
-import kotlin.collections.emptyList
 import kotlinx.coroutines.delay
+import java.time.ZoneId
 import kotlin.time.Duration.Companion.milliseconds
 
 /*
@@ -66,8 +63,7 @@ NA
 @Composable
 fun ReservationScreen(userID: String) {
     val reservations = remember { ReservationList(userID) }
-    //rememberSaveable ensure if phone is rotated does not reset status
-    var currentStatus by rememberSaveable { mutableStateOf(Status.ACTIVE) }
+    val controller = remember { ReservationController() }
 
     // START OF AI GEN SECTION
     // Anthropic, Claude Opus 5.5, "if i want to connect a timer from a view to model how would a
@@ -89,11 +85,11 @@ fun ReservationScreen(userID: String) {
     Column( modifier = Modifier.testTag("reservationsMenu")) {
         Spacer(modifier = Modifier.height(8.dp))
         ReservationStatusSelector(
-            currentStatus,
-            onStatusSelected = { newStatus -> currentStatus = newStatus}
+            controller.currentStatus,
+            onStatusSelected = { newStatus -> controller.currentStatus = newStatus}
         )
 
-        DisplayListContent(reservations, currentStatus)
+        DisplayListContent(reservations, controller.currentStatus.name.lowercase())
     }
 }
 
@@ -101,7 +97,7 @@ fun ReservationScreen(userID: String) {
  * Displays the row of status buttons, with the current acitve tab in a different colour
  *
  * @param selectedStatus status of current active tab
- * @param onStatusSelected
+ * @param onStatusSelected holds the new status of button clicked
  */
 @Composable
 fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status) -> Unit) {
@@ -114,7 +110,11 @@ fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status)
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = { onStatusSelected(status) },
-                colors = if (status == selectedStatus)
+                colors = if (status == selectedStatus) {
+                    ButtonDefaults.buttonColors()
+                } else {
+                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.inversePrimary)
+                }
 
                 ) {
                 Text(status.toString())
@@ -132,11 +132,14 @@ fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status)
  */
 @Composable
 fun DisplayListContent(reservationsList: ReservationList, status: String) {
+
+
     val reservations = when (status) {
         "active" -> reservationsList.getActiveReservations()
         "past" -> reservationsList.getPastReservations()
         else -> emptyList()
     }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -145,11 +148,13 @@ fun DisplayListContent(reservationsList: ReservationList, status: String) {
         if (reservations.isNotEmpty()) {
             // goes through list of reservations that
             items(reservations) { reservation ->
+                val helpers = remember { ReservationListHelpers() }
+
                 ReservationRow(
-                     reservations.getCampsiteImg(reservation),
-                    reservations.formattedCampsiteName(reservation),
-                    reservations.formattedUserName(reservation),
-                    reservations.formattedBookingPeriod(reservation)
+                     helpers.getCampsiteImg(),
+                    helpers.formattedCampsiteName(),
+                    helpers.formattedUserName(),
+                    helpers.formattedBookingPeriod()
                     )
                 HorizontalDivider()
             }
@@ -206,5 +211,29 @@ fun ReservationRow(
 @Preview
 @Composable
 fun ReservationPreview() {
-    ReservationScreen()
+    ReservationScreen(userID = "")
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ReservationRowPreview() {
+    Column {
+        ReservationStatusSelector(
+            selectedStatus = Status.ACTIVE,
+            onStatusSelected = {}
+        )
+        ReservationRow(
+            imagePath = "",
+            campsiteName = "Lakeside Site 12",
+            userName = "Alex",
+            bookingPeriod = "Nov 1 - Nov 3"
+        )
+        HorizontalDivider()
+        ReservationRow(
+            imagePath = "",
+            campsiteName = "Pine Ridge Site 4",
+            userName = "Sam",
+            bookingPeriod = "Nov 10 - Nov 12"
+        )
+    }
 }

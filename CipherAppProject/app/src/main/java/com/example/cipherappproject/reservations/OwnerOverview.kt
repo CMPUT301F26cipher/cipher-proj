@@ -48,7 +48,7 @@ fun OwnerOverview(
     val repository = remember { CampsiteRepository() }
 
     val campsites = repository.campsites.filter {
-        it.ownerId == ownerId
+        it.getCampsiteOwnerId() == ownerId
     }
 
     Column(
@@ -92,7 +92,7 @@ fun OwnerOverview(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = campsite.campsiteName)
+                        Text(text = campsite.getCampsiteName())
                     }
                 }
             }

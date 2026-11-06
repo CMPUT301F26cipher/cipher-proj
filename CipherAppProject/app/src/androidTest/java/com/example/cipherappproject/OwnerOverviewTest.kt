@@ -59,7 +59,7 @@ class OwnerOverviewTest {
             while (System.currentTimeMillis() < deadline) {
 
                 val found = repository.campsites.any {
-                    it.campsiteId == campsiteId
+                    it.getCampsiteId() == campsiteId
                 }
 
                 if (found) {
@@ -77,15 +77,15 @@ class OwnerOverviewTest {
             )
 
             val retrieved = repository.campsites.first {
-                it.campsiteId == campsiteId
+                it.getCampsiteId() == campsiteId
             }
 
             assertEquals(
                 "Database Integration Test",
-                retrieved.campsiteName
+                retrieved.getCampsiteName()
             )
 
-            assertEquals(ownerId, retrieved.ownerId)
+            assertEquals(ownerId, retrieved.getCampsiteOwnerId())
 
         } finally {
 

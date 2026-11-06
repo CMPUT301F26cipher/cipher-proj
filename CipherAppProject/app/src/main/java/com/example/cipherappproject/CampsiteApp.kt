@@ -30,6 +30,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.cipherappproject.reservations.OwnerOverview
 import com.example.cipherappproject.ui.campsite.EntrantCampsiteView
 import com.example.cipherappproject.ui.lottery.EntrantLotteriesView
 import com.example.cipherappproject.ui.lottery.OwnerLotteriesView
@@ -147,7 +148,7 @@ fun CampsiteApp(){
                     EntrantCampsiteView(campsiteId)
                 }
                 composable(AppRoutes.ENTRANT_RESERVATIONS) {
-                    ReservationScreen()
+                    ReservationScreen(userID = "")
                 }
                 composable(AppRoutes.ENTRANT_LOTTERIES) {
                     EntrantLotteriesView(navController, currentUserId)
@@ -164,13 +165,13 @@ fun CampsiteApp(){
 
                 // Owner
                 composable(AppRoutes.OWNER_CAMPSITES) {
-                    OwnerOverview()
+                    OwnerOverview(ownerId = "")
                 }
                 composable(AppRoutes.OWNER_LOTTERIES) {
                     OwnerLotteriesView(navController, currentUserId)
                 }
                 composable(AppRoutes.OWNER_RESERVATIONS) {
-                    ReservationScreen()
+                    ReservationScreen(userID = "")
                 }
                 composable(AppRoutes.OWNER_NOTIFICATIONS) {
                     SentNotificationView()

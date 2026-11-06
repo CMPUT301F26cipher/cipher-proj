@@ -22,6 +22,8 @@ class ReservationListTest {
         //TODO
     }
 
+    /* if after refresh time, an expired reservation is moved form active to past */
+    @Test
 
     //TODO: Test can it update active and past reservations list after booking end date passes
 

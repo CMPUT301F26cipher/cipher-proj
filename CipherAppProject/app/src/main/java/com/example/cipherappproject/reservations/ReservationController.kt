@@ -24,10 +24,9 @@ NA
  */
 
 class ReservationController {
-    /**
-     * Holds the current button status of which reservation list to be displayed
-     */
-    var buttonStatus: Status by mutableStateOf(Status.ACTIVE)
+
+    /** Holds the current button status of which reservation list to be displayed */
+    var currentStatus: Status by mutableStateOf(Status.ACTIVE)
 
 
 }
