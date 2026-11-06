@@ -49,10 +49,10 @@ NA
 // Google, Gemini Flash, "syntax for button in kotlin android studio", 2026-10-27
 
 // acts like a watchdog, only becomes active when time of closest end booking date is notif
+
 /**
- * Displays the reservation screen
- *
- *
+ * Displays the reservation screen where users can click between 3 different reservations statuses
+ * (active, past, cancelled) and see the list of their most recent reservations
  */
 @Composable
 fun ReservationScreen() {
@@ -72,7 +72,7 @@ fun ReservationScreen() {
 }
 
 /**
- * Displays the row of status buttons,
+ * Displays the row of status buttons, with the current acitve tab in a different colour
  *
  * @param selectedStatus
  * @param onStatusSelected
@@ -95,17 +95,13 @@ fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status)
 
 
 /**
- * Display list of reservation by
- * according to current active user type (entrants, owners,
- * admin)
+ * Display list of reservation by according to current active user type (entrants, owners, admin)
  *
  * @param userID string representing the user
- * @param
- * @return
  */
 @Composable
 fun DisplayListContent(userID: String) {
-    val reservations = ReservationRepository.getReservationById(userID)
+    val reservations by rememberSaveable {  }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
