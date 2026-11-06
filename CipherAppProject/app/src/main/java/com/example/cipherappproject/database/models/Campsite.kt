@@ -41,18 +41,18 @@ NA
  */
 
 data class Campsite (
-    private val campsiteId: String = "",
-    private val ownerId: String = "",
-    private var campsiteName: String = "",
-    private val mapLocation: List<String> = emptyList(),
-    private var description: String = "",
-    private val amenities: MutableList<String> = mutableListOf(),
-    private var maxGuests: Int = 0,
-    private var pricePerNight: Double = 0.0,
-    private var imagePath: String = "",
-    private val tags: MutableList<String> = mutableListOf(),
-    private var qrCodeImagePath: String = "",
-    private var status: String = "",
+    val campsiteId: String = "",
+    val ownerId: String = "",
+    var campsiteName: String = "",
+    val mapLocation: List<String> = emptyList(),
+    var description: String = "",
+    var amenities: MutableList<String> = mutableListOf(),
+    var maxGuests: Int = 0,
+    var pricePerNight: Double = 0.0,
+    var imagePath: String = "",
+    var tags: MutableList<String> = mutableListOf(),
+    var qrCodeImagePath: String = "",
+    var status: String = ""
 ){
     fun getCampsiteAmenities(): List<String> {
         return amenities

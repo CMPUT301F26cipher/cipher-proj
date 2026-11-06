@@ -12,6 +12,7 @@ Modification History:
 Date        Person     CSR#     Description
 2026-10-27  Sofia      1.01     added skeleton
 2026-11-03  Sofia      1.02     fixed getters and setters
+2026-11-03  Sofia      1.02     fixed getters, getters, and default values
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -45,8 +46,8 @@ data class Lottery (
     private var numWinners: Int = 0,
     private var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
     private var endDate: String = "",
-    private var maxParticipants: Int?, // is optional for the owner
-    private val status: String,
+    private var maxParticipants: Int? = null, // is optional for the owner
+    private var status: String = "",
     private val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
 ) {
     fun getLotteryId(): String {
@@ -82,19 +83,23 @@ data class Lottery (
     }
 
     fun setLotteryEndDate(date: String) {
-        startDate = date
+        endDate = date
     }
 
     fun getLotteryMaxParticipants(): Int? {
         return maxParticipants
     }
 
-    fun setLotteryMaxParticipants(numParticipants: Int) {
+    fun setLotteryMaxParticipants(numParticipants: Int?) {
         maxParticipants = numParticipants
     }
 
     fun getLotteryStatus(): String {
         return status
+    }
+
+    fun setLotteryStatus(newStatus: String){
+        status = newStatus
     }
 
     fun getLotteryCreatedAt(): String {
