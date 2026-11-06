@@ -49,7 +49,6 @@ NA
 // Google, Gemini Flash, "syntax for button in kotlin android studio", 2026-10-27
 
 // acts like a watchdog, only becomes active when time of closest end booking date is notif
-
 /**
  * Displays the reservation screen
  *

@@ -1,5 +1,22 @@
 package com.example.cipherappproject
 
+/*
+--------------------------------------------------------------------------------------
+Program Name:
+Date Written:
+Author:
+Purpose:
+US: 01.02.01
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-05  Shira      1.01     Modifying to fit DB variables
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
 
 // https://www.geeksforgeeks.org/kotlin/kotlin-data-classes/
 
