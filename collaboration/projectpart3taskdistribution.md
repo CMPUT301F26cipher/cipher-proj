@@ -13,11 +13,11 @@ P - Productivity related (low priority)
 - 
 
 ## Neth
-- [US 02.04.06]
-- [US 02.04.02]
-- [US 01.04.03]
-- [US 01.04.01]
-- 
+- [US 02.04.06] - Completed
+- [US 02.04.02] - Completed
+- [US 01.04.03] - Completed
+- [US 01.04.01] - Completed
+- Navigation (Added to Baileys initial enum and bottom bar, added two more bottom bar icons along with a profile menu that navigated between dummy screens).
 
 ## Shira
 - [x] grouped project classes by features using CRC cards and user stories (oct 25) (D)
