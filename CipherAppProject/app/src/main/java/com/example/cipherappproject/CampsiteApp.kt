@@ -30,12 +30,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.cipherappproject.reservations.OwnerOverview
 import com.example.cipherappproject.ui.campsite.EntrantCampsiteView
 import com.example.cipherappproject.ui.lottery.EntrantLotteriesView
 import com.example.cipherappproject.ui.lottery.OwnerLotteriesView
 import com.example.cipherappproject.ui.lottery.PLACEHOLDER_USER_ID
 import com.example.cipherappproject.ui.lottery.lotteryScreens
-import com.example.cipherappproject.ui.reservations.ReservationScreen
+import com.example.cipherappproject.reservations.ReservationScreen
 
 /**
  * Origin of all navigation, handles persistence of nav-bar and title bar
@@ -138,7 +139,7 @@ fun CampsiteApp(){
                 composable(AppRoutes.SEARCH){
                     CampsiteSearch(
                         onNavigateToCampsite = {
-                            navController.navigate(AppRoutes.campsite(it.getCampsiteId()))
+                            navController.navigate(AppRoutes.campsite(it.campsiteId))
                         }
                     )
                 }
@@ -147,7 +148,7 @@ fun CampsiteApp(){
                     EntrantCampsiteView(campsiteId)
                 }
                 composable(AppRoutes.ENTRANT_RESERVATIONS) {
-                    ReservationScreen()
+                    ReservationScreen(userID = "", isOwner = false)
                 }
                 composable(AppRoutes.ENTRANT_LOTTERIES) {
                     EntrantLotteriesView(navController, currentUserId)
@@ -164,13 +165,13 @@ fun CampsiteApp(){
 
                 // Owner
                 composable(AppRoutes.OWNER_CAMPSITES) {
-                    OwnerOverview()
+                    OwnerOverview(ownerId = "")
                 }
                 composable(AppRoutes.OWNER_LOTTERIES) {
                     OwnerLotteriesView(navController, currentUserId)
                 }
                 composable(AppRoutes.OWNER_RESERVATIONS) {
-                    ReservationScreen()
+                    ReservationScreen(userID = "", isOwner = true)
                 }
                 composable(AppRoutes.OWNER_NOTIFICATIONS) {
                     SentNotificationView()

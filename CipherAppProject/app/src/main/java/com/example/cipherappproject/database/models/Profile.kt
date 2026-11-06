@@ -12,6 +12,7 @@ Modification History:
 Date        Person     CSR#     Description
 2026-10-27  Sofia      1.01     added skeleton
 2026-11-03  Sofia      1.02     fixed getters and setters
+2026-11-06  Sofia      1.03     delete getters and setters. Set the attributes to public.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -33,44 +34,12 @@ NA
  *
  */
 data class Profile (
-    private val profileId: String = "",
-    private var name: String = "",
-    private var email: String = "",
+    val profileId: String = "",
+    var name: String = "",
+    var email: String = "",
     /*Learned and taken from baeldung blog website as https://www.baeldung.com/kotlin/initialize-list*/
-    private val role: List<String> = emptyList<String>(),
-    private var imageProfilePath: String = "",
-    private val deviceId: String = "",
-    private var status: String = "",
-){
-    fun getStatus(): String {
-        return status
-    }
-
-    fun setStatus(profileStatus: String) {
-        status = profileStatus
-    }
-
-    fun getProfileId(): String {
-        return profileId
-    }
-
-    fun getRole(): List<String> {
-        return role
-    }
-
-    fun getImageProfilePath(): String {
-        return imageProfilePath
-    }
-
-    fun getDeviceId(): String {
-        return deviceId
-    }
-
-    fun getName(): String {
-        return name
-    }
-
-    fun getEmail(): String {
-        return email
-    }
-}
+    val role: List<String> = emptyList<String>(),
+    var imageProfilePath: String = "",
+    val deviceId: String = "",
+    var status: String = "",
+)

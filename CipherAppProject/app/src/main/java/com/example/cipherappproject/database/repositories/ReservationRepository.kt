@@ -13,6 +13,7 @@ Date        Person     CSR#     Description
 2026-03-27  Sofia      1.01     added skeleton
 2026-04-10  Sofia      1.02     added query get by id
 2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
+2026-11-06  Sofia      1.04     delete getters and setters. Set the attributes to public.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -103,7 +104,7 @@ class ReservationRepository {
         result: (Boolean) -> Unit
 
     ){
-        reservationsRef.document(reservation.getReservationId())
+        reservationsRef.document(reservation.reservationId)
             .set(reservation)
             .addOnSuccessListener {
                 result(true)

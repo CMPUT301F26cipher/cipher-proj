@@ -11,7 +11,8 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-02-24  Sofia      1.01     added skeleton
-2026-03-22  Sofia      1.01     added query get by id
+2026-03-22  Sofia      1.02     added query get by id
+2026-11-06  Sofia      1.03     delete getters and setters. Set the attributes to public.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -105,7 +106,7 @@ class ProfileRepository {
         profile: Profile,
         result: (Boolean) -> Unit
     ){
-        profilesRef.document(profile.getProfileId())
+        profilesRef.document(profile.profileId)
             .set(profile)
             .addOnSuccessListener {
                 result(true)

@@ -33,17 +33,17 @@ class LotteryBookingController {
 //    }
 
     fun canBook(entry: LotteryEntry?): Boolean {
-        return entry?.getStatus() == LotteryConstants.ENTRY_WINNER
+        return entry?.status == LotteryConstants.ENTRY_WINNER
     }
 
     /** Returns campsite choices belonging to the lottery. */
     fun getCampsiteChoices(lottery: Lottery): List<String> {
-        return lottery.getLotteryCampsitesId()
+        return lottery.campsiteIds
     }
 
     /** Selects a valid campsite and clears the previous night selection. */
     fun selectCampsite(lottery: Lottery, campsiteId: String) {
-        if (campsiteId !in lottery.getLotteryCampsitesId()) return
+        if (campsiteId !in lottery.campsiteIds) return
         if (campsiteId != selectedCampsiteId) {
             selectedCampsiteId = campsiteId
             availableNights = emptySet()
@@ -62,7 +62,7 @@ class LotteryBookingController {
          val campsiteId = selectedCampsiteId
         ?: return "Choose a campsite."
 
-        if (campsiteId !in lottery.getLotteryCampsitesId()) {
+        if (campsiteId !in lottery.campsiteIds) {
             return "Choose a campsite from this lottery."
         }
 
@@ -145,17 +145,17 @@ class LotteryBookingController {
         // 1. Every night the owner opened
         val openNights = mutableSetOf<LocalDate>()
         for (availability in availabilities) {
-            if (availability.getCampsiteAvailabilityStatus() != LotteryConstants.AVAILABILITY_OPEN) continue
-            val start = DateUtils.parse(availability.getCampsiteAvailabilityStartDate()) ?: continue
-            val end = DateUtils.parse(availability.getCampsiteAvailabilityEndDate()) ?: continue
+            if (availability.status != LotteryConstants.AVAILABILITY_OPEN) continue
+            val start = DateUtils.parse(availability.startDate) ?: continue
+            val end = DateUtils.parse(availability.endDate) ?: continue
             openNights.addAll(DateUtils.nightsBetween(start, end))
         }
 
         // 2. Remove nights someone has already booked
         for (reservation in reservations) {
-            if (reservation.getStatus().lowercase() in LotteryConstants.FREED_RESERVATION_STATUSES) continue
-            val start = DateUtils.parse(reservation.getBookStartDate()) ?: continue
-            val end = DateUtils.parse(reservation.getBookEndDate()) ?: continue
+            if (reservation.status.lowercase() in LotteryConstants.FREED_RESERVATION_STATUSES) continue
+            val start = DateUtils.parse(reservation.bookStartDate) ?: continue
+            val end = DateUtils.parse(reservation.bookEndDate) ?: continue
             openNights.removeAll(DateUtils.nightsBetween(start, end).toSet())
         }
 
@@ -222,8 +222,8 @@ class LotteryBookingController {
             return
         }
         entryRepository.updateEntryStatus(
-            lotteryId = entry.getLotteryId(),
-            lotteryEntryId = entry.getLotteryEntryId(),
+            lotteryId = entry.lotteryId,
+            lotteryEntryId = entry.lotteryEntryId,
             newStatus = LotteryConstants.ENTRY_DECLINED,
             result = onResult
         )

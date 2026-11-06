@@ -30,7 +30,7 @@ class CampsiteListFromFilters(
         }
         else {
             for (campsite in fullCampsiteList){
-                if (!campsite.getCampsiteName().contains(searchFilter.getName())){
+                if (!campsite.campsiteName.contains(searchFilter.getName())){
                     filteredCampsiteList.remove(campsite)
                 }
             }

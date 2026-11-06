@@ -55,22 +55,22 @@ fun LotteryForm(
             Text("You have no campsites registered yet.")
         }
         for (campsite in campsites) {
-            val isChecked = campsite.getCampsiteId() in input.campsiteIds
+            val isChecked = campsite.campsiteId in input.campsiteIds
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
                         val newIds =
-                            if (isChecked) input.campsiteIds - campsite.getCampsiteId()
-                            else input.campsiteIds + campsite.getCampsiteId()
+                            if (isChecked) input.campsiteIds - campsite.campsiteId
+                            else input.campsiteIds + campsite.campsiteId
                         onInputChange(input.copy(campsiteIds = newIds))
                     }
-                    .testTag("campsiteOption_${campsite.getCampsiteId()}")
+                    .testTag("campsiteOption_${campsite.campsiteId}")
             ) {
                 // The whole row handles the click, so the checkbox itself doesn't need to
                 Checkbox(checked = isChecked, onCheckedChange = null)
-                Text(text = campsite.getCampsiteName(), modifier = Modifier.padding(start = 8.dp))
+                Text(text = campsite.campsiteName, modifier = Modifier.padding(start = 8.dp))
             }
         }
 

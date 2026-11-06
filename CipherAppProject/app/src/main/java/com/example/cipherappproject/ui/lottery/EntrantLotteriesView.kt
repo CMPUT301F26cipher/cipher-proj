@@ -35,7 +35,7 @@ fun EntrantLotteriesView(
     val entryRepository = remember { LotteryEntryRepository() }
     val lotteryRepository = remember { LotteryRepository() }
     val campsiteRepository = remember { CampsiteRepository() }
-    val myEntries = entryRepository.lotteries.filter { it.getUserId() == entrantId }
+    val myEntries = entryRepository.lotteries.filter { it.userId == entrantId }
 
     Column(
         modifier = Modifier
@@ -51,17 +51,17 @@ fun EntrantLotteriesView(
                 item { Text("You haven't joined any lotteries yet.") }
             }
             items(myEntries) { entry ->
-                val lottery = lotteryRepository.lotteries.find { it.getLotteryId() == entry.getLotteryId() }
-                val campsiteNames = lottery?.getLotteryCampsitesId()?.map { id ->
-                    campsiteRepository.campsites.find { it.getCampsiteId() == id }?.getCampsiteName()
+                val lottery = lotteryRepository.lotteries.find { it.lotteryId == entry.lotteryId }
+                val campsiteNames = lottery?.campsiteIds?.map { id ->
+                    campsiteRepository.campsites.find { it.campsiteId == id }?.campsiteName
                         ?: "Unknown campsite"
                 } ?: emptyList()
 
                 EntryRow(
                     entry = entry,
                     campsiteNames = campsiteNames,
-                    dates = if (lottery != null) "${lottery.getLotteryStartDate()} to ${lottery.getLotteryEndDate()}" else "",
-                    onClick = { navController.navigate(LotteryRoutes.result(entry.getLotteryId())) }
+                    dates = if (lottery != null) "${lottery.startDate} to ${lottery.endDate}" else "",
+                    onClick = { navController.navigate(LotteryRoutes.result(entry.lotteryId)) }
                 )
             }
         }
@@ -85,7 +85,7 @@ private fun EntryRow(
             if (dates.isNotEmpty()) {
                 Text("Registration: $dates")
             }
-            Text("Status: ${entryStatusText(entry.getStatus())}")
+            Text("Status: ${entryStatusText(entry.status)}")
         }
     }
 }

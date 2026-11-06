@@ -10,17 +10,11 @@ Purpose: Manage database methods for LotteryRepository
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-<<<<<<< HEAD
 2026-03-27  Sofia      1.01     added skeleton
 2026-04-10  Sofia      1.02     added query get by id
 2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
 2026-05-11  Justin     1.04     added a validation step as it verifies campsite ownership and saves lottery settings.
-=======
-2026-10-27  Sofia       1.01     added skeleton
-2026-11-04  Sofia       1.02     added query get by id
-2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
-2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
->>>>>>> faa8a655a7ff7e4cb90b6973c65a07933677cf62
+2026-11-06  Sofia      1.05     fixed the get and set methods for the objects
 --------------------------------------------------------------------------------------
 Future Enhancements
 More secure measures/validation if needed????
@@ -115,7 +109,7 @@ class LotteryRepository {
         lottery: Lottery,
         result: (Boolean) -> Unit
     ){
-        lotteriesRef.document(lottery.getLotteryId())
+        lotteriesRef.document(lottery.lotteryId)
             .set(lottery)
             .addOnSuccessListener {
                 result(true)
@@ -143,6 +137,10 @@ class LotteryRepository {
         Report confirmed save success or an ownership/database error through callbacks. 
 
      */
+
+    // im going to review this later!
+
+    /*
     fun saveNewLottery( // THis function verifies campsite ownership and saves a new lottery. 
         lottery: Lottery,
         onSuccess: (String) -> Unit,
@@ -153,7 +151,7 @@ class LotteryRepository {
             return
         }
 
-        val campsiteIds = lottery.getLotteryCampsitesId().distinct() // Is this necessary
+        val campsiteIds = lottery.campsiteIds
 
         if (campsiteIds.isEmpty() || campsiteIds.any { it.isBlank() }) {
             onFailure("Select at least one campsite.")
@@ -195,7 +193,7 @@ class LotteryRepository {
             .addOnFailureListener {
                 onFailure("Could not verify the campsite ownership. Check your connection.")
             }
-    }
+    }*/
 
 
 

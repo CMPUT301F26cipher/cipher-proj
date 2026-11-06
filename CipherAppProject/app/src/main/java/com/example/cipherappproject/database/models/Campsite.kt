@@ -13,6 +13,7 @@ Date        Person     CSR#     Description
 2026-10-27  Sofia      1.01     added skeleton
 2026-11-03  Sofia      1.02     fixed getters and setters
 2026-11-05  Sofia      1.03     fixed getters and setters x2, added status for campsite, changed float to double
+2026-11-06   Sofia     1.04     delete getters and setters. Set the attributes to public. Left methods.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -41,22 +42,19 @@ NA
  */
 
 data class Campsite (
-    private val campsiteId: String = "",
-    private val ownerId: String = "",
-    private var campsiteName: String = "",
-    private val mapLocation: List<String> = emptyList(),
-    private var description: String = "",
-    private val amenities: MutableList<String> = mutableListOf(),
-    private var maxGuests: Int = 0,
-    private var pricePerNight: Double = 0.0,
-    private var imagePath: String = "",
-    private val tags: MutableList<String> = mutableListOf(),
-    private var qrCodeImagePath: String = "",
-    private var status: String = "",
+    val campsiteId: String = "",
+    val ownerId: String = "",
+    var campsiteName: String = "",
+    val mapLocation: List<String> = emptyList(),
+    var description: String = "",
+    var amenities: MutableList<String> = mutableListOf(),
+    var maxGuests: Int = 0,
+    var pricePerNight: Double = 0.0,
+    var imagePath: String = "",
+    var tags: MutableList<String> = mutableListOf(),
+    var qrCodeImagePath: String = "",
+    var status: String = ""
 ){
-    fun getCampsiteAmenities(): List<String> {
-        return amenities
-    }
 
     fun addCampsiteAmenity(amenity: String) {
         amenities.add(amenity)
@@ -65,61 +63,6 @@ data class Campsite (
     fun removeCampsiteAmenity(amenity: String) {
         amenities.remove(amenity)
     }
-    fun getCampsiteId(): String {
-        return campsiteId
-    }
-
-    fun getCampsiteOwnerId(): String {
-        return ownerId
-    }
-
-    fun getCampsiteName(): String {
-        return campsiteName
-    }
-
-    fun setCampsiteName(name: String) {
-        campsiteName = name
-    }
-
-    fun getCampsiteLocation(): List<String> {
-        return mapLocation
-    }
-
-    fun getCampsiteDescription(): String {
-        return description
-    }
-
-    fun setCampsiteDescription(desc: String) {
-        description = desc
-    }
-
-    fun getCampsiteMaxGuests(): Int {
-        return maxGuests
-    }
-
-    fun setCampsiteMaxGuests(numGuests: Int) {
-        maxGuests = numGuests
-    }
-
-    fun getCampsitePricePerNight(): Double {
-        return pricePerNight
-    }
-
-    fun setCampsitePricePerNight(price: Double) {
-        pricePerNight = price
-    }
-
-    fun getCampsiteImagePath(): String {
-        return imagePath
-    }
-
-    fun setCampsiteImagePath(path: String) {
-        imagePath = path
-    }
-
-    fun getCampsiteTags(): List<String> {
-        return tags
-    }
 
     fun addCampsiteTag(tag: String) {
         tags.add(tag)
@@ -127,14 +70,6 @@ data class Campsite (
 
     fun removeCampsiteTag(tag: String) {
         tags.remove(tag)
-    }
-
-    fun getCampsiteQrCodeImagePath(): String {
-        return qrCodeImagePath
-    }
-
-    fun setCampsiteQrCodeImagePath(path: String) {
-        qrCodeImagePath = path
     }
 }
 
