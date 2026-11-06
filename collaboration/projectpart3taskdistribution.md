@@ -31,12 +31,20 @@ P - Productivity related (low priority)
     - [x] profile
     - [x] reservation-and-waitlist
 - [ ] write script to update uml's images (P)
+
+Assigned but not complete
 [US 02.07.02] As a campsite owner, I want to view a list of past reservations.
+* what is left: having trouble displaying list of campsites
 [US 02.07.01] As a campsite owner, I want to view a list of active reservations.
+* what is left: having trouble displaying list of campsites
+[US 01.06.02] As an entrant, I want to view a list of my past reservations.
+* what is left: having trouble displaying list of campsites
+[US 01.06.01] As an entrant, I want to view a list of my active reservations.
+* what is left: having trouble displaying list of campsites
+
 [US 02.01.01] As a campsite owner, I want to register my campsite with the app.
 [US 02.01.02] As a campsite owner, I want to provide campsite details including name, location, description (amenities), maximum occupancy, map location, optional image, and tags.
-[US 01.06.02] As an entrant, I want to view a list of my past reservations.
-[US 01.06.01] As an entrant, I want to view a list of my active reservations.
+
 
 ## Sofia
 - [ ] 
