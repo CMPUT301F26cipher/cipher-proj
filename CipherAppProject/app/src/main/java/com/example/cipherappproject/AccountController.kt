@@ -4,10 +4,25 @@ import com.example.cipherappproject.database.models.Profile
 import com.example.cipherappproject.database.repositories.ProfileRepository
 import com.example.cipherappproject.ui.registration.EntrantDetails
 import com.example.cipherappproject.ui.registration.OwnerDetails
+import com.example.cipherappproject.database.models.Device
 
 class AccountController(
     private val profileRepository: ProfileRepository
 ) {
+    private val device = Device()
+
+    fun getAccountId(result: (String?) -> Unit) {
+
+        device.getDeviceId { deviceId ->
+
+            if (deviceId != null) {
+                result(deviceId)
+            } else {
+                result(null)
+            }
+
+        }
+    }
 
     /**
     Checks whether a profile exists for the given deviceId
