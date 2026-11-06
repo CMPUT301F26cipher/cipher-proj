@@ -10,7 +10,6 @@ import com.example.cipherappproject.LotteryController
 import com.example.cipherappproject.LotteryFormInput
 import com.example.cipherappproject.database.repositories.CampsiteRepository
 
-
 /**
  * Owner screen for creating a lottery over one or more of their campsites
  *
@@ -19,59 +18,29 @@ import com.example.cipherappproject.database.repositories.CampsiteRepository
 @Composable
 fun CreateLotteryView(
     navController: NavController,
-    ownerId: String,
-    initialCampsiteId: String? = null 
+    ownerId: String
 ) {
     val controller = remember { LotteryController() }
     val campsiteRepository = remember { CampsiteRepository() }
     // Live list, so this recomposes once Firestore has loaded the campsites
-    val ownerCampsites = campsiteRepository.campsites.filter { it.ownerId == ownerId }
-    var isSaving by remember { mutableStateOf(false) }
-    var input by remember(ownerId, initialCampsiteId)
-        { mutableStateOf(LotteryFormInput(
-                campsiteIds = initialCampsiteId
-                    ?.takeIf { it.isNotBlank()}
-                    ?.let { setOf(it)}
-                    ?: emptySet()
-            )
-        ) 
-    }
-    
+    val ownerCampsites = campsiteRepository.campsites.filter { it.getCampsiteOwnerId() == ownerId }
 
+    var input by remember { mutableStateOf(LotteryFormInput()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LotteryForm(
-        
         title = "Create Lottery",
         campsites = ownerCampsites,
         input = input,
-        onInputChange = { 
-            if (!isSaving) {
-                input = it 
-                errorMessage = null
-            }
-        },
+        onInputChange = { input = it },
         errorMessage = errorMessage,
-        isSaving = isSaving,
-        saveLabel = if (isSaving) "Saving..." else "Publish Lottery",
+        saveLabel = "Publish Lottery",
         onSave = {
-            if (!isSaving) {
-                isSaving = true
-                errorMessage = null
-
-                controller.createAndSaveLottery(
-                    ownerId = ownerId,
-                    input = input,
-                    onSuccess = {
-                        isSaving = false
-                        navController.popBackStack()
-                    },
-            onFailure = { message ->
-                isSaving = false
-                errorMessage = message
+            val error = controller.createFromForm(ownerId, input)
+            errorMessage = error
+            if (error == null) {
+                navController.popBackStack()
             }
-        )
-        }
         }
     )
 }

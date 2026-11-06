@@ -29,7 +29,7 @@ class NavbarTest {
 
         // verify navigation
         composeTestRule
-            .onNodeWithTag("profileColumn")
+            .onNodeWithTag("profileMenu")
             .assertExists()
 
         // navigate to search screen

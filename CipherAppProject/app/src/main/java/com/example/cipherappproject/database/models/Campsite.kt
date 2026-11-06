@@ -47,7 +47,7 @@ data class Campsite (
     private val mapLocation: List<String> = emptyList(),
     private var description: String = "",
     private val amenities: MutableList<String> = mutableListOf(),
-    private var maxGuests: Int,
+    private var maxGuests: Int = 0,
     private var pricePerNight: Double = 0.0,
     private var imagePath: String = "",
     private val tags: MutableList<String> = mutableListOf(),
