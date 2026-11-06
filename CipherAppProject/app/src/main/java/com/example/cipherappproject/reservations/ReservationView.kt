@@ -1,5 +1,6 @@
 package com.example.cipherappproject.reservations
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -61,7 +62,13 @@ NA
  */
 @Composable
 fun ReservationScreen(userID: String, isOwner: Boolean) {
+//    val reservationsRepository = ReservationRepository()
+//    val reservations = remember { reservationsRepository.reservations }
+//    val reservationByUser = remember { mutableStateListOf<Reservation?>() }
+
     val reservations = remember { ReservationList(userID, isOwner) }
+    Log.d("resv screen", "Raw Data ${reservations.getReservations()}")
+
     val controller = remember { ReservationController() }
 
     // START OF AI GEN SECTION
@@ -185,7 +192,7 @@ fun ReservationRow(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        //TODO: Display image of campsite
+        //TODO: Display image of campsite (follow https://developer.android.com/develop/ui/compose/components/carousel)
 
         Spacer(modifier = Modifier.width(8.dp))
 
@@ -210,5 +217,5 @@ fun ReservationRow(
 @Preview
 @Composable
 fun ReservationPreview() {
-    ReservationScreen(userID = "", isOwner = true)
+    ReservationScreen(userID = "PTSRrJ5uZBGVw8nrOtj7", isOwner = true)
 }

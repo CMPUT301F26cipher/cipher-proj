@@ -31,6 +31,7 @@ import com.example.cipherappproject.database.repositories.ProfileRepository
 import com.example.cipherappproject.database.repositories.ReservationRepository
 import java.time.LocalDate
 import java.util.Date
+import android.util.Log
 
 // This file contains sections that uses formatting generate by the following prompt:
 // Anthropic, Claude Opus 5.5, “clarify if i pull a copy of a list from a firebase database,
@@ -46,6 +47,7 @@ class ReservationList(
     userID: String = "",
     isOwner: Boolean = false
 ) {
+
     private val reservationRepo: ReservationRepository = ReservationRepository()
     private val campsiteRepo: CampsiteRepository = CampsiteRepository()
 
@@ -69,7 +71,7 @@ class ReservationList(
 
     // filtering user's list of reservations by that individual reservation status (active, past,
     // cancelled)
-    private val reservations by derivedStateOf {
+    val _reservations by derivedStateOf {
         lastTimeChecked
         if (isOwner) {
             val campsiteIds = campsiteRepo.campsites.filter { it.ownerId == userID }.map { it.campsiteId }
@@ -79,18 +81,22 @@ class ReservationList(
         }
 
     }
+
     private val _activeReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.status == "active" && !DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked) }
+        _reservations.filter { it.status == "active" && !DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked) }
     }
+
+
     private val _pastReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.status == "past" || (it.status != "cancelled" && DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked)) }
+        _reservations.filter { it.status == "past" || (it.status != "cancelled" && DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked)) }
     }
 
     private val _nextExpiry by derivedStateOf { _activeReservations.minOfOrNull { DateUtils.parse(it.bookEndDate)!! } }
     fun getNextExpiry(): LocalDate? = _nextExpiry
 
+    fun getReservations() = _reservations
     fun getActiveReservations() = _activeReservations
     fun getPastReservations() = _pastReservations
 
