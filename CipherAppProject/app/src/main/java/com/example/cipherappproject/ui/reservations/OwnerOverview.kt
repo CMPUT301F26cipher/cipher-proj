@@ -1,4 +1,4 @@
-package com.example.cipherappproject
+package com.example.cipherappproject.ui.reservations
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,17 +16,40 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import com.example.cipherappproject.database.models.Campsite
+import com.example.cipherappproject.database.repositories.CampsiteRepository
+
+/*
+--------------------------------------------------------------------------------------
+Program Name:
+Date Written:
+Author:
+Purpose:
+US: 02.01.04
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-05  Hye Sung   1.01     Removed dummy list, added DB integration
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
 
 @Composable
-fun OwnerOverview() {
-    val campsites = listOf(
-        "Campsite 1",
-        "Campsite 2",
-        "Campsite 3",
-        "Campsite 4",
-        "Campsite 5"
-    )
+fun OwnerOverview(
+    ownerId: String,
+    onRegisterClick: () -> Unit = {},
+    onCampsiteClick: (Campsite) -> Unit = {}
+) {
+
+    val repository = remember { CampsiteRepository() }
+
+    val campsites = repository.campsites.filter {
+        it.ownerId == ownerId
+    }
 
     Column(
         modifier = Modifier
@@ -69,7 +92,7 @@ fun OwnerOverview() {
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = campsite)
+                        Text(text = campsite.campsiteName)
                     }
                 }
             }
@@ -80,7 +103,4 @@ fun OwnerOverview() {
 
  }
 
-// Have Text that says "My campsites"
-
-// Work on WaitlistView, WaitlistModel
 

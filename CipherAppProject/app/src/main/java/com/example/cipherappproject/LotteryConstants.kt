@@ -3,7 +3,7 @@ package com.example.cipherappproject
 /**
  * Status values the lottery screens read and write, kept in one place.
  *
- * NOTE: WaitlistModel.kt has its own LotteryStatus enum;
+ * NOTE: WaitlistController.kt has its own LotteryStatus enum;
  */
 object LotteryConstants {
     // Lottery.status
