@@ -17,7 +17,6 @@ import androidx.navigation.compose.composable
  * identification (US 01.09.01) exists. The same ID acts as owner and entrant for testing.
  */
 object LotteryRoutes {
-    const val OWNER_LOTTERIES = "owner/lotteries"
     const val CREATE = "owner/lotteries/create"
     const val EDIT = "owner/lotteries/{lotteryId}/edit"
     const val RESULT = "lottery/{lotteryId}/result"
@@ -28,14 +27,11 @@ object LotteryRoutes {
 
 const val PLACEHOLDER_USER_ID = "test-user-1"
 
-/** Adds every lottery screen to a NavHost. */
+/** Adds the lottery sub-screens to a NavHost. */
 fun NavGraphBuilder.lotteryScreens(
     navController: NavController,
     currentUserId: String = PLACEHOLDER_USER_ID
 ) {
-    composable(LotteryRoutes.OWNER_LOTTERIES) {
-        OwnerLotteriesView(navController, currentUserId)
-    }
     composable(LotteryRoutes.CREATE) {
         CreateLotteryView(navController, currentUserId)
     }

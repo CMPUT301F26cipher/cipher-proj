@@ -67,7 +67,7 @@ fun LotteryResultScreen(
             CenteredMessage("You've already reserved through this lottery.")
 
         else -> CenteredMessage(
-            "The draw hasn't happened yet. Check back after ${currentLottery.endDate}."
+            "The draw hasn't happened yet. Check back after ${currentLottery.getLotteryEndDate()}."
         )
     }
 }

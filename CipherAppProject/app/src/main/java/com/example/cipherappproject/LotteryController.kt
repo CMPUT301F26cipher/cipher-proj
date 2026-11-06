@@ -31,8 +31,8 @@ class LotteryController {
 
         return Lottery(
             ownerId = ownerId,
-            campsiteIds = campsiteIds,
-            numWinner = numberOfWinners,
+            campsiteIds = campsiteIds.toMutableList(),
+            numWinners = numberOfWinners,
             startDate = startDate.trim(),
             endDate = endDate.trim(),
             maxParticipants = capacity ?: LotteryConstants.UNLIMITED_PARTICIPANTS,
@@ -86,28 +86,28 @@ class LotteryController {
 
     fun parseCapacity(capacityText: String): Int? = capacityText.trim().toIntOrNull()
 
-    fun canEdit(lottery: Lottery): Boolean = lottery.status == LotteryConstants.LOTTERY_OPEN
+    fun canEdit(lottery: Lottery): Boolean = lottery.getLotteryStatus() == LotteryConstants.LOTTERY_OPEN
 
     fun toFormInput(lottery: Lottery): LotteryFormInput {
         val capacityText =
-            if (lottery.maxParticipants == LotteryConstants.UNLIMITED_PARTICIPANTS) ""
-            else lottery.maxParticipants.toString()
+            if (lottery.getLotteryMaxParticipants() == LotteryConstants.UNLIMITED_PARTICIPANTS) ""
+            else lottery.getLotteryMaxParticipants()?.toString() ?: ""
 
         return LotteryFormInput(
-            campsiteIds = lottery.campsiteIds.toSet(),
-            registrationStart = lottery.startDate,
-            registrationEnd = lottery.endDate,
-            numWinners = lottery.numWinner.toString(),
+            campsiteIds = lottery.getLotteryCampsitesId().toSet(),
+            registrationStart = lottery.getLotteryStartDate(),
+            registrationEnd = lottery.getLotteryEndDate(),
+            numWinners = lottery.getLotteryNumWinners().toString(),
             capacity = capacityText
         )
     }
 
     fun applyChanges(original: Lottery, input: LotteryFormInput): Lottery {
         return original.copy(
-            campsiteIds = input.campsiteIds.toList(),
+            campsiteIds = input.campsiteIds.toMutableList(),
             startDate = input.registrationStart.trim(),
             endDate = input.registrationEnd.trim(),
-            numWinner = input.numWinners.trim().toInt(),
+            numWinners = input.numWinners.trim().toInt(),
             maxParticipants = parseCapacity(input.capacity) ?: LotteryConstants.UNLIMITED_PARTICIPANTS
         )
     }
@@ -116,16 +116,17 @@ class LotteryController {
         repository.getLotteryById(lotteryId, onResult)
     }
 
-    fun saveNewLottery(lottery: Lottery): String {
-        return repository.createLottery(
-            ownerId = lottery.ownerId,
-            campsiteIds = lottery.campsiteIds.toMutableList(),
-            numWinner = lottery.numWinner,
-            startDate = lottery.startDate,
-            endDate = lottery.endDate,
-            maxParticipants = lottery.maxParticipants,
-            status = lottery.status,
-            createdAt = lottery.createdAt
+    fun saveNewLottery(lottery: Lottery, onResult: (String?) -> Unit = {}) {
+        repository.createLottery(
+            ownerId = lottery.getLotteryOwnerId(),
+            campsiteIds = lottery.getLotteryCampsitesId().toMutableList(),
+            numWinners = lottery.getLotteryNumWinners(),
+            startDate = lottery.getLotteryStartDate(),
+            endDate = lottery.getLotteryEndDate(),
+            maxParticipants = lottery.getLotteryMaxParticipants() ?: LotteryConstants.UNLIMITED_PARTICIPANTS,
+            status = lottery.getLotteryStatus(),
+            createdAt = lottery.getLotteryCreatedAt(),
+            result = onResult
         )
     }
 
@@ -152,7 +153,7 @@ class LotteryController {
         val error = validate(input)
         if (error != null) return error
 
-        repository.updateLottery(applyChanges(original, input))
+        repository.updateLottery(applyChanges(original, input)) {}
         return null
     }
 }

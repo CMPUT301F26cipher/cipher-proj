@@ -73,7 +73,7 @@ fun LotteryWinScreen(
 
     // (id, display name) pairs; names fill in once the campsites have loaded
     val campsiteChoices = choices.map { id ->
-        val name = campsiteRepository.campsites.find { it.campsiteId == id }?.campsiteName
+        val name = campsiteRepository.campsites.find { it.getCampsiteId() == id }?.getCampsiteName()
         Pair(id, name ?: "Campsite")
     }
 

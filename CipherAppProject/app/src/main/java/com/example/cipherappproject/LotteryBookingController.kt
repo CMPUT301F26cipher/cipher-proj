@@ -38,12 +38,12 @@ class LotteryBookingController {
 
     /** Returns campsite choices belonging to the lottery. */
     fun getCampsiteChoices(lottery: Lottery): List<String> {
-        return lottery.campsiteIds
+        return lottery.getLotteryCampsitesId()
     }
 
     /** Selects a valid campsite and clears the previous night selection. */
     fun selectCampsite(lottery: Lottery, campsiteId: String) {
-        if (campsiteId !in lottery.campsiteIds) return
+        if (campsiteId !in lottery.getLotteryCampsitesId()) return
         if (campsiteId != selectedCampsiteId) {
             selectedCampsiteId = campsiteId
             availableNights = emptySet()
@@ -107,9 +107,9 @@ class LotteryBookingController {
         // 1. Every night the owner opened
         val openNights = mutableSetOf<LocalDate>()
         for (availability in availabilities) {
-            if (availability.status != LotteryConstants.AVAILABILITY_OPEN) continue
-            val start = DateUtils.parse(availability.startDate) ?: continue
-            val end = DateUtils.parse(availability.endDate) ?: continue
+            if (availability.getCampsiteAvailabilityStatus() != LotteryConstants.AVAILABILITY_OPEN) continue
+            val start = DateUtils.parse(availability.getCampsiteAvailabilityStartDate()) ?: continue
+            val end = DateUtils.parse(availability.getCampsiteAvailabilityEndDate()) ?: continue
             openNights.addAll(DateUtils.nightsBetween(start, end))
         }
 
