@@ -37,7 +37,7 @@ fun OwnerLotteriesView(
 ) {
     val lotteryRepository = remember { LotteryRepository() }
     val campsiteRepository = remember { CampsiteRepository() }
-    val myLotteries = lotteryRepository.lotteries.filter { it.getLotteryOwnerId() == ownerId }
+    val myLotteries = lotteryRepository.lotteries.filter { it.ownerId == ownerId }
 
     Column(
         modifier = Modifier
@@ -60,16 +60,16 @@ fun OwnerLotteriesView(
             if (myLotteries.isEmpty()) {
                 item { Text("You haven't created any lotteries yet.") }
             }
-            items(myLotteries, key = { it.getLotteryId() }) { lottery ->
-                val campsiteNames = lottery.getLotteryCampsitesId().map { id ->
-                    campsiteRepository.campsites.find { it.getCampsiteId() == id }?.getCampsiteName()
+            items(myLotteries, key = { it.lotteryId }) { lottery ->
+                val campsiteNames = lottery.campsiteIds.map { id ->
+                    campsiteRepository.campsites.find { it.campsiteId == id }?.campsiteName
                         ?: "Unknown campsite"
                 }
                 LotteryRow(
                     lottery = lottery,
                     campsiteNames = campsiteNames,
-                    onEdit = { navController.navigate(LotteryRoutes.edit(lottery.getLotteryId())) },
-                    onViewAsEntrant = { navController.navigate(LotteryRoutes.result(lottery.getLotteryId())) }
+                    onEdit = { navController.navigate(LotteryRoutes.edit(lottery.lotteryId)) },
+                    onViewAsEntrant = { navController.navigate(LotteryRoutes.result(lottery.lotteryId)) }
                 )
             }
         }
@@ -90,11 +90,11 @@ private fun LotteryRow(
                 text = campsiteNames.joinToString(", "),
                 style = MaterialTheme.typography.titleMedium
             )
-            Text("Registration: ${lottery.getLotteryStartDate()} to ${lottery.getLotteryEndDate()}")
-            Text("Winners: ${lottery.getLotteryNumWinners()}    Status: ${lottery.getLotteryStatus()}")
+            Text("Registration: ${lottery.startDate} to ${lottery.endDate}")
+            Text("Winners: ${lottery.numWinners}    Status: ${lottery.status}")
 
             Row {
-                if (lottery.getLotteryStatus() == LotteryConstants.LOTTERY_OPEN) {
+                if (lottery.status == LotteryConstants.LOTTERY_OPEN) {
                     TextButton(onClick = onEdit) { Text("Edit") }
                 }
                 // TEMPORARY: for testing the entrant screens, see the file comment

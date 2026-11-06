@@ -79,11 +79,12 @@ class LotteryController {
             return
         }
 
-        repository.saveNewLottery(
-            lottery = lottery,
-            onSuccess = onSuccess,
-            onFailure = onFailure
-        )
+        // LotteryRepository.saveNewLottery (with campsite-ownership check) is currently
+        // commented out, so save through createLottery instead.
+        saveNewLottery(lottery) { lotteryId ->
+            if (lotteryId != null) onSuccess(lotteryId)
+            else onFailure("Could not save lottery. Please try again.")
+        }
     }
 
     /** Checks date format and chronological order. */
@@ -131,18 +132,18 @@ class LotteryController {
 
     fun parseCapacity(capacityText: String): Int? = capacityText.trim().toIntOrNull()
 
-    fun canEdit(lottery: Lottery): Boolean = lottery.getLotteryStatus() == LotteryConstants.LOTTERY_OPEN
+    fun canEdit(lottery: Lottery): Boolean = lottery.status == LotteryConstants.LOTTERY_OPEN
 
     fun toFormInput(lottery: Lottery): LotteryFormInput {
         val capacityText =
-            if (lottery.getLotteryMaxParticipants() == LotteryConstants.UNLIMITED_PARTICIPANTS) ""
-            else lottery.getLotteryMaxParticipants()?.toString() ?: ""
+            if (lottery.maxParticipants == LotteryConstants.UNLIMITED_PARTICIPANTS) ""
+            else lottery.maxParticipants?.toString() ?: ""
 
         return LotteryFormInput(
-            campsiteIds = lottery.getLotteryCampsitesId().toSet(),
-            registrationStart = lottery.getLotteryStartDate(),
-            registrationEnd = lottery.getLotteryEndDate(),
-            numWinners = lottery.getLotteryNumWinners().toString(),
+            campsiteIds = lottery.campsiteIds.toSet(),
+            registrationStart = lottery.startDate,
+            registrationEnd = lottery.endDate,
+            numWinners = lottery.numWinners.toString(),
             capacity = capacityText
         )
     }
@@ -163,14 +164,14 @@ class LotteryController {
 
     fun saveNewLottery(lottery: Lottery, onResult: (String?) -> Unit = {}) {
         repository.createLottery(
-            ownerId = lottery.getLotteryOwnerId(),
-            campsiteIds = lottery.getLotteryCampsitesId().toMutableList(),
-            numWinners = lottery.getLotteryNumWinners(),
-            startDate = lottery.getLotteryStartDate(),
-            endDate = lottery.getLotteryEndDate(),
-            maxParticipants = lottery.getLotteryMaxParticipants() ?: LotteryConstants.UNLIMITED_PARTICIPANTS,
-            status = lottery.getLotteryStatus(),
-            createdAt = lottery.getLotteryCreatedAt(),
+            ownerId = lottery.ownerId,
+            campsiteIds = lottery.campsiteIds.toMutableList(),
+            numWinners = lottery.numWinners,
+            startDate = lottery.startDate,
+            endDate = lottery.endDate,
+            maxParticipants = lottery.maxParticipants ?: LotteryConstants.UNLIMITED_PARTICIPANTS,
+            status = lottery.status,
+            createdAt = lottery.createdAt,
             result = onResult
         )
     }

@@ -160,10 +160,10 @@ class DatabaseUnitTest {
         TestCase.assertNotNull(updatedCampsite)
 
         // Verify that the changes persisted
-        Assert.assertEquals(updatedName, updatedCampsite?.getCampsiteName())
+        Assert.assertEquals(updatedName, updatedCampsite?.campsiteName)
 
         // Verify that other fields were preserved
-        Assert.assertEquals(4, updatedCampsite?.getCampsiteMaxGuests())
+        Assert.assertEquals(4, updatedCampsite?.maxGuests)
 
         Log.d("CampsiteTest", "Campsite updated and verified successfully")*/
 
