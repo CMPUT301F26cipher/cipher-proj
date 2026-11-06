@@ -42,4 +42,93 @@ class NavbarTest {
             .onNodeWithTag("searchResults")
             .assertExists()
     }
+
+    @Test
+    fun navigate_to_reservations_and_back_to_search() {
+        // navigate to profile
+        composeTestRule
+            .onNodeWithTag("entrant/reservations")
+            .performClick()
+
+        // verify navigation
+        composeTestRule
+            .onNodeWithTag("reservationsMenu")
+            .assertExists()
+
+        // navigate to search screen
+        composeTestRule
+            .onNodeWithTag("search")
+            .performClick()
+
+        // verify navigation
+        composeTestRule
+            .onNodeWithTag("searchResults")
+            .assertExists()
+    }
+
+    @Test
+    fun navigate_to_messages_and_back_to_search() {
+        // navigate to profile
+        composeTestRule
+            .onNodeWithTag("entrant/messages")
+            .performClick()
+
+        // verify navigation
+        composeTestRule
+            .onNodeWithTag("messageView")
+            .assertExists()
+
+        // navigate to search screen
+        composeTestRule
+            .onNodeWithTag("search")
+            .performClick()
+
+        // verify navigation
+        composeTestRule
+            .onNodeWithTag("searchResults")
+            .assertExists()
+    }
+
+
+    @Test
+    fun navigate_through_each_in_sequence() {
+        // navigate to profile
+        composeTestRule
+            .onNodeWithTag("entrant/reservations")
+            .performClick()
+
+        // verify navigation
+        composeTestRule
+            .onNodeWithTag("reservationsMenu")
+            .assertExists()
+
+        // navigate to profile
+        composeTestRule
+            .onNodeWithTag("entrant/messages")
+            .performClick()
+
+        // verify navigation
+        composeTestRule
+            .onNodeWithTag("messageView")
+            .assertExists()
+
+        // navigate to profile
+        composeTestRule
+            .onNodeWithTag("profile")
+            .performClick()
+
+        // verify navigation
+        composeTestRule
+            .onNodeWithTag("profileMenu")
+            .assertExists()
+        // navigate to search screen
+        composeTestRule
+            .onNodeWithTag("search")
+            .performClick()
+
+        // verify navigation
+        composeTestRule
+            .onNodeWithTag("searchResults")
+            .assertExists()
+    }
 }
