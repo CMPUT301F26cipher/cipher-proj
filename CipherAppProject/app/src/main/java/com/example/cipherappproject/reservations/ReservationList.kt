@@ -1,0 +1,143 @@
+package com.example.cipherappproject.reservations
+
+/*
+--------------------------------------------------------------------------------------
+Program Name: ReservationList.kt
+Date Written: November 5, 2026
+Author: Shira Li
+Purpose: Reservation display screen for both past and active reservations, and for
+both Entrants and Owners
+US: 02.07.01, 02.07.02 (owners), 01.06.01, 01.06.02 (entrants)
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-05  Shira      1.01     Modifying to fit DB variables
+2026-11-06  Shira      1.02     Fixed Date mismatch types in updating list
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
+
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.example.cipherappproject.DateUtils
+import com.example.cipherappproject.database.models.Reservation
+import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.repositories.ProfileRepository
+import com.example.cipherappproject.database.repositories.ReservationRepository
+import java.time.LocalDate
+import java.util.Date
+
+// This file contains sections that uses formatting generate by the following prompt:
+// Anthropic, Claude Opus 5.5, “clarify if i pull a copy of a list from a firebase database,
+// should that be in a model then the model call the view to update it? or should it only be
+// some times if the data needs to be sorted into different lists?”, 2026-11-05
+// "what if the repo already has getters and setters?"
+// "if i don't want to keep updating it constantly by time is there a way that i can update it
+// only if i read that the date has passed?"
+
+// Additional AI Contribution: Provided the state-tracking pattern using derivedStateOf paired with
+// the lastTimeChecked watchdog trigger to auto-filter time-dependent lists.
+class ReservationList(
+    userID: String = "",
+    isOwner: Boolean = false
+) {
+    private val reservationRepo: ReservationRepository = ReservationRepository()
+    private val campsiteRepo: CampsiteRepository = CampsiteRepository()
+
+    ////////////////////////////////////// UI STATE //////////////////////////////////////////
+    enum class Status {ACTIVE, CANCELLED, PAST}
+
+
+    ////////////////////////////////////// UPDATING LISTS //////////////////////////////////////////
+
+    // keeps state of last time updated status
+    var lastTimeChecked by mutableStateOf(LocalDate.now())
+    /**
+     * Makes the lists (reservations, activeReservations, pastReservations, cancelledReservations)
+     * update when
+     */
+    fun refreshTime() { lastTimeChecked = LocalDate.now() }
+
+    // derivedStateOf will remember results and only re-filter when there is change
+    // filter is read only and returns a copy of the original list with condition applied
+    // lastTimeChecked lets derivedStateOf know it is time dependent
+
+    // filtering user's list of reservations by that individual reservation status (active, past,
+    // cancelled)
+    private val reservations by derivedStateOf {
+        lastTimeChecked
+        if (isOwner) {
+            val campsiteIds = campsiteRepo.campsites.filter { it.getCampsiteOwnerId() == userID }.map { it.getCampsiteId() }
+            reservationRepo.reservations.filter { it.getCampsiteId() in campsiteIds }
+        } else {
+            reservationRepo.reservations.filter { it.getUserId() in userID }
+        }
+
+    }
+    private val _activeReservations by derivedStateOf {
+        lastTimeChecked
+        reservations.filter { it.getStatus() == "active" && !DateUtils.parse(it.getBookEndDate())!!.isBefore(lastTimeChecked) }
+    }
+    private val _pastReservations by derivedStateOf {
+        lastTimeChecked
+        reservations.filter { it.getStatus() == "past" || (it.getStatus() != "cancelled" && DateUtils.parse(it.getBookEndDate())!!.isBefore(lastTimeChecked)) }
+    }
+
+    private val _nextExpiry by derivedStateOf { _activeReservations.minOfOrNull { DateUtils.parse(it.getBookEndDate())!! } }
+    fun getNextExpiry(): LocalDate? = _nextExpiry
+
+    fun getActiveReservations() = _activeReservations
+    fun getPastReservations() = _pastReservations
+
+
+
+    ////////////////////////////////////// PART 4 STUFF DO LATER //////////////////////////////////////////
+    //    private val cancelledReservation by derivedStateOf  {
+    //        lastTimeChecked
+    //        reservations.filter { it.getStatus() == "cancelled" } }
+    //
+    //    fun getCancelledReservations() = cancelledReservation
+
+    // TODO: use derivatedstate for cancelled reservaation status update with the controller
+
+}
+
+class ReservationListHelpers(
+    private val reservation: Reservation,
+    private val isOwner: Boolean
+) {
+    private val campsiteRepo: CampsiteRepository = CampsiteRepository()
+    private val profileRepo: ProfileRepository = ProfileRepository()
+
+
+    ////////////////////////////////////// CAMPSITES RESERVATION HELPERS //////////////////////////////////////////
+    /**
+     * @return bookingPeriod formatted string of booking period
+     */
+    fun formattedBookingPeriod(): String {
+        return DateUtils.display(DateUtils.parse(reservation.getBookStartDate())!!) + " - " + DateUtils.display(
+            DateUtils.parse(reservation.getBookEndDate())!!)
+    }
+
+    /**
+     * Gets the name of the user who made the reservation
+     */
+    fun formattedUserName(): String {
+        // first returns first campsite where conditions are true
+        val campsite = campsiteRepo.campsites.first { it.getCampsiteId() == reservation.getCampsiteId() }
+        val nameId = if ( isOwner) reservation.getUserId() else campsite.getCampsiteOwnerId()
+        return profileRepo.profiles.first { it.getProfileId() == nameId }.getName()
+    }
+
+    fun formattedCampsiteName(): String {
+        return campsiteRepo.campsites.first { it.getCampsiteId() == reservation.getCampsiteId() }.getCampsiteName()
+    }
+
+    fun getCampsiteImg() = ""
+
+}
