@@ -17,9 +17,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -30,13 +32,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.cipherappproject.database.repositories.ProfileRepository
 import com.example.cipherappproject.reservations.OwnerOverview
 import com.example.cipherappproject.ui.campsite.EntrantCampsiteView
 import com.example.cipherappproject.ui.lottery.EntrantLotteriesView
 import com.example.cipherappproject.ui.lottery.OwnerLotteriesView
-import com.example.cipherappproject.ui.lottery.PLACEHOLDER_USER_ID
 import com.example.cipherappproject.ui.lottery.lotteryScreens
 import com.example.cipherappproject.reservations.ReservationScreen
+import com.example.cipherappproject.ui.registration.AccountErrorView
+import com.example.cipherappproject.ui.registration.Registration
+
 
 /**
  * Origin of all navigation, handles persistence of nav-bar and title bar
@@ -46,159 +51,246 @@ import com.example.cipherappproject.reservations.ReservationScreen
 /*
  * Built by Bailey Nov 2 2026
  * Updates:
+ * Updated By Madison Nov 6 2026 - integrated registration
  *
  */
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampsiteApp(){
-    //TODO get correct user profile for current device.
-    val currentUserId = PLACEHOLDER_USER_ID
-    // TEMPORARY role switch until login decides the role
+
+    val profileRepository = remember { ProfileRepository() }
+    val accountController = remember { AccountController(profileRepository) }
+
+    var currentUserId by remember { mutableStateOf("") }
+    var deviceId by remember { mutableStateOf<String?>(null) }
+
+    var needsRegistration by remember { mutableStateOf(false) }
+    var deviceError by remember { mutableStateOf(false) }
+
     var role by rememberSaveable { mutableStateOf(UserRole.ENTRANT) }
 
-    key(role) {
-        val navController = rememberNavController()
-        val tabs = BottomBarDestinations.tabsFor(role)
-        val startDestination = BottomBarDestinations.SEARCH
-        val backStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = backStackEntry?.destination?.route
-        val showBackArrow = currentRoute != null && tabs.none { it.route == currentRoute }
+    LaunchedEffect(Unit) {
+
+        accountController.getAccountId { id ->
+
+            if (id != null) {
+                deviceId = id
+
+                accountController.checkAccount(id) { profile ->
+
+                    if (profile != null) {
+                        currentUserId = profile.profileId
+
+                        role = if (profile.role.contains("Owner")) {
+                            UserRole.OWNER
+                        } else {
+                            UserRole.ENTRANT
+                        }
+
+                    } else {
+                        needsRegistration = true
+                    }
+                }
+
+            } else {
+                deviceError = true
+            }
+        }
+    }
+    when {
+
+        deviceError -> {
+            AccountErrorView()
+        }
+
+        needsRegistration && deviceId != null -> {
+            Registration(
+
+                onEntrantRegistration = { entrantDetails ->
+
+                    accountController.createEntrantAccount(
+                        entrantDetails = entrantDetails,
+                        deviceId = deviceId!!
+                    ) { profileId ->
+
+                        if (profileId != null) {
+                            currentUserId = profileId
+                            needsRegistration = false
+                        }
+                    }
+                },
+
+                onOwnerRegistration = { ownerDetails ->
+
+                    accountController.createOwnerAccount(
+                        ownerDetails = ownerDetails,
+                        deviceId = deviceId!!
+                    ) { profileId ->
+
+                        if (profileId != null) {
+                            currentUserId = profileId
+                            role = UserRole.OWNER
+                            needsRegistration = false
+                        }
+                    }
+                }
+            )
+        }
+
+        currentUserId.isNotBlank() -> {
+
+            key(role) {
+                val navController = rememberNavController()
+                val tabs = BottomBarDestinations.tabsFor(role)
+                val startDestination = BottomBarDestinations.SEARCH
+                val backStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = backStackEntry?.destination?.route
+                val showBackArrow = currentRoute != null && tabs.none { it.route == currentRoute }
 //      var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
 
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    modifier = Modifier,
-                    colors = topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.primary,
-                    ),
-                    title = { Text(text = "Cipher App") },
-                    navigationIcon = {
-                        if (showBackArrow) {
-                            IconButton(onClick = { navController.navigateUp() }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                            }
-                        }
-                    },
-                    actions = {
-                        // TEMPORARY: remove once login sets the role
-                        TextButton(
-                            onClick = {
-                                role = if (role == UserRole.ENTRANT) UserRole.OWNER else UserRole.ENTRANT
-                            },
-                            modifier = Modifier.testTag("switchRoleButton")
-                        ) {
-                            Text(if (role == UserRole.ENTRANT) "Owner view" else "Entrant view")
-                        }
-                        // Entrant: received notifications, Owner: sent notifications
-                        IconButton(
-                            onClick = {
-                                navController.navigate(AppRoutes.notificationsFor(role)) {
-                                    launchSingleTop = true
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            modifier = Modifier,
+                            colors = topAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                titleContentColor = MaterialTheme.colorScheme.primary,
+                            ),
+                            title = { Text(text = "Cipher App") },
+                            navigationIcon = {
+                                if (showBackArrow) {
+                                    IconButton(onClick = { navController.navigateUp() }) {
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.ArrowBack,
+                                            contentDescription = "Back"
+                                        )
+                                    }
                                 }
                             },
-                            modifier = Modifier.testTag("notificationsButton")
-                        ) {
-                            Icon(Icons.Default.Notifications, contentDescription = "Notifications")
-                        }
-                    }
-                )
-            },
-            bottomBar = {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    windowInsets = NavigationBarDefaults.windowInsets
-                ) {
-                    tabs.forEach { destination ->
-                        NavigationBarItem(
-                            // startsWith so e.g. "owner/lotteries/create" still highlights Lotteries
-                            selected = currentRoute?.startsWith(destination.route) == true,
-                            onClick = { navigateToTab(navController, destination.route) },
-                            icon = {
-                                Icon(
-                                    destination.icon,
-                                    contentDescription = destination.contentDescription
-                                )
-                            },
-                            label = { Text(destination.label) },
-                            modifier = Modifier.testTag(destination.route)
+                            actions = {
+                                // TEMPORARY: remove once login sets the role
+                                TextButton(
+                                    onClick = {
+                                        role =
+                                            if (role == UserRole.ENTRANT) UserRole.OWNER else UserRole.ENTRANT
+                                    },
+                                    modifier = Modifier.testTag("switchRoleButton")
+                                ) {
+                                    Text(if (role == UserRole.ENTRANT) "Owner view" else "Entrant view")
+                                }
+                                // Entrant: received notifications, Owner: sent notifications
+                                IconButton(
+                                    onClick = {
+                                        navController.navigate(AppRoutes.notificationsFor(role)) {
+                                            launchSingleTop = true
+                                        }
+                                    },
+                                    modifier = Modifier.testTag("notificationsButton")
+                                ) {
+                                    Icon(
+                                        Icons.Default.Notifications,
+                                        contentDescription = "Notifications"
+                                    )
+                                }
+                            }
                         )
-                    }
-                }
-            }
-        ) { innerPadding ->
-            NavHost(
-                navController = navController,
-                startDestination = startDestination.route,
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                // Entrant
-                composable(AppRoutes.SEARCH){
-                    CampsiteSearch(
-                        onNavigateToCampsite = {
-                            navController.navigate(AppRoutes.campsite(it.campsiteId))
-                        }
-                    )
-                }
-                composable(AppRoutes.CAMPSITE) { backStackEntry ->
-                    val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
-                    EntrantCampsiteView(campsiteId)
-                }
-                composable(AppRoutes.ENTRANT_RESERVATIONS) {
-                    ReservationScreen(userID = "", isOwner = false)
-                }
-                composable(AppRoutes.ENTRANT_LOTTERIES) {
-                    EntrantLotteriesView(navController, currentUserId)
-                }
-                composable(AppRoutes.MESSAGES) {
-                    MessageView()
-                }
-                composable(AppRoutes.ENTRANT_NOTIFICATIONS) {
-                    NotificationView()
-                }
-                composable(AppRoutes.SCAN_QR) {
-                    QRScanView()
-                }
-
-                // Owner
-                composable(AppRoutes.OWNER_CAMPSITES) {
-                    OwnerOverview(ownerId = "")
-                }
-                composable(AppRoutes.OWNER_LOTTERIES) {
-                    OwnerLotteriesView(navController, currentUserId)
-                }
-                composable(AppRoutes.OWNER_RESERVATIONS) {
-                    ReservationScreen(userID = "", isOwner = true)
-                }
-                composable(AppRoutes.OWNER_NOTIFICATIONS) {
-                    SentNotificationView()
-                }
-
-                // Shared
-                composable(AppRoutes.PROFILE){
-                    ProfileMenuView(
-                        role = role,
-                        onOpen = { route ->
-                            if (tabs.any { it.route == route }) {
-                                navigateToTab(navController, route)
-                            } else {
-                                navController.navigate(route)
+                    },
+                    bottomBar = {
+                        NavigationBar(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                            windowInsets = NavigationBarDefaults.windowInsets
+                        ) {
+                            tabs.forEach { destination ->
+                                NavigationBarItem(
+                                    // startsWith so e.g. "owner/lotteries/create" still highlights Lotteries
+                                    selected = currentRoute?.startsWith(destination.route) == true,
+                                    onClick = { navigateToTab(navController, destination.route) },
+                                    icon = {
+                                        Icon(
+                                            destination.icon,
+                                            contentDescription = destination.contentDescription
+                                        )
+                                    },
+                                    label = { Text(destination.label) },
+                                    modifier = Modifier.testTag(destination.route)
+                                )
                             }
                         }
-                    )
+                    }
+                ) { innerPadding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = startDestination.route,
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        // Entrant
+                        composable(AppRoutes.SEARCH) {
+                            CampsiteSearch(
+                                onNavigateToCampsite = {
+                                    navController.navigate(AppRoutes.campsite(it.campsiteId))
+                                }
+                            )
+                        }
+                        composable(AppRoutes.CAMPSITE) { backStackEntry ->
+                            val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
+                            EntrantCampsiteView(campsiteId)
+                        }
+                        composable(AppRoutes.ENTRANT_RESERVATIONS) {
+                            ReservationScreen(userID = "", isOwner = false)
+                        }
+                        composable(AppRoutes.ENTRANT_LOTTERIES) {
+                            EntrantLotteriesView(navController, currentUserId)
+                        }
+                        composable(AppRoutes.MESSAGES) {
+                            MessageView()
+                        }
+                        composable(AppRoutes.ENTRANT_NOTIFICATIONS) {
+                            NotificationView()
+                        }
+                        composable(AppRoutes.SCAN_QR) {
+                            QRScanView()
+                        }
+
+                        // Owner
+                        composable(AppRoutes.OWNER_CAMPSITES) {
+                            OwnerOverview(ownerId = "")
+                        }
+                        composable(AppRoutes.OWNER_LOTTERIES) {
+                            OwnerLotteriesView(navController, currentUserId)
+                        }
+                        composable(AppRoutes.OWNER_RESERVATIONS) {
+                            ReservationScreen(userID = "", isOwner = true)
+                        }
+                        composable(AppRoutes.OWNER_NOTIFICATIONS) {
+                            SentNotificationView()
+                        }
+
+                        // Shared
+                        composable(AppRoutes.PROFILE) {
+                            ProfileMenuView(
+                                role = role,
+                                onOpen = { route ->
+                                    if (tabs.any { it.route == route }) {
+                                        navigateToTab(navController, route)
+                                    } else {
+                                        navController.navigate(route)
+                                    }
+                                }
+                            )
+                        }
+                        composable(AppRoutes.POLICY) {
+                            PolicyView()
+                        }
+
+                        // FEATURE SUB SCREENS ADD UNDER HERE
+
+                        lotteryScreens(navController = navController, currentUserId = currentUserId)
+
+                        //TODO: implement Admin navigation
+                    }
                 }
-                composable(AppRoutes.POLICY) {
-                    PolicyView()
-                }
-
-                // FEATURE SUB SCREENS ADD UNDER HERE
-
-                lotteryScreens(navController = navController, currentUserId = currentUserId)
-
-                //TODO: implement Admin navigation
             }
         }
     }
