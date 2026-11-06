@@ -35,7 +35,7 @@ import com.example.cipherappproject.ui.lottery.EntrantLotteriesView
 import com.example.cipherappproject.ui.lottery.OwnerLotteriesView
 import com.example.cipherappproject.ui.lottery.PLACEHOLDER_USER_ID
 import com.example.cipherappproject.ui.lottery.lotteryScreens
-import com.example.cipherappproject.ui.reservations.ReservationScreen
+import com.example.cipherappproject.reservations.ReservationScreen
 
 /**
  * Origin of all navigation, handles persistence of nav-bar and title bar

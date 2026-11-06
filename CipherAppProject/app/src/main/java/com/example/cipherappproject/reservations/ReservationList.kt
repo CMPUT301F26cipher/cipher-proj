@@ -1,11 +1,4 @@
-package com.example.cipherappproject
-
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import com.example.cipherappproject.database.repositories.ReservationRepository
-import java.util.Date
+package com.example.cipherappproject.reservations
 
 /*
 --------------------------------------------------------------------------------------
@@ -26,14 +19,15 @@ Future Enhancements
 NA
  */
 
-<<<<<<< HEAD:CipherAppProject/app/src/main/java/com/example/cipherappproject/ReservationListModel.kt
-//TODO: mod to account for db reservation, change to only handle the logic side of things?
 
-/*
-class ReservationListModel(
-=======
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateOf
+import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.repositories.ReservationRepository
+import java.util.Date
+
 class ReservationList(
->>>>>>> 483898217bd548ea6e8f1243a325ce6cf236a65c:CipherAppProject/app/src/main/java/com/example/cipherappproject/ReservationList.kt
+
     userID: String = "",
     // START OF AI GEN CONTENT
     // This section uses formatting generate by the following prompt:
@@ -44,7 +38,9 @@ class ReservationList(
     // ...
     // "if i don't want to keep updating it constantly by time is there a way that i can update it
     // only if i read that the date has passed?"
-    private val repo: ReservationRepository = ReservationRepository()
+    private val reservationRepo: ReservationRepository = ReservationRepository(),
+    private val campsiteRepo: CampsiteRepository = CampsiteRepository()
+
 ) {
     // keeps state of last time updated status
     var lastTimeChecked by mutableStateOf(Date())
@@ -52,7 +48,8 @@ class ReservationList(
      * Makes the lists (reservations, activeReservations, pastReservations, cancelledReservations)
      * update when
      */
-    fun refreshTime() { lastTimeChecked = Date() }
+    fun refreshTime() { lastTimeChecked = Date()
+    }
 
     // derivedStateOf will remember results and only re-filter when there is change
     // filter is read only and returns a copy of the original list with condition applied
@@ -62,13 +59,16 @@ class ReservationList(
     // cancelled)
     private val reservations by derivedStateOf {
         lastTimeChecked
-        repo.reservations.filter { it.getUserId() == userID } }
+        reservationRepo.reservations.filter { it.getUserId() == userID }
+    }
     private val activeReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.getStatus() == "active" } }
+        reservations.filter { it.getStatus() == "active" }
+    }
     private val pastReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.getStatus() == "past" } }
+        reservations.filter { it.getStatus() == "past" }
+    }
 
     private val nextExpiry by derivedStateOf { activeReservations.minOfOrNull { it.getBookEndDate() } }
 
@@ -105,6 +105,20 @@ class ReservationList(
 
     fun getButtonStatus() = buttonStatus
 
+    ////////////////////////////////////// CAMPSITES RESERVATION HELPERS //////////////////////////////////////////
+
+    /**
+     *
+     * @return bookingPeriod formatted string of booking period
+     */
+    fun formattedBookingPeriod() {}
+
+    fun formattedUserName() {}
+
+    fun formattedCampsiteName() {}
+
+    fun getCampsiteImg() {}
+
     ////////////////////////////////////// PART 4 STUFF DO LATER //////////////////////////////////////////
     //    private val cancelledReservation by derivedStateOf  {
     //        lastTimeChecked
@@ -115,4 +129,3 @@ class ReservationList(
     // TODO: use derivatedstate for cancelled reservaation status update with the controller
 
 }
-*/

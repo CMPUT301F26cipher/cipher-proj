@@ -1,4 +1,4 @@
-package com.example.cipherappproject.ui.reservations
+package com.example.cipherappproject.reservations
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,13 +9,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -23,15 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.cipherappproject.ReservationModel
 import com.example.cipherappproject.ReservationModel.Status
-import com.example.cipherappproject.database.models.Profile
 import com.example.cipherappproject.database.models.Reservation
-import com.example.cipherappproject.database.repositories.ReservationRepository
 
 /*
 --------------------------------------------------------------------------------------
-Program Name: Reservation.kt
+Program Name: ReservationView.kt
 Date Written: November 5, 2026
 Author: Shira Li
 Purpose: Reservation display screen for both past and active reservations, and for
@@ -55,10 +52,12 @@ NA
 /**
  * Displays the reservation screen where users can click between 3 different reservations statuses
  * (active, past, cancelled) and see the list of their most recent reservations
+ *
+ * @param userID string representing the user
  */
 @Composable
-fun ReservationScreen() {
-
+fun ReservationScreen(userID: String) {
+    val reservations by rememberSaveable { ReservationList(userID) }
     //rememberSaveable ensure if phone is rotated does not reset status
     var currentStatus by rememberSaveable { mutableStateOf(Status.ACTIVE) }
 
@@ -70,7 +69,7 @@ fun ReservationScreen() {
             onStatusSelected = { newStatus -> currentStatus = newStatus}
         )
 
-        DisplayListContent()
+        DisplayListContent(reservations, currentStatus)
     }
 
 
@@ -102,12 +101,11 @@ fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status)
 /**
  * Display list of reservation by according to current active user type (entrants, owners, admin)
  *
- * @param userID string representing the user
+ * @param reservations
+ * @param status
  */
 @Composable
-fun DisplayListContent(userID: String) {
-    val reservations by rememberSaveable {  }
-
+fun DisplayListContent(reservations: ReservationList, status: Status) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -129,21 +127,39 @@ fun DisplayListContent(userID: String) {
  * Display SINGLE reservation row, including the campsite name, campsite image, name of user, and
  * booking period
  *
- * @param reservation
+ * @param imagePath path to campsite image
+ * @param campsiteName name of campsite
+ * @param userName (entrants) name of campsite owner. (owner) name of entrant who made reservation
+ * @param bookingPeriod formatted dates i.e Nov 1 - Nov 3
  * @param onCancelClick
  */
 @Composable
-fun ReservationRow(r: Reservation, onCancelClick: () -> Unit = {}) {
+fun ReservationRow(
+    imagePath: String,
+    campsiteName: String,
+    userName: String,
+    bookingPeriod: String,
+    onCancelClick: () -> Unit = {}) {
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         //TODO: Display image of campsite
-        Text()
+
+        Spacer(modifier = Modifier.width(8.dp))
+
         Column(modifier = Modifier.weight(1f)) {
-            //TODO: Display {campsite name},{username | booking period}
-            Text("CAMPSITE X")
+            // Display {campsite name},{username | booking period}
+            Text(campsiteName)
+            Row {
+                Text(userName)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(bookingPeriod)
+            }
         }
+
+        Spacer(modifier = Modifier.width(8.dp))
 
         Button( onClick = { onCancelClick() }) {
             Text("Cancel")
@@ -156,4 +172,3 @@ fun ReservationRow(r: Reservation, onCancelClick: () -> Unit = {}) {
 fun ReservationPreview() {
     ReservationScreen()
 }
-*/
