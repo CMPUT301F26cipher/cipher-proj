@@ -36,7 +36,7 @@ import com.example.cipherappproject.ui.lottery.OwnerLotteriesView
 import com.example.cipherappproject.ui.lottery.PLACEHOLDER_USER_ID
 import com.example.cipherappproject.ui.lottery.lotteryScreens
 import com.example.cipherappproject.ui.reservations.OwnerOverview
-// import com.example.cipherappproject.ui.reservations.ReservationScreen
+import com.example.cipherappproject.ui.reservations.ReservationScreen
 
 /**
  * Origin of all navigation, handles persistence of nav-bar and title bar
@@ -165,13 +165,13 @@ fun CampsiteApp(){
 
                 // Owner
                 composable(AppRoutes.OWNER_CAMPSITES) {
-                    //OwnerOverview()
+                    OwnerOverview()
                 }
                 composable(AppRoutes.OWNER_LOTTERIES) {
                     OwnerLotteriesView(navController, currentUserId)
                 }
                 composable(AppRoutes.OWNER_RESERVATIONS) {
-                    //ReservationScreen()
+                    ReservationScreen()
                 }
                 composable(AppRoutes.OWNER_NOTIFICATIONS) {
                     SentNotificationView()
