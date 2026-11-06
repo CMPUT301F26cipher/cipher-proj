@@ -23,82 +23,28 @@ NA
 
 
 class WaitlistController(
-    private val lotteryRepository: LotteryRepository = LotteryRepository(),
-    private val entryRepository: LotteryEntryRepository = LotteryEntryRepository()
+    private val entryRepository: LotteryEntryRepository =
+        LotteryEntryRepository()
 ) {
 
-    /**
-     * Find a lottery for the campsite and requested dates.
-     */
-    fun findAvailableLottery(
-        campsiteId: String,
-        startDate: LocalDate,
-        endDate: LocalDate,
-        result: (Lottery?) -> Unit
-    ) {
-        if (!endDate.isAfter(startDate)) {
-            result(null)
-            return
-        }
-
-        lotteryRepository.getLotteryByCampsiteId(campsiteId) { lotteries ->
-
-            if (lotteries == null) {
-                result(null)
-                return@getLotteryByCampsiteId
-            }
-
-            val matchingLottery = lotteries.firstOrNull { lottery ->
-
-                val bookingStart = runCatching {
-                    LocalDate.parse(lottery.bookingStartDate)
-                }.getOrNull()
-
-                val bookingEnd = runCatching {
-                    LocalDate.parse(lottery.bookingEndDate)
-                }.getOrNull()
-
-                lottery.status == "open" &&
-                        bookingStart != null &&
-                        bookingEnd != null &&
-                        !startDate.isBefore(bookingStart) &&
-                        !endDate.isAfter(bookingEnd)
-            }
-
-            result(matchingLottery)
-        }
-    }
-
-    /**
-     * Register an entrant for a lottery.
-     */
-    fun joinWaitlist(
+    fun getWaitlist(
         lotteryId: String,
-        userId: String,
-        result: (Boolean) -> Unit
+        result: (List<LotteryEntry>?) -> Unit
     ) {
+        entryRepository.getLotteryEntriesByLotteryId(lotteryId) { entries ->
 
-        if (lotteryId.isBlank() || userId.isBlank()) {
-            result(false)
-            return
-        }
-
-        // Check if user has already joined
-        entryRepository.getEntryForUser(
-            lotteryId = lotteryId,
-            userId = userId
-        ) { existingEntry ->
-
-            if (existingEntry != null) {
-                result(false)
-                return@getEntryForUser
+            if (entries == null) {
+                result(null)
+                return@getLotteryEntriesByLotteryId
             }
 
-            entryRepository.createWaitlistEntry(
-                lotteryId = lotteryId,
-                userId = userId,
-                result = result
-            )
+            // Before the lottery draw, entrants have
+            // the status "registered".
+            val waitlist = entries.filter {
+                it.status == "registered"
+            }
+
+            result(waitlist)
         }
     }
 }
