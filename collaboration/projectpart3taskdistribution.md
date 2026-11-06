@@ -8,14 +8,16 @@ P - Productivity related (low priority)
 ---
 
 ## Madison
-- [ ] 
-- [ ] 
-- [ ] 
+- [US 01.09.01]
+- [US 03.11.01]
+- 
 
 ## Neth
-- [ ] 
-- [ ] 
-- [ ] 
+- [US 02.04.06]
+- [US 02.04.02]
+- [US 01.04.03]
+- [US 01.04.01]
+- 
 
 ## Shira
 - [x] grouped project classes by features using CRC cards and user stories (oct 25) (D)
@@ -29,7 +31,12 @@ P - Productivity related (low priority)
     - [x] profile
     - [x] reservation-and-waitlist
 - [ ] write script to update uml's images (P)
-- [ ] 
+[US 02.07.02] As a campsite owner, I want to view a list of past reservations.
+[US 02.07.01] As a campsite owner, I want to view a list of active reservations.
+[US 02.01.01] As a campsite owner, I want to register my campsite with the app.
+[US 02.01.02] As a campsite owner, I want to provide campsite details including name, location, description (amenities), maximum occupancy, map location, optional image, and tags.
+[US 01.06.02] As an entrant, I want to view a list of my past reservations.
+[US 01.06.01] As an entrant, I want to view a list of my active reservations.
 
 ## Sofia
 - [ ] 
@@ -47,9 +54,13 @@ P - Productivity related (low priority)
 - [ ] 
 
 ## Hye-Sung
-- [ ] 
-- [ ] 
-- [ ] 
+[US 02.01.02]
+[US 01.02.01]
+[US 02.09.01] 
+[US 02.01.03]
+[US 02.03.01]
+[US 02.04.03]
+[US 02.04.04] 
 
 # Additionals
 - [ ] Presentation (P)
