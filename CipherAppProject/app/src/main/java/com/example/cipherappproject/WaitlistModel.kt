@@ -24,7 +24,7 @@ data class WaitlistModel(
     val winners: Int,
     val lotteryStatus: LotteryStatus
 ) {
-    // hi
+
 }
 
 // https://kotlinlang.org/docs/enum-classes.html#declare-enum-classes
