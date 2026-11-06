@@ -118,7 +118,7 @@ class CampsiteRepository {
      */
     fun getCampsiteById(
         campsiteId: String,
-        result: (Campsite?) -> Unit
+        result: (Campsite) -> Unit
     ){
         campsitesRef
             .document(campsiteId)
@@ -134,11 +134,13 @@ class CampsiteRepository {
 
 
                 // to avoid :type use lamba
-                result(campsite)
+                if (campsite != null) {
+                    result(campsite)
+                } else throw NullPointerException()
 
             }
             .addOnFailureListener { exception ->
-                result(null)
+                throw NullPointerException()
             }
     }
 
