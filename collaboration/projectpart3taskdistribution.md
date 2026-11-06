@@ -49,9 +49,12 @@ P - Productivity related (low priority)
 - [ ] 
 
 ## Justin
-- [ ] 
-- [ ] 
-- [ ] 
+- [US 02.04.07], mostly complete, need to run tests
+- [US 02.04.05], mostly complete, need to run tests
+- [US 02.04.01], mostly complete, need to run tests
+- [US 01.04.02], mostly complete, need to run tests
+- Added validation and saving lottery registration dates, winner count, and optional waitlist capacity.
+- Connected lottery creation to Firestore, added campsite preselection through navigation, and prepared the winner’s campsite and dates for the reservation handoff.
 
 ## Hye-Sung
 [US 02.01.02]
