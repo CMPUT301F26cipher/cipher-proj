@@ -17,7 +17,11 @@ import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.repositories.CampsiteRepository
 
 /**
- * PLACEHOLDER, REPLACE THIS FILE
+ * Displays the details of a campsite to an entrant
+ */
+/*
+ * Built by Bailey Nov 6 2026
+ * Updates:
  */
 @Composable
 fun EntrantCampsiteView(campsiteId: String) {
