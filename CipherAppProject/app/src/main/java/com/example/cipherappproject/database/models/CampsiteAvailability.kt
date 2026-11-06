@@ -13,6 +13,7 @@ Date        Person     CSR#     Description
 2026-10-27  Sofia      1.01     added skeleton
 2026-11-03  Sofia      1.02     fixed getters and setters
 2026-11-05  Sofia      1.03     fixed getters and setters x2 and added more comments for clarification
+2026-11-06   Sofia     1.04     delete getters and setters. Set the attributes to public.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -36,32 +37,9 @@ NA
  */
 
 data class CampsiteAvailability (
-    private val campsiteAvailabilityId: String = "",
-    private val campsiteId: String = "",
-    private val startDate: String = "",
-    private val endDate: String = "",
-    private var status: String = "" // can change --> useful for log too
-){
-
-    fun getCampsiteAvailabilityId():String {
-        return campsiteAvailabilityId
-    }
-
-    fun getCampsiteId():String {
-        return campsiteId
-    }
-
-    fun getCampsiteAvailabilityStartDate():String {
-        return startDate
-    }
-
-    fun getCampsiteAvailabilityEndDate():String {
-        return endDate
-    }
-
-    fun getCampsiteAvailabilityStatus():String {
-        return status
-    }
-
-
-}
+    val campsiteAvailabilityId: String = "",
+    val campsiteId: String = "",
+    val startDate: String = "",
+    val endDate: String = "",
+    var status: String = "" // can change --> useful for log too
+)
