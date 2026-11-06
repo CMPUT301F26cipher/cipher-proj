@@ -21,7 +21,7 @@ import com.example.cipherappproject.database.models.Campsite
  * Displays summary of a given campsite. Is clickable, which allows navigation to the details on
  * the campsite
  *
- * @param navController For navigability
+ * @param onClick state flow for navigability
  * @param campsite gives details of the campsite to be summarized
  *
  */
@@ -41,7 +41,7 @@ fun CampsiteSummary(
     val campsiteName = campsite.getCampsiteName()
     val campsiteImagePath = campsite.getCampsiteImagePath() //TODO: implement getting picture
     val campsitePrice = campsite.getCampsitePricePerNight()
-    val campsitePriceStr = "$$campsitePrice" //TODO: must reformat once campsite price type is finalized
+    val campsitePriceStr = "$$campsitePrice"+"0" //TODO: must reformat once campsite price type is finalized
 
     Box(
         modifier =

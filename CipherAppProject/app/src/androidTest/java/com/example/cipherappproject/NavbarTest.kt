@@ -13,7 +13,7 @@ import org.junit.runner.RunWith
  * Built by Bailey
  * Nov 2 2026
  * Updates:
- *
+ * Bailey Nov 5 2026, Added additional tests
  */
 @RunWith(AndroidJUnit4::class)
 class NavbarTest {
