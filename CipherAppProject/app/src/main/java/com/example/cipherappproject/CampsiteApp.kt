@@ -189,9 +189,6 @@ fun CampsiteApp(){
                         }
                     )
                 }
-                composable(AppRoutes.PROFILE_SETTINGS){
-                    ProfileView(navController)
-                }
                 composable(AppRoutes.POLICY) {
                     PolicyView()
                 }
