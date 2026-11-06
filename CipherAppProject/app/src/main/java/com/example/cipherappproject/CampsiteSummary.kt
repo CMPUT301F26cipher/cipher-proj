@@ -58,7 +58,9 @@ fun CampsiteSummary(
         Column() {
             // TODO: add image here
             Text(
-                text = campsiteName
+                text = campsiteName,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(12.dp)
             )
             Row(modifier = Modifier
                 .fillMaxWidth()
