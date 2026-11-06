@@ -25,8 +25,6 @@ object LotteryRoutes {
     fun result(lotteryId: String) = "lottery/$lotteryId/result"
 }
 
-const val PLACEHOLDER_USER_ID = "test-user-1"
-
 /** Adds the lottery sub-screens to a NavHost. */
 fun NavGraphBuilder.lotteryScreens(
     navController: NavController,
