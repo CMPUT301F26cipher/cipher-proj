@@ -1,4 +1,4 @@
-package com.example.cipherappproject
+package com.example.cipherappproject.ui.reservations
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +17,23 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.ui.Alignment
+
+/*
+--------------------------------------------------------------------------------------
+Program Name:
+Date Written:
+Author:
+Purpose:
+US: 02.01.04
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-05  Shira      1.01     Modifying to fit DB variables
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
 
 @Composable
 fun OwnerOverview() {

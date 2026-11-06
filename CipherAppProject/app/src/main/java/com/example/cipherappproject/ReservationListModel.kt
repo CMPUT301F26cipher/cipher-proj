@@ -7,7 +7,24 @@ import androidx.compose.runtime.setValue
 import com.example.cipherappproject.database.repositories.ReservationRepository
 import java.util.Date
 
-
+/*
+--------------------------------------------------------------------------------------
+Program Name: ReservationListModel.kt
+Date Written: November 5, 2026
+Author: Shira Li
+Purpose: Reservation display screen for both past and active reservations, and for
+both Entrants and Owners
+US: 02.07.01, 02.07.02 (owners), 01.06.01, 01.06.02 (entrants)
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-05  Shira      1.01     Modifying to fit DB variables
+2026-
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
 
 //TODO: mod to account for db reservation, change to only handle the logic side of things?
 
