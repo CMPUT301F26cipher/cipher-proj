@@ -13,7 +13,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-05  Shira      1.01     Modifying to fit DB variables
-2026-11-05  Shira      1.02     Fixed Date mismatch types
+2026-11-06  Shira      1.02     Fixed Date mismatch types in updating list
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -43,15 +43,13 @@ import java.util.Date
 class ReservationList(
     userID: String = "",
 ) {
-    private val reservationRepo: ReservationRepository = ReservationRepository(),
-    private val campsiteRepo: CampsiteRepository = CampsiteRepository()
-
-    private val profileRepo: ProfileRepository = ProfileRepository()
-
+    private val reservationRepo: ReservationRepository = ReservationRepository()
 
     ////////////////////////////////////// UI STATE //////////////////////////////////////////
     enum class Status {ACTIVE, CANCELLED, PAST}
 
+
+    ////////////////////////////////////// UPDATING LISTS //////////////////////////////////////////
 
     // keeps state of last time updated status
     var lastTimeChecked by mutableStateOf(LocalDate.now())
@@ -59,8 +57,7 @@ class ReservationList(
      * Makes the lists (reservations, activeReservations, pastReservations, cancelledReservations)
      * update when
      */
-    fun refreshTime() { lastTimeChecked = LocalDate.now()
-    }
+    fun refreshTime() { lastTimeChecked = LocalDate.now() }
 
     // derivedStateOf will remember results and only re-filter when there is change
     // filter is read only and returns a copy of the original list with condition applied
@@ -74,15 +71,14 @@ class ReservationList(
     }
     private val activeReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.getStatus() == "active" && DateUtils.parse(it.getBookEndDate())?.isBefore(lastTimeChecked) == false }
+        reservations.filter { it.getStatus() == "active" && !DateUtils.parse(it.getBookEndDate())!!.isBefore(lastTimeChecked) }
     }
     private val pastReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.getStatus() == "past" || (it.getStatus() !== "cancelled" && DateUtils.parse(it.getBookEndDate())?.isBefore(lastTimeChecked) == true ) }
+        reservations.filter { it.getStatus() == "past" || (it.getStatus() != "cancelled" && DateUtils.parse(it.getBookEndDate())!!.isBefore(lastTimeChecked)) }
     }
 
-    private val nextExpiry by derivedStateOf { activeReservations.minOfOrNull { it.getBookEndDate() } }
-
+    private val nextExpiry by derivedStateOf { activeReservations.minOfOrNull { DateUtils.parse(it.getBookEndDate())!! } }
     fun getNextExpiry(): LocalDate? = nextExpiry
 
     fun getActiveReservations() = activeReservations
@@ -102,6 +98,8 @@ class ReservationList(
 }
 
 class ReservationListHelpers() {
+    private val campsiteRepo: CampsiteRepository = CampsiteRepository()
+    private val profileRepo: ProfileRepository = ProfileRepository()
 
     ////////////////////////////////////// CAMPSITES RESERVATION HELPERS //////////////////////////////////////////
     /**

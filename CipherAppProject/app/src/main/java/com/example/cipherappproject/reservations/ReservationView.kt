@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,7 +26,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.reservations.ReservationList.Status
 import com.example.cipherappproject.database.models.Reservation
+import java.time.ZoneId
 import kotlin.collections.emptyList
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 /*
 --------------------------------------------------------------------------------------
@@ -48,10 +52,9 @@ NA
 
 // Google, Gemini Flash, "syntax for button in kotlin android studio", 2026-10-27
 
-// acts like a watchdog, only becomes active when time of closest end booking date is notif
+
 // TODO: Write TEST cases
 // TODO: fix status
-// TODO: fix date conversion for checking booking
 // TODO: test with dummy values
 
 /**
@@ -65,6 +68,22 @@ fun ReservationScreen(userID: String) {
     val reservations = remember { ReservationList(userID) }
     //rememberSaveable ensure if phone is rotated does not reset status
     var currentStatus by rememberSaveable { mutableStateOf(Status.ACTIVE) }
+
+    // START OF AI GEN SECTION
+    // Anthropic, Claude Opus 5.5, "if i want to connect a timer from a view to model how would a
+    // template look like", 2026-11-06
+
+    // acts like a watchdog, waits until the day of after the closest booking end date then
+    // refreshes the lists so that the expired reservation moves from active to past
+    val expiry = reservations.getNextExpiry()
+    LaunchedEffect(expiry) {
+        if (expiry != null) {
+            val refreshListAt = expiry.plusDays(1).atStartOfDay(ZoneId.systemDefault())
+            delay(maxOf(0L, refreshListAt.toInstant().toEpochMilli() - System.currentTimeMillis()).milliseconds)
+            reservations.refreshTime()
+        }
+    }
+    // END oF AI GEN SECTION
 
     //col so button will sit above the list
     Column( modifier = Modifier.testTag("reservationsMenu")) {
