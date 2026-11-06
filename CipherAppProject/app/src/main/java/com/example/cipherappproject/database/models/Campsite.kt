@@ -1,4 +1,23 @@
 package com.example.cipherappproject.database.models
+
+/*
+--------------------------------------------------------------------------------------
+Program Name: Campsite.kt
+Date Written: October 27, 2026
+Author: Sofia Arturo Gomez
+Purpose: Manage database for the object as Campsite
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-10-27  Sofia      1.01     added skeleton
+2026-11-03  Sofia      1.02     fixed getters and setters
+2026-11-05  Sofia      1.03     fixed getters and setters x2, added status for campsite, changed float to double
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
 /**
  * Represents a Campsite main attributes and status in relation with the Firebase database.
  *
@@ -8,7 +27,7 @@ package com.example.cipherappproject.database.models
  * @property campsiteId use to uniquely identify each campsite within the database
  * @property ownerId use to identify to which owner is related to
  * @property campsiteName is the campsite name,
- * @property mapLocation the path to the image with the location of the campsite
+ * @property mapLocation a list that format latitude and longitude and name --> read only
  * @property description the campsite description
  * @property amenities the campsite further features
  * @property pricePerNight campsite price
@@ -16,48 +35,106 @@ package com.example.cipherappproject.database.models
  * @property tags the keywords need for the filter feature adn search bar
  * @property maxGuests how many guest the campsite can hold
  * @property qrCodeImagePath the campsite qr code path
+ * @property status meant to be if the owner deletes their profile the campsites related to it just become all unavailable --> available, notAvailable
  *
  *
  */
 
 data class Campsite (
-    val campsiteId: String = "",
-    val ownerId: String = "",
-    var campsiteName: String = "",
-    val mapLocation: String = "",
-    var description: String = "",
-    val amenities: List<String> = emptyList(),
-    val maxGuests: Int = 0,
-    val pricePerNight: Float = 0.0f, // NEED TO REVIEW THIS --> we need to worry about precision and losing money?
-    val imagePath: String = "",
-    val tags: List<String> = emptyList(),
-    val qrCodeImagePath: String = ""
+    private val campsiteId: String = "",
+    private val ownerId: String = "",
+    private var campsiteName: String = "",
+    private val mapLocation: List<String> = emptyList(),
+    private var description: String = "",
+    private val amenities: MutableList<String> = mutableListOf(),
+    private var maxGuests: Int,
+    private var pricePerNight: Double = 0.0,
+    private var imagePath: String = "",
+    private val tags: MutableList<String> = mutableListOf(),
+    private var qrCodeImagePath: String = "",
+    private var status: String = "",
 ){
-    // WILL FOLLOW A SIMILAR FORMAT TO PROFILE
-    fun setCampsiteName() {
-
+    fun getCampsiteAmenities(): List<String> {
+        return amenities
     }
 
-    fun setCampsiteLocation() {
+    fun addCampsiteAmenity(amenity: String) {
+        amenities.add(amenity)
     }
 
-    fun setCampsiteDescription() {
+    fun removeCampsiteAmenity(amenity: String) {
+        amenities.remove(amenity)
+    }
+    fun getCampsiteId(): String {
+        return campsiteId
     }
 
-    fun setCampsiteMaxGuests() {
+    fun getCampsiteOwnerId(): String {
+        return ownerId
     }
 
-    fun setCampsitePricePerNight() {
-
+    fun getCampsiteName(): String {
+        return campsiteName
     }
 
-    fun setCampsiteImagePath() {
+    fun setCampsiteName(name: String) {
+        campsiteName = name
     }
 
-    fun setCampsiteTags() {
+    fun getCampsiteLocation(): List<String> {
+        return mapLocation
     }
 
-    fun setCampsiteQrCodeImagePath() {
+    fun getCampsiteDescription(): String {
+        return description
+    }
+
+    fun setCampsiteDescription(desc: String) {
+        description = desc
+    }
+
+    fun getCampsiteMaxGuests(): Int {
+        return maxGuests
+    }
+
+    fun setCampsiteMaxGuests(numGuests: Int) {
+        maxGuests = numGuests
+    }
+
+    fun getCampsitePricePerNight(): Double {
+        return pricePerNight
+    }
+
+    fun setCampsitePricePerNight(price: Double) {
+        pricePerNight = price
+    }
+
+    fun getCampsiteImagePath(): String {
+        return imagePath
+    }
+
+    fun setCampsiteImagePath(path: String) {
+        imagePath = path
+    }
+
+    fun getCampsiteTags(): List<String> {
+        return tags
+    }
+
+    fun addCampsiteTag(tag: String) {
+        tags.add(tag)
+    }
+
+    fun removeCampsiteTag(tag: String) {
+        tags.remove(tag)
+    }
+
+    fun getCampsiteQrCodeImagePath(): String {
+        return qrCodeImagePath
+    }
+
+    fun setCampsiteQrCodeImagePath(path: String) {
+        qrCodeImagePath = path
     }
 }
 

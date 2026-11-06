@@ -10,9 +10,10 @@ Purpose: Manage database methods for CampsiteAvailabilityRepository
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-2026-03-27  Sofia      1.01     added skeleton
-2026-04-10  Sofia      1.02     added query get by id
-2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
+2026-10-27  Sofia       1.01     added skeleton
+2026-11-04  Sofia       1.02     added query get by id
+2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
+2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -20,7 +21,6 @@ NA
 
 import androidx.compose.runtime.mutableStateListOf
 import com.example.cipherappproject.database.models.CampsiteAvailability
-import com.example.cipherappproject.database.models.Profile
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -37,13 +37,27 @@ class CampsiteAvailabilityRepository {
         get() = _allCampsitesAvailability
 
 
-    fun createCampsiteAvailability( // NEED TO HANDLE FAILED OR NOT!
+    /**
+     * Creates behinds a Campsite object and
+     * add it to the firebase database with a random and unique id.
+     *
+     * @param campsiteId
+     * @param startDate
+     * @param endDate
+     * @param status
+     * @param result
+     *      - The object was added successfully then it returns the id of that object
+     *      - The object was not added not successfully so it returns null
+     * @return nullable string
+     */
+    fun createCampsiteAvailability(
         campsiteId: String,
         startDate: String,
         endDate: String,
-        status: String
+        status: String,
+        result: (String?) -> Unit
 
-    ): String {
+    ){
         // https://firebase.google.com/docs/firestore/data-model
         // create a reference and id to the new document
         val campsiteAvailabilityRef = db.collection("campsites/$campsiteId/availability").document()
@@ -58,25 +72,61 @@ class CampsiteAvailabilityRepository {
 
         )
 
+        //Tasks.await(campsiteAvailabilityRef.set(campsiteAvailability))
         // save the object in the firebase
         campsiteAvailabilityRef.set(campsiteAvailability)
-        //Tasks.await(campsiteAvailabilityRef.set(campsiteAvailability))
+            .addOnSuccessListener {
+                result(campsiteAvailabilityRef.id)
+            }
 
-        return campsiteAvailabilityRef.id
+            .addOnFailureListener {
+                result(null)
+            }
 
     }
 
-    fun updateCampsiteAvailability(campsiteAvailability: CampsiteAvailability){
-        val campsiteAvailabilityId = campsiteAvailability.campsiteAvailabilityId
-        val campsiteId = campsiteAvailability.campsiteId
+    /**
+     * Updates behinds a CampsiteAvailability object
+     *
+     * @param campsiteAvailability object
+     * @param result lamba function that provide if:
+     *      - successfully then it returns a boolean as true
+     *      - not successfully so it returns a boolean as false
+     * @return Boolean
+     */
+
+    fun updateCampsiteAvailability(
+        campsiteAvailability: CampsiteAvailability,
+        result: (Boolean) -> Unit
+    ){
+        val campsiteAvailabilityId = campsiteAvailability.getCampsiteAvailabilityId()
+        val campsiteId = campsiteAvailability.getCampsiteId()
 
 
         val campsiteAvailabilityRef = db.collection("campsites/$campsiteId/availability")
 
 
-        campsiteAvailabilityRef.document(campsiteAvailabilityId).set(campsiteAvailability)
+        campsiteAvailabilityRef.document(campsiteAvailabilityId)
+            .set(campsiteAvailability)
+            .addOnSuccessListener {
+            result(true)
+        }
+            .addOnFailureListener {
+                result(false)
+            }
     }
 
+
+    /**
+     * retrieves CampsiteAvailability object
+     *
+     * @param campsiteAvailabilityId unique identifier of the CampsiteAvailability within the database
+     * @param campsiteId when it becomes available
+     * @param result lamba function that provide if:
+     *      - successfully then it returns the CampsiteAvailability object
+     *      - not successfully so it returns null
+     * @return nullable CampsiteAvailability object
+     */
     fun getCampsiteAvailabilityById(
         campsiteAvailabilityId: String,
         campsiteId: String,
@@ -96,13 +146,15 @@ class CampsiteAvailabilityRepository {
             }
 
     }
-
-    /*
-    * return:
-    *  - list of CampsiteAvailability
-    *  - empty list of CampsiteAvailability
-    *  - null if error
-    * */
+    /**
+     * retrieves a List of CampsiteAvailability
+     *
+     * @param campsiteId unique identifier of the CampsiteAvailability within the database
+     * @param result lamba function that provide if:
+     *      - successfully then it list of CampsiteAvailability objects. NOTE: can be empty list
+     *      - not successfully so it returns null
+     * @return nullable CampsiteAvailability object
+     */
     fun getAvailabilitiesByCampsiteId(
         campsiteId: String,
         result: (List<CampsiteAvailability>?) -> Unit

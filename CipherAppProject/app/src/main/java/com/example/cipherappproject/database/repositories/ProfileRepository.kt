@@ -34,14 +34,31 @@ class ProfileRepository {
     val profiles: List<Profile>
         get() = _allProfiles
 
+    /**
+     * Creates behinds a Profile object and add it to the firebase database
+     * with a random and unique id.
+     *
+     * @param name
+     * @param email
+     * @param role
+     * @param imageProfilePath
+     * @param deviceId
+     * @param status
+     * @param result lamba function that provide if:
+     *      - The object was added successfully then it returns the id of that object
+     *      - The object was not added not successfully so it returns null
+     * @return nullable string
+     */
     fun addProfile(
         name: String,
         email: String,
         role: List<String>,
         imageProfilePath: String,
-        deviceId: String
+        deviceId: String,
+        status: String,
+        result: (String?) -> Unit
 
-    ): String {
+    ) {
         // create a reference and id to the new profile
         val profileRef = profilesRef.document()
 
@@ -52,7 +69,8 @@ class ProfileRepository {
             email = email,
             role = role,
             imageProfilePath = imageProfilePath,
-            deviceId = deviceId
+            deviceId = deviceId,
+            status = status
         )
 
         // save the object in the firebase
@@ -60,22 +78,58 @@ class ProfileRepository {
          ChatGPT with the following prompt:
          "how to make sure a testcase wait for the firebase to add the object and then return id? cuz it fails and idk why" followed by "how this task and await stuff works? can you provide an example please?"
          03-11-2026.*/
-        profileRef.set(profile)
         //Tasks.await(profileRef.set(profile))
 
-        return profileRef.id
+        profileRef
+            .set(profile)
+            .addOnSuccessListener {
+                result(profileRef.id)
+            }
+            .addOnFailureListener {
+                result(null)
+            }
+
+
     }
 
-    fun updateProfile(profile: Profile){
-        profilesRef.document(profile.getProfileId()).set(profile)
+    /**
+     * Updates a Profile object
+     *
+     * @param profile object
+     * @param result lamba function that provide if:
+     *      - successfully then it returns a boolean as true
+     *      - not successfully so it returns a boolean as false
+     * @return Boolean
+     */
+    fun updateProfile(
+        profile: Profile,
+        result: (Boolean) -> Unit
+    ){
+        profilesRef.document(profile.getProfileId())
+            .set(profile)
+            .addOnSuccessListener {
+                result(true)
+            }
+            .addOnFailureListener {
+                result(false)
+            }
     }
 
-
+    /*
     fun deleteProfile(profileId: String){
         profilesRef.document(profileId).delete() // need to check if this also affects lotteries, reservations, availabity, iamges??? frick
 
-    }
+    }*/
 
+    /**
+     * get one single Profile object
+     *
+     * @param profileId
+     * @param result lamba function that provide if:
+     *      - successfully then it returns a Profile
+     *      - not successfully so it returns null
+     * @return nullable Profile
+     */
     /*taken and learned from https://firebase.google.com/docs/firestore/query-data/queries*/
     fun getProfileById(
         profileId: String,
