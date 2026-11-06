@@ -65,13 +65,14 @@ Assigned but not complete
 - Connected lottery creation to Firestore, added campsite preselection through navigation, and prepared the winner’s campsite and dates for the reservation handoff.
 
 ## Hye-Sung
-[US 02.01.02]
-[US 01.02.01]
-[US 02.09.01] 
-[US 02.01.03]
-[US 02.03.01]
-[US 02.04.03]
-[US 02.04.04] 
+- [US 02.01.02]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 01.02.01]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 02.01.03]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 02.03.01]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 02.04.03]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 02.04.04]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 02.09.01]: Not yet complete
+- Implemented reservation views, refactored redundant files, added a registration period for the lottery, view who joined owner's campsite waitlist. Connected reservations to firestore, yet to test.
 
 # Additionals
 - [ ] Presentation (P)
