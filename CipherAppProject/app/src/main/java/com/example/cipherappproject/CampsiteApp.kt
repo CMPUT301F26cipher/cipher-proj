@@ -139,7 +139,7 @@ fun CampsiteApp(){
                 composable(AppRoutes.SEARCH){
                     CampsiteSearch(
                         onNavigateToCampsite = {
-                            navController.navigate(AppRoutes.campsite(it.getCampsiteId()))
+                            navController.navigate(AppRoutes.campsite(it.campsiteId))
                         }
                     )
                 }

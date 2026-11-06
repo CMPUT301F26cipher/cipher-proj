@@ -72,23 +72,23 @@ class ReservationList(
     private val reservations by derivedStateOf {
         lastTimeChecked
         if (isOwner) {
-            val campsiteIds = campsiteRepo.campsites.filter { it.getCampsiteOwnerId() == userID }.map { it.getCampsiteId() }
-            reservationRepo.reservations.filter { it.getCampsiteId() in campsiteIds }
+            val campsiteIds = campsiteRepo.campsites.filter { it.ownerId == userID }.map { it.campsiteId }
+            reservationRepo.reservations.filter { it.campsiteId in campsiteIds }
         } else {
-            reservationRepo.reservations.filter { it.getUserId() in userID }
+            reservationRepo.reservations.filter { it.userId in userID }
         }
 
     }
     private val _activeReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.getStatus() == "active" && !DateUtils.parse(it.getBookEndDate())!!.isBefore(lastTimeChecked) }
+        reservations.filter { it.status == "active" && !DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked) }
     }
     private val _pastReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.getStatus() == "past" || (it.getStatus() != "cancelled" && DateUtils.parse(it.getBookEndDate())!!.isBefore(lastTimeChecked)) }
+        reservations.filter { it.status == "past" || (it.status != "cancelled" && DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked)) }
     }
 
-    private val _nextExpiry by derivedStateOf { _activeReservations.minOfOrNull { DateUtils.parse(it.getBookEndDate())!! } }
+    private val _nextExpiry by derivedStateOf { _activeReservations.minOfOrNull { DateUtils.parse(it.bookEndDate)!! } }
     fun getNextExpiry(): LocalDate? = _nextExpiry
 
     fun getActiveReservations() = _activeReservations
@@ -99,7 +99,7 @@ class ReservationList(
     ////////////////////////////////////// PART 4 STUFF DO LATER //////////////////////////////////////////
     //    private val cancelledReservation by derivedStateOf  {
     //        lastTimeChecked
-    //        reservations.filter { it.getStatus() == "cancelled" } }
+    //        reservations.filter { it.status == "cancelled" } }
     //
     //    fun getCancelledReservations() = cancelledReservation
 
@@ -120,8 +120,8 @@ class ReservationListHelpers(
      * @return bookingPeriod formatted string of booking period
      */
     fun formattedBookingPeriod(): String {
-        return DateUtils.display(DateUtils.parse(reservation.getBookStartDate())!!) + " - " + DateUtils.display(
-            DateUtils.parse(reservation.getBookEndDate())!!)
+        return DateUtils.display(DateUtils.parse(reservation.bookStartDate)!!) + " - " + DateUtils.display(
+            DateUtils.parse(reservation.bookEndDate)!!)
     }
 
     /**
@@ -129,13 +129,13 @@ class ReservationListHelpers(
      */
     fun formattedUserName(): String {
         // first returns first campsite where conditions are true
-        val campsite = campsiteRepo.campsites.first { it.getCampsiteId() == reservation.getCampsiteId() }
-        val nameId = if ( isOwner) reservation.getUserId() else campsite.getCampsiteOwnerId()
-        return profileRepo.profiles.first { it.getProfileId() == nameId }.getName()
+        val campsite = campsiteRepo.campsites.first { it.campsiteId == reservation.campsiteId }
+        val nameId = if ( isOwner) reservation.userId else campsite.ownerId
+        return profileRepo.profiles.first { it.profileId == nameId }.name
     }
 
     fun formattedCampsiteName(): String {
-        return campsiteRepo.campsites.first { it.getCampsiteId() == reservation.getCampsiteId() }.getCampsiteName()
+        return campsiteRepo.campsites.first { it.campsiteId == reservation.campsiteId }.campsiteName
     }
 
     fun getCampsiteImg() = ""

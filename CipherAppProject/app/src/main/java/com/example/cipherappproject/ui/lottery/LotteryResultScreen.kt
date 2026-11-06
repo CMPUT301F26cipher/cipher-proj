@@ -46,7 +46,7 @@ fun LotteryResultScreen(
         currentLottery == null -> CenteredMessage("Could not load this lottery.")
         currentEntry == null -> CenteredMessage("You haven't joined this lottery.")
 
-        currentEntry.getStatus() == LotteryConstants.ENTRY_WINNER -> LotteryWinScreen(
+        currentEntry.status == LotteryConstants.ENTRY_WINNER -> LotteryWinScreen(
             controller = controller,
             lottery = currentLottery,
             entry = currentEntry,
@@ -57,17 +57,17 @@ fun LotteryResultScreen(
             }
         )
 
-        currentEntry.getStatus() == LotteryConstants.ENTRY_NOT_SELECTED ->
+        currentEntry.status == LotteryConstants.ENTRY_NOT_SELECTED ->
             LotteryLoseView(onBack = { navController.popBackStack() })
 
-        currentEntry.getStatus() == LotteryConstants.ENTRY_DECLINED ->
+        currentEntry.status == LotteryConstants.ENTRY_DECLINED ->
             CenteredMessage("You declined this offer. Your spot has been passed on.")
 
-        currentEntry.getStatus() == LotteryConstants.ENTRY_ACCEPTED ->
+        currentEntry.status == LotteryConstants.ENTRY_ACCEPTED ->
             CenteredMessage("You've already reserved through this lottery.")
 
         else -> CenteredMessage(
-            "The draw hasn't happened yet. Check back after ${currentLottery.getLotteryEndDate()}."
+            "The draw hasn't happened yet. Check back after ${currentLottery.endDate}."
         )
     }
 }
