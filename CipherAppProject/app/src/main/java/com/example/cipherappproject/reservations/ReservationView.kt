@@ -51,7 +51,6 @@ NA
 
 
 // TODO: Write TEST cases
-// TODO: fix status
 // TODO: test with dummy values
 
 /**
@@ -61,8 +60,8 @@ NA
  * @param userID string representing the user, used to load reservations
  */
 @Composable
-fun ReservationScreen(userID: String) {
-    val reservations = remember { ReservationList(userID) }
+fun ReservationScreen(userID: String, isOwner: Boolean) {
+    val reservations = remember { ReservationList(userID, isOwner) }
     val controller = remember { ReservationController() }
 
     // START OF AI GEN SECTION
@@ -89,7 +88,7 @@ fun ReservationScreen(userID: String) {
             onStatusSelected = { newStatus -> controller.currentStatus = newStatus}
         )
 
-        DisplayListContent(reservations, controller.currentStatus.name.lowercase())
+        DisplayListContent(reservations, controller.currentStatus.name.lowercase(), isOwner)
     }
 }
 
@@ -131,7 +130,7 @@ fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status)
  * @param status selected button status, which determines which list is shown
  */
 @Composable
-fun DisplayListContent(reservationsList: ReservationList, status: String) {
+fun DisplayListContent(reservationsList: ReservationList, status: String, isOwner: Boolean) {
 
 
     val reservations = when (status) {
@@ -148,7 +147,7 @@ fun DisplayListContent(reservationsList: ReservationList, status: String) {
         if (reservations.isNotEmpty()) {
             // goes through list of reservations that
             items(reservations) { reservation ->
-                val helpers = remember { ReservationListHelpers() }
+                val helpers = remember(reservation) { ReservationListHelpers(reservation, isOwner) }
 
                 ReservationRow(
                      helpers.getCampsiteImg(),
@@ -211,29 +210,5 @@ fun ReservationRow(
 @Preview
 @Composable
 fun ReservationPreview() {
-    ReservationScreen(userID = "")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ReservationRowPreview() {
-    Column {
-        ReservationStatusSelector(
-            selectedStatus = Status.ACTIVE,
-            onStatusSelected = {}
-        )
-        ReservationRow(
-            imagePath = "",
-            campsiteName = "Lakeside Site 12",
-            userName = "Alex",
-            bookingPeriod = "Nov 1 - Nov 3"
-        )
-        HorizontalDivider()
-        ReservationRow(
-            imagePath = "",
-            campsiteName = "Pine Ridge Site 4",
-            userName = "Sam",
-            bookingPeriod = "Nov 10 - Nov 12"
-        )
-    }
+    ReservationScreen(userID = "", isOwner = true)
 }

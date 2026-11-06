@@ -37,13 +37,17 @@ import java.util.Date
 // should that be in a model then the model call the view to update it? or should it only be
 // some times if the data needs to be sorted into different lists?”, 2026-11-05
 // "what if the repo already has getters and setters?"
-// ...
 // "if i don't want to keep updating it constantly by time is there a way that i can update it
 // only if i read that the date has passed?"
+
+// Additional AI Contribution: Provided the state-tracking pattern using derivedStateOf paired with
+// the lastTimeChecked watchdog trigger to auto-filter time-dependent lists.
 class ReservationList(
-    userID: String = ""
+    userID: String = "",
+    isOwner: Boolean = false
 ) {
     private val reservationRepo: ReservationRepository = ReservationRepository()
+    private val campsiteRepo: CampsiteRepository = CampsiteRepository()
 
     ////////////////////////////////////// UI STATE //////////////////////////////////////////
     enum class Status {ACTIVE, CANCELLED, PAST}
@@ -67,7 +71,13 @@ class ReservationList(
     // cancelled)
     private val reservations by derivedStateOf {
         lastTimeChecked
-        reservationRepo.reservations.filter { it.getUserId() == userID }
+        if (isOwner) {
+            val campsiteIds = campsiteRepo.campsites.filter { it.getCampsiteOwnerId() == userID }.map { it.getCampsiteId() }
+            reservationRepo.reservations.filter { it.getCampsiteId() in campsiteIds }
+        } else {
+            reservationRepo.reservations.filter { it.getUserId() in userID }
+        }
+
     }
     private val _activeReservations by derivedStateOf {
         lastTimeChecked
@@ -97,23 +107,37 @@ class ReservationList(
 
 }
 
-class ReservationListHelpers() {
-    private val reservationRepo: ReservationRepository = ReservationRepository()
+class ReservationListHelpers(
+    private val reservation: Reservation,
+    private val isOwner: Boolean
+) {
     private val campsiteRepo: CampsiteRepository = CampsiteRepository()
     private val profileRepo: ProfileRepository = ProfileRepository()
 
-    //private val campsite = campsiteRepo.getCampsiteById()
+
     ////////////////////////////////////// CAMPSITES RESERVATION HELPERS //////////////////////////////////////////
     /**
-     *
      * @return bookingPeriod formatted string of booking period
      */
-    fun formattedBookingPeriod() = ""
+    fun formattedBookingPeriod(): String {
+        return DateUtils.display(DateUtils.parse(reservation.getBookStartDate())!!) + " - " + DateUtils.display(
+            DateUtils.parse(reservation.getBookEndDate())!!)
+    }
 
-    fun formattedUserName() = "Campsite"
+    /**
+     * Gets the name of the user who made the reservation
+     */
+    fun formattedUserName(): String {
+        // first returns first campsite where conditions are true
+        val campsite = campsiteRepo.campsites.first { it.getCampsiteId() == reservation.getCampsiteId() }
+        val nameId = if ( isOwner) reservation.getUserId() else campsite.getCampsiteOwnerId()
+        return profileRepo.profiles.first { it.getProfileId() == nameId }.getName()
+    }
 
-    fun formattedCampsiteName() = "user"
+    fun formattedCampsiteName(): String {
+        return campsiteRepo.campsites.first { it.getCampsiteId() == reservation.getCampsiteId() }.getCampsiteName()
+    }
 
-    fun getCampsiteImg() = "Date"
+    fun getCampsiteImg() = ""
 
 }

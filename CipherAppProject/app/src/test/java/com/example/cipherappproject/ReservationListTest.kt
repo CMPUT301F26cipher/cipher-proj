@@ -1,5 +1,6 @@
 package com.example.cipherappproject
 
+import com.example.cipherappproject.reservations.ReservationList
 import org.junit.Test
 
 class ReservationListTest {
@@ -19,7 +20,7 @@ class ReservationListTest {
     /* Empty reservation list */
     @Test
     fun nullReservationList() {
-        //TODO
+        val reservationList = ReservationList("")
     }
 
     /* if after refresh time, an expired reservation is moved form active to past */

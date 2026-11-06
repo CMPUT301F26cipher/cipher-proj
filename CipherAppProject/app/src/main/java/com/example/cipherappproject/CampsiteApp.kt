@@ -148,7 +148,7 @@ fun CampsiteApp(){
                     EntrantCampsiteView(campsiteId)
                 }
                 composable(AppRoutes.ENTRANT_RESERVATIONS) {
-                    ReservationScreen(userID = "")
+                    ReservationScreen(userID = "", isOwner = false)
                 }
                 composable(AppRoutes.ENTRANT_LOTTERIES) {
                     EntrantLotteriesView(navController, currentUserId)
@@ -171,7 +171,7 @@ fun CampsiteApp(){
                     OwnerLotteriesView(navController, currentUserId)
                 }
                 composable(AppRoutes.OWNER_RESERVATIONS) {
-                    ReservationScreen(userID = "")
+                    ReservationScreen(userID = "", isOwner = true)
                 }
                 composable(AppRoutes.OWNER_NOTIFICATIONS) {
                     SentNotificationView()
