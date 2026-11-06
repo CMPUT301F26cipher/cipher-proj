@@ -37,7 +37,8 @@ fun LotteryForm(
     onInputChange: (LotteryFormInput) -> Unit,
     errorMessage: String?,
     saveLabel: String,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    isSaving: Boolean = false
 ) {
     Column(
         modifier = Modifier
@@ -117,7 +118,8 @@ fun LotteryForm(
             onClick = onSave,
             modifier = Modifier
                 .fillMaxWidth()
-                .testTag("saveLotteryButton")
+                .testTag("saveLotteryButton"),
+            enabled = !isSaving,
         ) {
             Text(saveLabel)
         }

@@ -34,6 +34,10 @@ import com.example.cipherappproject.LotteryBookingController
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
 import com.example.cipherappproject.database.repositories.CampsiteRepository
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FilterChip
+
 
 /**
  * Screens for an entrant who won a lottery
@@ -62,12 +66,17 @@ fun LotteryWinScreen(
     // Reload the nights whenever a different campsite is chosen
     LaunchedEffect(selectedCampsiteId) {
         val campsiteId = selectedCampsiteId ?: return@LaunchedEffect
+        
         controller.selectCampsite(lottery, campsiteId)
         availableNights = null
         selectedNights = controller.getSelectedNights()
         loadFailed = false
+        
         controller.loadAvailableNights(campsiteId) { nights ->
-            if (nights == null) loadFailed = true else availableNights = nights.toList()
+            if (selectedCampsiteId == campsiteId) {
+            loadFailed = nights == null
+            availableNights = nights?.sorted()
+            }
         }
     }
 
@@ -80,7 +89,18 @@ fun LotteryWinScreen(
     LotteryWinView(
         campsiteChoices = campsiteChoices,
         selectedCampsiteId = selectedCampsiteId,
-        onCampsiteSelected = { selectedCampsiteId = it },
+        onCampsiteSelected = { 
+            campsiteId ->
+            if (campsiteId != selectedCampsiteId) {
+                controller.selectCampsite(lottery, campsiteId)
+
+                selectedNights = emptySet()
+                availableNights = null
+                loadFailed = false
+                message = null
+                selectedCampsiteId = campsiteId
+            }
+         },
         availableNights = availableNights,
         loadFailed = loadFailed,
         selectedNights = selectedNights,
@@ -94,10 +114,25 @@ fun LotteryWinScreen(
         },
         message = message,
         onReserve = {
-            val stay = controller.getStay()
-            val campsiteId = controller.getSelectedCampsiteId()
-            if (stay != null && campsiteId != null) {
-                onReserve(campsiteId, stay.first, stay.second)
+            val error = when {
+                !controller.canBook(entry) -> 
+                    "You do not have an active winning offer."  // Validate the winner's selection and pass the campsite,
+                                                                // check-in, and check-out to the reservation component.
+                availableNights == null || loadFailed ->
+                    "Wait for available nights to load."
+
+                else -> controller.validateSelection(lottery)
+            }
+
+            if (error != null) {
+                message = error
+            } else {
+                val stay = controller.getStay()
+                val campsiteId = controller.getSelectedCampsiteId()
+
+                if (stay != null && campsiteId != null) {
+                    onReserve(campsiteId, stay.first, stay.second)
+                }
             }
         },
         onDecline = {
@@ -109,8 +144,10 @@ fun LotteryWinScreen(
                 }
             }
         }
+    
     )
 }
+
 
 /**
  * Draws the winner screen.
@@ -145,19 +182,11 @@ fun LotteryWinView(
 
         // Only shown when the lottery covers more than one campsite (US 01.04.02)
         if (campsiteChoices.size > 1) {
-            Text(text = "Choose a campsite", style = MaterialTheme.typography.titleMedium)
-            for ((id, name) in campsiteChoices) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onCampsiteSelected(id) }
-                        .testTag("campsiteChoice_$id")
-                ) {
-                    RadioButton(selected = id == selectedCampsiteId, onClick = null)
-                    Text(text = name, modifier = Modifier.padding(start = 8.dp))
-                }
-            }
+            LotteryCampsiteTabs(
+                        campsiteChoices = campsiteChoices,
+                        selectedCampsiteId = selectedCampsiteId,
+                        onCampsiteSelected = onCampsiteSelected
+            )
         }
 
         Text(text = "Available nights", style = MaterialTheme.typography.titleMedium)
@@ -236,5 +265,35 @@ fun LotteryWinView(
                 }
             }
         )
+    }
+}
+
+/*
+    Displays a horizontally scrollable campsite choices for multiple
+    campsite lottery and reports the selected campsite ID
+ */
+
+@Composable
+fun LotteryCampsiteTabs(
+    campsiteChoices: List<Pair<String, String>>,
+    selectedCampsiteId: String?,
+    onCampsiteSelected: (String) -> Unit
+) {
+    if (campsiteChoices.size <= 1) return
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        campsiteChoices.forEach { (id, name) ->
+            FilterChip(
+                selected = id == selectedCampsiteId,
+                onClick = { onCampsiteSelected(id) },
+                label = { Text(name) },
+                modifier = Modifier.testTag("campsiteChoice_$id")
+            )
+        }
     }
 }

@@ -41,6 +41,51 @@ class LotteryController {
         )
     }
 
+    /*
+        Validates owner's form, constructs a lottery, and requests its save. 
+
+        Report validation/persistence failures through function onFailure
+        Reports the saved lottery ID through onSuccess
+     */
+    fun createAndSaveLottery( // validate the owner's settings and save the lotter
+        ownerId: String,
+        input: LotteryFormInput,
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        if (ownerId.isBlank()) {
+        onFailure("An owner is required.")
+        return
+        }
+
+        val error = validate(input)
+
+        if (error != null) {
+            onFailure(error)
+            return
+        }
+
+        val lottery = try {
+            createLottery(
+                ownerId = ownerId,
+                campsiteIds = input.campsiteIds.toList(),
+                startDate = input.registrationStart,
+                endDate = input.registrationEnd,
+                numberOfWinners = input.numWinners.trim().toInt(),
+                capacity = parseCapacity(input.capacity)
+            )
+        } catch (error: IllegalArgumentException) {
+            onFailure(error.message ?: "Invalid lottery settings.")
+            return
+        }
+
+        repository.saveNewLottery(
+            lottery = lottery,
+            onSuccess = onSuccess,
+            onFailure = onFailure
+        )
+    }
+
     /** Checks date format and chronological order. */
     fun isValidRegistrationPeriod(startDate: String, endDate: String): Boolean {
         val start = DateUtils.parse(startDate) ?: return false
