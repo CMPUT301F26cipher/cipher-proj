@@ -37,8 +37,7 @@ class WaitlistController(
                 return@getLotteryEntriesByLotteryId
             }
 
-            // Before the lottery draw, entrants have
-            // the status "registered".
+            // Before the lottery draw, entrants have the status "registered".
             val waitlist = entries.filter {
                 it.status == "registered"
             }

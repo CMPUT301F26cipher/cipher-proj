@@ -37,13 +37,13 @@ NA
  *
  */
 data class LotteryEntry (
-    private val lotteryEntryId: String = "",
-    private val lotteryId: String = "",
-    private val userId: String = "",
+    val lotteryEntryId: String = "",
+    val lotteryId: String = "",
+    val userId: String = "",
     // registered, winner, offerPending, notSelected, accepted, declined, expired, withdrawn, etc
-    private var status: String = "",
+    var status: String = "",
     // Defined after the list users are in random order so that we can pick the next person in the list if needed and know their status too
-    private var positionLottery: Int? // means not added yet
+    var positionLottery: Int? // means not added yet
 ){
     fun getLotteryEntryId(): String {
         return lotteryEntryId

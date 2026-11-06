@@ -1,4 +1,4 @@
-package com.example.cipherappproject
+package com.example.cipherappproject.waitlist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.database.models.LotteryEntry
 
+import com.example.cipherappproject.WaitlistController
 /*
 --------------------------------------------------------------------------------------
 Program Name:
@@ -39,6 +39,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-05  Hye Sung   1.01     Initial Implementation
+2026-11-06  Hye Sung   1.02     Update after implementing WaitlistController
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -171,4 +172,3 @@ fun WaitlistView(
         }
     }
 }
-
