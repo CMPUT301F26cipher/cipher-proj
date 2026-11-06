@@ -127,25 +127,6 @@ fun CampsiteApp(){
                         )
                     }
                 }
-//                {
-//                    BottomBarDestinations.entries.forEachIndexed { index, destination ->
-//                        NavigationBarItem(
-//                            selected = selectedDestination == index,
-//                            onClick = {
-//                                navController.navigate(route = destination.route)
-//                                selectedDestination = index
-//                            },
-//                            icon = {
-//                                Icon(
-//                                    destination.icon,
-//                                    contentDescription = destination.contentDescription
-//                                )
-//                            },
-//                            label = { Text(destination.label) },
-//                            modifier = Modifier.testTag(destination.route)
-//                        )
-//                    }
-//                }
             }
         ) { innerPadding ->
             NavHost(
@@ -221,24 +202,6 @@ fun CampsiteApp(){
 
                 //TODO: implement Admin navigation
             }
-//            {
-//                composable("search"){
-//                    CampsiteSearch(
-//                        onNavigateToCampsite = {
-//                            navController.navigate(route = it.campsiteId)
-//                        }
-//                    )
-//                }
-//                composable("profile"){
-//                    ProfileView(navController)
-//                }
-//                composable("lottery") {
-//                    lotteryScreens(
-//                        navController = navController,
-//                        currentUserId = PLACEHOLDER_USER_ID
-//                    )
-//                }
-//            }
         }
     }
 }
