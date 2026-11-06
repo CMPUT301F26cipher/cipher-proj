@@ -62,7 +62,7 @@ class LotteryBookingController {
          val campsiteId = selectedCampsiteId
         ?: return "Choose a campsite."
 
-        if (campsiteId !in lottery.campsiteIds) {
+        if (campsiteId !in lottery.getLotteryCampsitesId()) {
             return "Choose a campsite from this lottery."
         }
 

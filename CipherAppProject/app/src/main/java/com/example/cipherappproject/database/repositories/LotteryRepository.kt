@@ -134,7 +134,7 @@ class LotteryRepository {
 
     }*/
 
-<<<<<<< HEAD
+
 
 
     /*
@@ -148,12 +148,12 @@ class LotteryRepository {
         onSuccess: (String) -> Unit,
         onFailure: (String) -> Unit
     ) {
-        if (lottery.ownerId.isBlank()) {
+        if (lottery.getLotteryOwnerId().isBlank()) {
             onFailure("An owner is required.")
             return
         }
 
-        val campsiteIds = lottery.campsiteIds.distinct()
+        val campsiteIds = lottery.getLotteryCampsitesId().distinct() // Is this necessary
 
         if (campsiteIds.isEmpty() || campsiteIds.any { it.isBlank() }) {
             onFailure("Select at least one campsite.")
@@ -170,7 +170,7 @@ class LotteryRepository {
             .addOnSuccessListener { documents ->
                 val ownsEveryCampsite = documents.all { document ->
                     document.exists() &&
-                        document.getString("ownerId") == lottery.ownerId
+                        document.getString("ownerId") == lottery.getLotteryOwnerId()
                 }
 
                 if (!ownsEveryCampsite) {
@@ -180,7 +180,7 @@ class LotteryRepository {
 
                     val savedLottery = lottery.copy(
                         lotteryId = reference.id,
-                        campsiteIds = campsiteIds
+                        campsiteIds = campsiteIds as MutableList<String> // Fixed by Bailey, take a look at it?
                     )
 
                     reference.set(savedLottery)
@@ -198,7 +198,7 @@ class LotteryRepository {
     }
 
 
-=======
+
     /**
      * get one single Lottery object
      *
@@ -208,7 +208,7 @@ class LotteryRepository {
      *      - not successfully so it returns null
      * @return nullable Lottery
      */
->>>>>>> faa8a655a7ff7e4cb90b6973c65a07933677cf62
+
     // Loads one lottery
     fun getLotteryById(
         lotteryId: String,
