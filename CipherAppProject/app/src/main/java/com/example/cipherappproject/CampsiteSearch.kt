@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavController
 import com.example.cipherappproject.database.models.Campsite
+import com.example.cipherappproject.database.repositories.CampsiteRepository
 
 /**
  * Home screen for entrants, allows searching from user input, and displays a list of campsites
@@ -29,8 +30,9 @@ import com.example.cipherappproject.database.models.Campsite
 fun CampsiteSearch(
     onNavigateToCampsite: (Campsite) -> Unit,
 ){
+    val fullCampsiteList = CampsiteRepository().campsites
     var searchFilter by remember { mutableStateOf(SearchFilter()) }
-    val filteredCampsiteList = remember { CampsiteListFromFilters(searchFilter) }
+    val filteredCampsiteList = remember { CampsiteListFromFilters(fullCampsiteList,searchFilter) }
     var searchStatus by remember { mutableStateOf(SearchException()) }
 
     Column(
