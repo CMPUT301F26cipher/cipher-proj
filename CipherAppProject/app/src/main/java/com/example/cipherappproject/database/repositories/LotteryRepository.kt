@@ -10,13 +10,20 @@ Purpose: Manage database methods for LotteryRepository
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
+<<<<<<< HEAD
+2026-03-27  Sofia      1.01     added skeleton
+2026-04-10  Sofia      1.02     added query get by id
+2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
+2026-05-11  Justin     1.04     added a validation step as it verifies campsite ownership and saves lottery settings.
+=======
 2026-10-27  Sofia       1.01     added skeleton
 2026-11-04  Sofia       1.02     added query get by id
 2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
+>>>>>>> faa8a655a7ff7e4cb90b6973c65a07933677cf62
 --------------------------------------------------------------------------------------
 Future Enhancements
-NA
+More secure measures/validation if needed????
  */
 
 import androidx.compose.runtime.mutableStateListOf
@@ -25,6 +32,8 @@ import com.example.cipherappproject.database.models.LotteryEntry
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.Source
 
 class LotteryRepository {
 
@@ -125,6 +134,71 @@ class LotteryRepository {
 
     }*/
 
+<<<<<<< HEAD
+
+
+    /*
+        Verifies that selected campsites exist and belong to the owner, and then saves the lottery with a generated document ID
+
+        Report confirmed save success or an ownership/database error through callbacks. 
+
+     */
+    fun saveNewLottery( // THis function verifies campsite ownership and saves a new lottery. 
+        lottery: Lottery,
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        if (lottery.ownerId.isBlank()) {
+            onFailure("An owner is required.")
+            return
+        }
+
+        val campsiteIds = lottery.campsiteIds.distinct()
+
+        if (campsiteIds.isEmpty() || campsiteIds.any { it.isBlank() }) {
+            onFailure("Select at least one campsite.")
+            return
+        }
+
+        val campsiteReads = campsiteIds.map { campsiteId ->
+            db.collection("campsites")
+                .document(campsiteId)
+                .get(Source.SERVER)
+        }
+
+        Tasks.whenAllSuccess<DocumentSnapshot>(campsiteReads)
+            .addOnSuccessListener { documents ->
+                val ownsEveryCampsite = documents.all { document ->
+                    document.exists() &&
+                        document.getString("ownerId") == lottery.ownerId
+                }
+
+                if (!ownsEveryCampsite) {
+                    onFailure("You can only list campsites you own.")
+                } else {
+                    val reference = lotteriesRef.document()
+
+                    val savedLottery = lottery.copy(
+                        lotteryId = reference.id,
+                        campsiteIds = campsiteIds
+                    )
+
+                    reference.set(savedLottery)
+                        .addOnSuccessListener {
+                            onSuccess(reference.id)
+                        }
+                        .addOnFailureListener {
+                            onFailure("Could not save lottery. Please try again.")
+                        }
+                }
+            }
+            .addOnFailureListener {
+                onFailure("Could not verify the campsite ownership. Check your connection.")
+            }
+    }
+
+
+=======
     /**
      * get one single Lottery object
      *
@@ -134,6 +208,7 @@ class LotteryRepository {
      *      - not successfully so it returns null
      * @return nullable Lottery
      */
+>>>>>>> faa8a655a7ff7e4cb90b6973c65a07933677cf62
     // Loads one lottery
     fun getLotteryById(
         lotteryId: String,

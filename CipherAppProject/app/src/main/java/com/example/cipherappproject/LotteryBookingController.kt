@@ -51,6 +51,44 @@ class LotteryBookingController {
         }
     }
 
+    /*
+        Check that chosen campsite belongs to Lottery and that selected nights are nonempty,
+        available, valid and consecutive. 
+
+        Return an error message, or null when the selection is valid. 
+        Checks loaded availablility, and doesn't reserve the rights. 
+     */
+    fun validateSelection(lottery: Lottery): String? { 
+         val campsiteId = selectedCampsiteId
+        ?: return "Choose a campsite."
+
+        if (campsiteId !in lottery.campsiteIds) {
+            return "Choose a campsite from this lottery."
+        }
+
+        if (selectedNights.isEmpty()) {
+            return "Select at least one night."
+        }
+
+        if (!availableNights.containsAll(selectedNights)) {
+            return "Some selected nights are unavailable."
+        }
+
+        val dates = selectedNights.map { night ->
+            DateUtils.parse(night)
+                ?: return "A selected date is invalid."
+        }.sorted()
+
+        if (!dates.zipWithNext().all { (first, second) ->
+                second == first.plusDays(1)
+            }
+        ) {
+            return "Choose consecutive nights."
+        }
+
+        return null
+    }
+
     /** Requests available nights from the team's availability component. */
     fun getAvailableNights(lotteryId: String, campsiteId: String): Set<String> {
         TODO("Load available nights")
