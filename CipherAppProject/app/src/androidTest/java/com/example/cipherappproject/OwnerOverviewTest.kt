@@ -19,7 +19,6 @@ import org.junit.Test
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-
 @RunWith(AndroidJUnit4::class)
 class OwnerOverviewTest {
     @Test
