@@ -21,7 +21,7 @@ US: 02.09.01
 Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
-2026-11-05  Shira      1.01     Modifying to fit DB variables
+2026-11-05  Hye Sung   1.01     Modifying to fit DB variables
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA

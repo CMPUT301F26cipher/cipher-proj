@@ -26,7 +26,7 @@ Future Enhancements
 NA
  */
 
-<<<<<<< HEAD:CipherAppProject/app/src/main/java/com/example/cipherappproject/ReservationListModel.kt
+// <<<<<<< HEAD:CipherAppProject/app/src/main/java/com/example/cipherappproject/ReservationListModel.kt
 //TODO: mod to account for db reservation, change to only handle the logic side of things?
 
 /*
