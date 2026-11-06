@@ -1,5 +1,5 @@
 package com.example.cipherappproject.ui.reservations
-/*
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.ReservationModel
 import com.example.cipherappproject.ReservationModel.Status
 import com.example.cipherappproject.database.models.Profile
+import com.example.cipherappproject.database.models.Reservation
 import com.example.cipherappproject.database.repositories.ReservationRepository
 
 /*
@@ -132,7 +133,7 @@ fun DisplayListContent(userID: String) {
  * @param onCancelClick
  */
 @Composable
-fun ReservationRow(reservation: ReservationModel, onCancelClick: () -> Unit = {}) {
+fun ReservationRow(r: Reservation, onCancelClick: () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
