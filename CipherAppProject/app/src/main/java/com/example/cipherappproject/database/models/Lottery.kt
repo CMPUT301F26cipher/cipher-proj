@@ -12,6 +12,7 @@ Modification History:
 Date        Person     CSR#     Description
 2026-10-27  Sofia      1.01     added skeleton
 2026-11-03  Sofia      1.02     fixed getters and setters
+2026-11-06  Hye Sung   1.03     added booking period dates
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -34,20 +35,23 @@ NA
  * @property maxParticipants if owner decides a maximum number of participants
  * @property status use to help determine if the lottery is open, drawn, finished
  * @property createdAt when lottery was created
- *
+ * @property bookingStartDate when the booking period starts
+ * @property bookingEndDate when the booking period ends
  *
  */
 data class Lottery (
-    private val lotteryId: String = "",
-    private val ownerId: String = "",
+    val lotteryId: String = "",
+    val ownerId: String = "",
     // one lottery can be applicable to many lotteries
-    private val campsiteIds: MutableList<String> = mutableListOf(),
-    private var numWinners: Int = 0,
-    private var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
-    private var endDate: String = "",
-    private var maxParticipants: Int?, // is optional for the owner
-    private val status: String,
-    private val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
+    val campsiteIds: MutableList<String> = mutableListOf(),
+    var numWinners: Int = 0,
+    var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
+    var endDate: String = "",
+    var maxParticipants: Int?, // is optional for the owner
+    val status: String,
+    val createdAt: String = "", // also the yyyy-mm-hh format --> useful for the notifications!
+    val bookingStartDate: String = "",
+    val bookingEndDate: String = ""
 ) {
     fun getLotteryId(): String {
         return lotteryId
