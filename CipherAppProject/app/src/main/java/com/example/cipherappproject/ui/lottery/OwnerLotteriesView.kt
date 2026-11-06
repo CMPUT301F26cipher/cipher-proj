@@ -22,6 +22,7 @@ import androidx.navigation.NavController
 import com.example.cipherappproject.LotteryConstants
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.repositories.LotteryEntryRepository
 import com.example.cipherappproject.database.repositories.LotteryRepository
 
 /**
@@ -37,7 +38,8 @@ fun OwnerLotteriesView(
 ) {
     val lotteryRepository = remember { LotteryRepository() }
     val campsiteRepository = remember { CampsiteRepository() }
-    val myLotteries = lotteryRepository.lotteries.filter { it.getLotteryOwnerId() == ownerId }
+    val entryRepository = remember { LotteryEntryRepository() }
+    val myLotteries = lotteryRepository.lotteries.filter { it.ownerId == ownerId }
 
     Column(
         modifier = Modifier
@@ -60,16 +62,29 @@ fun OwnerLotteriesView(
             if (myLotteries.isEmpty()) {
                 item { Text("You haven't created any lotteries yet.") }
             }
-            items(myLotteries, key = { it.getLotteryId() }) { lottery ->
-                val campsiteNames = lottery.getLotteryCampsitesId().map { id ->
-                    campsiteRepository.campsites.find { it.getCampsiteId() == id }?.getCampsiteName()
+            items(myLotteries, key = { it.lotteryId }) { lottery ->
+                val campsiteNames = lottery.campsiteIds.map { id ->
+                    campsiteRepository.campsites.find { it.campsiteId == id }?.campsiteName
                         ?: "Unknown campsite"
                 }
                 LotteryRow(
                     lottery = lottery,
                     campsiteNames = campsiteNames,
-                    onEdit = { navController.navigate(LotteryRoutes.edit(lottery.getLotteryId())) },
-                    onViewAsEntrant = { navController.navigate(LotteryRoutes.result(lottery.getLotteryId())) }
+                    onEdit = { navController.navigate(LotteryRoutes.edit(lottery.lotteryId)) },
+                    onViewAsEntrant = { navController.navigate(LotteryRoutes.result(lottery.lotteryId)) },
+                    onMakeWinner = {
+                        entryRepository.getEntryForUser(lottery.lotteryId, ownerId) { existing ->
+                            if (existing == null) {
+                                entryRepository.addLotteryEntry(
+                                    lottery.lotteryId, ownerId, LotteryConstants.ENTRY_WINNER, 1
+                                ) {}
+                            } else {
+                                entryRepository.updateEntryStatus(
+                                    lottery.lotteryId, existing.lotteryEntryId, LotteryConstants.ENTRY_WINNER
+                                ) {}
+                            }
+                        }
+                    }
                 )
             }
         }
@@ -82,7 +97,8 @@ private fun LotteryRow(
     lottery: Lottery,
     campsiteNames: List<String>,
     onEdit: () -> Unit,
-    onViewAsEntrant: () -> Unit
+    onViewAsEntrant: () -> Unit,
+    onMakeWinner: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -90,16 +106,17 @@ private fun LotteryRow(
                 text = campsiteNames.joinToString(", "),
                 style = MaterialTheme.typography.titleMedium
             )
-            Text("Registration: ${lottery.getLotteryStartDate()} to ${lottery.getLotteryEndDate()}")
-            Text("Winners: ${lottery.getLotteryNumWinners()}    Status: ${lottery.getLotteryStatus()}")
+            Text("Registration: ${lottery.startDate} to ${lottery.endDate}")
+            Text("Winners: ${lottery.numWinners}    Status: ${lottery.status}")
 
             Row {
-                if (lottery.getLotteryStatus() == LotteryConstants.LOTTERY_OPEN) {
+                if (lottery.status == LotteryConstants.LOTTERY_OPEN) {
                     TextButton(onClick = onEdit) { Text("Edit") }
                 }
                 // TEMPORARY: for testing the entrant screens, see the file comment
                 TextButton(onClick = onViewAsEntrant) { Text("View result as entrant") }
             }
+            TextButton(onClick = onMakeWinner) { Text("Make me a winner (demo)") }
         }
     }
 }

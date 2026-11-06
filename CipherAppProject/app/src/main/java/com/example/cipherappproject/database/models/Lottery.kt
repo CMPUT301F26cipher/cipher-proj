@@ -12,7 +12,7 @@ Modification History:
 Date        Person     CSR#     Description
 2026-10-27  Sofia      1.01     added skeleton
 2026-11-03  Sofia      1.02     fixed getters and setters
-2026-11-06  Hye Sung   1.03     added booking period dates
+2026-11-03  Sofia      1.03     fixed getters, getters, and default values
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -35,8 +35,7 @@ NA
  * @property maxParticipants if owner decides a maximum number of participants
  * @property status use to help determine if the lottery is open, drawn, finished
  * @property createdAt when lottery was created
- * @property bookingStartDate when the booking period starts
- * @property bookingEndDate when the booking period ends
+ *
  *
  */
 data class Lottery (
@@ -47,61 +46,17 @@ data class Lottery (
     var numWinners: Int = 0,
     var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
     var endDate: String = "",
-    var maxParticipants: Int?, // is optional for the owner
-    val status: String,
-    val createdAt: String = "", // also the yyyy-mm-hh format --> useful for the notifications!
-    val bookingStartDate: String = "",
-    val bookingEndDate: String = ""
+    var maxParticipants: Int? = null, // is optional for the owner
+    var status: String = "",
+    val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
 ) {
-    fun getLotteryId(): String {
-        return lotteryId
+
+    fun addCampsiteIds(campsiteId: String) {
+        campsiteIds.add(campsiteId)
     }
 
-    fun getLotteryOwnerId(): String {
-        return ownerId
+    fun removeCampsiteIds(campsiteId: String) {
+        campsiteIds.remove(campsiteId)
     }
 
-    fun getLotteryCampsitesId(): List<String> {
-        return campsiteIds
-    }
-
-    fun getLotteryNumWinners(): Int {
-        return numWinners
-    }
-
-    fun setLotteryNumWinner(number: Int) {
-        numWinners = number
-    }
-
-    fun getLotteryStartDate(): String {
-        return startDate
-    }
-
-    fun setLotteryStartDate(date: String) {
-        startDate = date
-    }
-
-    fun getLotteryEndDate(): String {
-        return endDate
-    }
-
-    fun setLotteryEndDate(date: String) {
-        startDate = date
-    }
-
-    fun getLotteryMaxParticipants(): Int? {
-        return maxParticipants
-    }
-
-    fun setLotteryMaxParticipants(numParticipants: Int) {
-        maxParticipants = numParticipants
-    }
-
-    fun getLotteryStatus(): String {
-        return status
-    }
-
-    fun getLotteryCreatedAt(): String {
-        return createdAt
-    }
 }

@@ -1,4 +1,4 @@
-package com.example.cipherappproject.ui.reservations
+package com.example.cipherappproject.reservations
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

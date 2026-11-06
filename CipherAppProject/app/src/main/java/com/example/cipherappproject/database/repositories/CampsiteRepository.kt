@@ -14,11 +14,13 @@ Date        Person     CSR#     Description
 2026-11-04  Sofia       1.02     added query get by id
 2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
+2026-11-06  Sofia       1.05     fixed the get and set methods for the obejcts
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
  */
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import com.example.cipherappproject.database.models.Campsite
 import com.google.android.gms.tasks.Tasks
@@ -116,7 +118,7 @@ class CampsiteRepository {
      */
     fun getCampsiteById(
         campsiteId: String,
-        result: (Campsite?) -> Unit
+        result: (Campsite) -> Unit
     ){
         campsitesRef
             .document(campsiteId)
@@ -126,12 +128,19 @@ class CampsiteRepository {
                 /*learn and taken form https://medium.com/@ender.koca94/effective-data-modeling-in-firebase-cloud-firestore-using-kotlin-0a3224d84bb8*/
                 val campsite = document.toObject(Campsite::class.java)
 
+                Log.d("CampsiteTest", "Raw data: ${document.data}")
+
+                Log.d("CampsiteTest", "Mapped object: $campsite")
+
+
                 // to avoid :type use lamba
-                result(campsite)
+                if (campsite != null) {
+                    result(campsite)
+                } else throw NullPointerException()
 
             }
             .addOnFailureListener { exception ->
-                result(null)
+                throw NullPointerException()
             }
     }
 
@@ -148,7 +157,7 @@ class CampsiteRepository {
         campsite: Campsite,
         result: (Boolean) -> Unit
     ) {
-        campsitesRef.document(campsite.getCampsiteId())
+        campsitesRef.document(campsite.campsiteId)
             .set(campsite)
             .addOnSuccessListener {
                 result(true)

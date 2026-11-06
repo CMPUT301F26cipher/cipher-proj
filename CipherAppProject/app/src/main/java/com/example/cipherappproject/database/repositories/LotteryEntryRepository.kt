@@ -14,6 +14,7 @@ Date        Person     CSR#     Description
 2026-11-04  Sofia       1.02     added query get by id
 2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
+2026-11-06  Sofia       1.05     fixed the get and set methods for the objects
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -95,8 +96,8 @@ class LotteryEntryRepository {
         lotteryEntry: LotteryEntry,
         result: (Boolean) -> Unit
     ){
-        val lotteryId = lotteryEntry.getLotteryId()
-        val lotteryEntryId = lotteryEntry.getLotteryEntryId()
+        val lotteryId = lotteryEntry.lotteryId
+        val lotteryEntryId = lotteryEntry.lotteryEntryId
 
         val lotteryEntryRef = db.collection("lotteries/$lotteryId/entries")
 

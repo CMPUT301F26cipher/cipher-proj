@@ -18,9 +18,9 @@ import com.example.cipherappproject.database.repositories.CampsiteRepository
  *
  */
 class CampsiteListFromFilters(
+    val fullCampsiteList: List<Campsite>,
     var searchFilter: SearchFilter
 ) {
-    private val fullCampsiteList = CampsiteRepository().campsites
     private var filteredCampsiteList = fullCampsiteList.toMutableList()
 
     fun filterCampsites(){
@@ -30,13 +30,14 @@ class CampsiteListFromFilters(
         }
         else {
             for (campsite in fullCampsiteList){
-                if (!campsite.getCampsiteName().contains(searchFilter.getName())){
+                if (!campsite.campsiteName.contains(searchFilter.getName())){
                     filteredCampsiteList.remove(campsite)
                 }
             }
         }
     }
 
+    // TODO: Fix this method, it should return the filteredCampsiteList but that breaks everything
     fun getList(): List<Campsite>{
         return fullCampsiteList
     }

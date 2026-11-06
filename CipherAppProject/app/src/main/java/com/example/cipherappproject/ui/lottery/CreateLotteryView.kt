@@ -23,7 +23,7 @@ fun CreateLotteryView(
     val controller = remember { LotteryController() }
     val campsiteRepository = remember { CampsiteRepository() }
     // Live list, so this recomposes once Firestore has loaded the campsites
-    val ownerCampsites = campsiteRepository.campsites.filter { it.getCampsiteOwnerId() == ownerId }
+    val ownerCampsites = campsiteRepository.campsites.filter { it.ownerId == ownerId }
 
     var input by remember { mutableStateOf(LotteryFormInput()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -36,10 +36,9 @@ fun CreateLotteryView(
         errorMessage = errorMessage,
         saveLabel = "Publish Lottery",
         onSave = {
-            val error = controller.createFromForm(ownerId, input)
-            errorMessage = error
-            if (error == null) {
-                navController.popBackStack()
+            errorMessage = controller.createFromForm(ownerId, input) { saved ->
+                if (saved) navController.popBackStack()
+                else errorMessage = "Could not save lottery. Please try again."
             }
         }
     )

@@ -25,7 +25,7 @@ fun EditLotteryView(
 ) {
     val controller = remember { LotteryController() }
     val campsiteRepository = remember { CampsiteRepository() }
-    val ownerCampsites = campsiteRepository.campsites.filter { it.getCampsiteOwnerId() == ownerId }
+    val ownerCampsites = campsiteRepository.campsites.filter { it.ownerId == ownerId }
 
     var original by remember { mutableStateOf<Lottery?>(null) }
     var input by remember { mutableStateOf(LotteryFormInput()) }
@@ -47,7 +47,7 @@ fun EditLotteryView(
     when {
         loadFailed -> CenteredMessage("Could not load this lottery.")
         lottery == null -> LoadingIndicator()
-        lottery.getLotteryOwnerId() != ownerId -> CenteredMessage("You can only edit your own lotteries.")
+        lottery.ownerId != ownerId -> CenteredMessage("You can only edit your own lotteries.")
         !controller.canEdit(lottery) ->
             CenteredMessage("This lottery has already been drawn and can no longer be edited.")
         else -> LotteryForm(
@@ -58,10 +58,9 @@ fun EditLotteryView(
             errorMessage = errorMessage,
             saveLabel = "Save Changes",
             onSave = {
-                val error = controller.updateLottery(lottery, input)
-                errorMessage = error
-                if (error == null) {
-                    navController.popBackStack()
+                errorMessage = controller.updateLottery(lottery, input) { saved ->
+                    if (saved) navController.popBackStack()
+                    else errorMessage = "Could not save changes. Please try again."
                 }
             }
         )

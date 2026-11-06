@@ -1,4 +1,4 @@
-package com.example.cipherappproject.ui.reservations
+package com.example.cipherappproject.reservations
 
 //@Composable
 

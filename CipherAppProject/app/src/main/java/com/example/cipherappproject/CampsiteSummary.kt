@@ -37,10 +37,11 @@ fun CampsiteSummary(
     campsite: Campsite,
 ){
     val campsite = remember { campsite }
-    val campsiteID = campsite.getCampsiteId()
-    val campsiteName = campsite.getCampsiteName()
-    val campsiteImagePath = campsite.getCampsiteImagePath() //TODO: implement getting picture
-    val campsitePrice = campsite.getCampsitePricePerNight()
+    val campsiteID = campsite.campsiteId
+    val campsiteName = campsite.campsiteName
+    val campsiteLocation = campsite.mapLocation
+    val campsiteImagePath = campsite.imagePath //TODO: implement getting picture
+    val campsitePrice = campsite.pricePerNight
     val campsitePriceStr = "$$campsitePrice" //TODO: must reformat once campsite price type is finalized
 
     Box(
@@ -58,16 +59,18 @@ fun CampsiteSummary(
         Column() {
             // TODO: add image here
             Text(
-                text = campsiteName
+                text = campsiteName,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(12.dp)
             )
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = campsitePriceStr
-                )
+                Text( text = campsitePriceStr )
+                Text( text = campsiteLocation[2] )
+                Text( text = "Max Guests: " + campsite.maxGuests.toString() )
             }
         }
     }

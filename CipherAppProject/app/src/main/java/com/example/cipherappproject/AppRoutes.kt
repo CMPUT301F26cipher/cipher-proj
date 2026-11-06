@@ -8,9 +8,7 @@ package com.example.cipherappproject
 
 /**
  * Which nav-bar and profile menu the app shows.
- *
- * TEMPORARY: switched with the button in the top bar until login/sign-up (Madison)
- * can pick the role from the current user's Profile.role.
+ * Set in CampsiteApp from the current user's Profile.role.
  */
 enum class UserRole {
     ENTRANT,
