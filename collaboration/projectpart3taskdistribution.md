@@ -47,9 +47,15 @@ Assigned but not complete
 
 
 ## Sofia
-- [ ] 
-- [ ] 
-- [ ] 
+- Created the Firebase database. Complete the Android Studio requirements and JSON.
+- Created a package called database inside the project.
+- Created a models package inside database, containing the following data classes: Campsite, CampsiteAvailability, Lottery, LotteryEntry, Profile, and Reservation.
+- Created a repositories package inside database, containing ProfileRepository, CampsiteRepository, CampsiteAvailabilityRepository, LotteryEntryRepository, and ReservationRepository. These repositories connect the data classes in the models package to Firebase and handle queries, data retrieval, and CRUD operations.
+- Added file modification and author documentation sections to each file. Also added comments to the main functions, following a format similar to the labs, specially lab 4, lab 5, and lab 7.
+- Added functional test cases. They are currently commented out to avoid unnecessary read and write operations on Firebase.
+- Added error handling. This has not yet fully been integrated into the main application.
+- Added a database README to help the team better understand the available methods and their intended uses.
+- Added arrows to the Figma Design and deleted Login and Register screen.
 
 ## Bailey
 - [ ] 
