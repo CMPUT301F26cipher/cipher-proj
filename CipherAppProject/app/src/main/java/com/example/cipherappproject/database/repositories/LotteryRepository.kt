@@ -15,14 +15,17 @@ Date        Person     CSR#     Description
 2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
 2026-05-11  Justin     1.04     added a validation step as it verifies campsite ownership and saves lottery settings.
 2026-11-06  Sofia      1.05     fixed the get and set methods for the objects
+2026-11-08  Sofia      1.06     added exceptions and error handling
 --------------------------------------------------------------------------------------
 Future Enhancements
 More secure measures/validation if needed????
  */
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
+import com.example.cipherappproject.database.models.Profile
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -40,6 +43,8 @@ class LotteryRepository {
         get() = _allLotteries
 
 
+    // ----------------------------------- Queries -----------------------------------
+
     /**
      * Creates behinds a Lottery object and add it to the firebase database
      * with a random and unique id.
@@ -52,9 +57,9 @@ class LotteryRepository {
      * @param status
      * @param createdAt
      * @param result lamba function that provide if:
-     *      - The object was added successfully then it returns the id of that object
-     *      - The object was not added not successfully so it returns null
-     * @return nullable string with the id of the created object
+     *      - Result.success(id) if successful
+     *      - Result.success(exception) if not successful
+     * @return Result<String>
      */
     fun createLottery(
         ownerId: String,
@@ -65,7 +70,7 @@ class LotteryRepository {
         maxParticipants: Int,
         status: String,
         createdAt: String,
-        result: (String?) -> Unit
+        result: (Result<String>) -> Unit
 
     ) {
         // create a reference and id to the new profile
@@ -88,10 +93,11 @@ class LotteryRepository {
         lotteryRef
             .set(lottery)
             .addOnSuccessListener {
-                result(lotteryRef.id)
+                result(Result.success(lotteryRef.id))
+
             }
-            .addOnFailureListener {
-                result(null)
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
             }
 
     }
@@ -100,23 +106,50 @@ class LotteryRepository {
      * Updates a Lottery object into the firebase database .
      *
      * @param lottery object
-     * @param result lamba function that provide if:
-     *      - successfully then it returns a boolean as true
-     *      - not successfully so it returns a boolean as false
-     * @return Boolean
+     * @param result lamba function as callback that provide if:
+     *      - Result.success(Unit) if successfully
+     *      - Result.failure(exception) if not successful
+     * @return Result<Unit>
      */
     fun updateLottery(
         lottery: Lottery,
-        result: (Boolean) -> Unit
+        result: (Result<Unit>) -> Unit
     ){
-        lotteriesRef.document(lottery.lotteryId)
-            .set(lottery)
-            .addOnSuccessListener {
-                result(true)
 
+        //https://medium.com/@niranjanky14/4-kotlin-advanced-exception-17daf07ea51a
+        if (lottery.lotteryId.isBlank()) {
+            result(Result.failure(
+                IllegalArgumentException("Lottery ID cannot be empty.")
+            ))
+            return
+        }
+
+        // https://firebase.google.com/docs/firestore/manage-data/transactions
+        val lotteryRef = lotteriesRef.document(lottery.lotteryId)
+
+        // instead of get + set we do one atomic read and write
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(lotteryRef)
+
+            // if object do not exist
+            if (!snapshot.exists()) {
+                throw NoSuchElementException("Lottery does not exist.")
             }
-            .addOnFailureListener {
-                result(false)
+
+            transaction.set(lotteryRef, lottery)
+
+            // since we do not care about get an object but just success or not
+            Unit
+
+        }
+            .addOnSuccessListener {
+                Log.d("LotteryTest", "Transaction succeeded")
+                result(Result.success(Unit))
+            }
+            .addOnFailureListener { exception ->
+                Log.e("LotteryTest", "Transaction failed", exception)
+                result(Result.failure(exception))
+
             }
     }
 
@@ -201,27 +234,67 @@ class LotteryRepository {
      * get one single Lottery object
      *
      * @param lotteryId
-     * @param result lamba function that provide if:
-     *      - successfully then it returns a Lottery
-     *      - not successfully so it returns null
-     * @return nullable Lottery
+     * @param result lamba function that has Result and if:
+     *      - Result.success(Lottery) if successful
+     *      - Result.success(exception) if not successful
+     * @return Result<Lottery>
      */
-
-    // Loads one lottery
     fun getLotteryById(
         lotteryId: String,
-        result: (Lottery?) -> Unit
+        result: (Result<Lottery>) -> Unit
     ){
+
+        if (lotteryId.isBlank()) {
+            result(Result.failure(
+                IllegalArgumentException("Lottery ID cannot be empty.")
+            ))
+            return
+        }
+
         lotteriesRef
             .document(lotteryId)
             .get()
             .addOnSuccessListener { document ->
-                result(document.toObject(Lottery::class.java))
+
+                // if the document do not exist --> Lottery do not exist
+                if (!document.exists()) {
+                    result(Result.failure(
+                        NoSuchElementException("Lottery does not exist.")
+                    ))
+                    return@addOnSuccessListener // we return the object so that it do not continue the next lines
+                }
+
+                /*learn and taken form https://medium.com/@ender.koca94/effective-data-modeling-in-firebase-cloud-firestore-using-kotlin-0a3224d84bb8*/
+                val lottery = document.toObject(Lottery::class.java)
+
+
+                // for testing
+                Log.d("LotteryTest", "Raw data: ${document.data}")
+                Log.d("LotteryTest", "Mapped object: $lottery")
+
+
+                // if conversion was successful
+                if (lottery == null) {
+                    result(Result.failure(
+                        IllegalStateException("Failed to convert document to Lottery.")
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                // return successfully retrieved Lottery
+                result(Result.success(lottery))
+
             }
-            .addOnFailureListener {
-                result(null)
+
+            // if any other error
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
+
             }
     }
+
+    // ----------------------------------- From list -----------------------------------
+
 
     /*
     fun deleteLottery(lotteryId: String){

@@ -15,6 +15,7 @@ Date        Person     CSR#     Description
 2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
 2026-11-06  Sofia       1.05     fixed the get and set methods for the obejcts
+2026-11-08  Sofia       1.06     added exceptions and error handling
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -23,6 +24,7 @@ NA
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import com.example.cipherappproject.database.models.Campsite
+import com.example.cipherappproject.database.models.Profile
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -36,8 +38,12 @@ class CampsiteRepository {
     val campsites: List<Campsite>
         get() = _allCampsites
 
+
+    // ----------------------------------- Queries -----------------------------------
+
     /**
-     * Creates behinds a Campsite object and add it to the firebase database with a random and unique id.
+     * Creates behinds a Campsite object and add it to the firebase database
+     * with a random and unique id.
      *
      * @param ownerId use to identify to which owner is related to
      * @param campsiteName is the campsite name
@@ -49,10 +55,11 @@ class CampsiteRepository {
      * @param tags the keywords need for the filter feature adn search bar
      * @param maxGuests how many guest the campsite can hold
      * @param qrCodeImagePath the campsite qr code path
+     * @param status the campsite qr code path
      * @param result lamba function that provide if:
-     *      - The object was added successfully then it returns the id of that object
-     *      - The object was not added not successfully so it returns null
-     * @return nullable string with the id of the created object
+     *      - Result.success(id) if successful
+     *      - Result.success(exception) if not successful
+     * @return Result<String>
      */
 
     /*Taken and learned from
@@ -71,6 +78,7 @@ class CampsiteRepository {
         imagePath: String,
         tags: MutableList<String>,
         qrCodeImagePath: String,
+        status: String,
         result: (Result<String>) -> Unit
 
     ){
@@ -89,7 +97,8 @@ class CampsiteRepository {
             pricePerNight = pricePerNight,
             imagePath = imagePath,
             tags = tags,
-            qrCodeImagePath = qrCodeImagePath
+            qrCodeImagePath = qrCodeImagePath,
+            status = status
         )
 
         //Tasks.await(campsiteRef.set(campsite))
@@ -107,16 +116,13 @@ class CampsiteRepository {
     }
 
     /**
-     * retrieves Campsite object into the firebase database .
+     * retrieves Result type that has Campsite object
      *
      * @param campsiteId
-     * @param result lamba function that provide if:
-     *      - successfully then it returns the Campsite object
-     *      - not successfully so it returns the reason of failure such as:
-     *         - Campsite does not exist.
-     *         - Failed to convert document to Campsite.
-     *         - Or the exception
-     * @return nullable Campsite object
+     * @param result lamba function that has Result and if:
+     *      - Result.success(Campsite) if successful
+     *      - Result.success(exception) if not successful
+     * @return Result<Campsite>
      */
     
     /*Taken, learned and improved from OpenAI, ChatGPT on 2026-06-11 on the subject "How does addOnSuccessListener works and how to implement further errors or assertions as python does with ValueError", "How Result works Result can you do an example about it and how can you pass an error? how does work Try else here like python?, Examples please? "*/
@@ -126,29 +132,38 @@ class CampsiteRepository {
         campsiteId: String,
         result: (Result<Campsite>) -> Unit
     ){
+
+        if (campsiteId.isBlank()) {
+            result(Result.failure(
+                IllegalArgumentException("Campsite ID cannot be empty.")
+            ))
+            return
+        }
+
         campsitesRef
             .document(campsiteId)
             .get()
             .addOnSuccessListener { document ->
 
 
-                // Check if document exists
+                // if the document do not exist --> campsite do not exist
                 if (!document.exists()) {
                     result(Result.failure(
                         NoSuchElementException("Campsite does not exist.")
                     ))
-                    return@addOnSuccessListener
+                    return@addOnSuccessListener // we return the object so that it do not continue the next lines
                 }
 
                 /*learn and taken form https://medium.com/@ender.koca94/effective-data-modeling-in-firebase-cloud-firestore-using-kotlin-0a3224d84bb8*/
                 val campsite = document.toObject(Campsite::class.java)
 
-                Log.d("CampsiteTest", "Raw data: ${document.data}")
 
+                // for testing
+                Log.d("CampsiteTest", "Raw data: ${document.data}")
                 Log.d("CampsiteTest", "Mapped object: $campsite")
 
 
-                // Check if conversion was successful
+                // if conversion was successful
                 if (campsite == null) {
                     result(Result.failure(
                         IllegalStateException("Failed to convert document to Campsite.")
@@ -156,39 +171,97 @@ class CampsiteRepository {
                     return@addOnSuccessListener
                 }
 
-                // Return successfully retrieved campsite
+                // return successfully retrieved campsite
                 result(Result.success(campsite))
 
             }
 
-            // If any other error
+            // if any other error
             .addOnFailureListener { exception ->
                 result(Result.failure(exception))
             }
     }
 
     /**
-     * Updates behinds a Campsite object into the firebase database .
+     * Updates behinds a Campsite object into the firebase database
      *
      * @param campsite Campsite object
      * @param result lamba function as callback that provide if:
      *      - Result.success(Unit) if successfully
      *      - Result.failure(exception) if not successful
-     * @return nullable string
+     * @return Result<Unit>
      */
     fun updateCampsite(
         campsite: Campsite,
         result: (Result<Unit>) -> Unit
     ) {
-        campsitesRef.document(campsite.campsiteId)
-            .set(campsite)
+
+        //https://medium.com/@niranjanky14/4-kotlin-advanced-exception-17daf07ea51a
+        if (campsite.campsiteId.isBlank()) {
+            result(Result.failure(
+                IllegalArgumentException("Campsite ID cannot be empty.")
+            ))
+            return
+        }
+
+        // https://firebase.google.com/docs/firestore/manage-data/transactions
+        val campsiteRef = campsitesRef.document(campsite.campsiteId)
+
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(campsiteRef)
+
+            // if object do not exist
+            if (!snapshot.exists()) {
+                throw NoSuchElementException("Campsite does not exist.")
+            }
+
+            transaction.set(campsiteRef, campsite)
+
+            // since we do not care about get an object but just success or not
+            Unit
+
+        }
             .addOnSuccessListener {
                 result(Result.success(Unit))
             }
             .addOnFailureListener { exception ->
                 result(Result.failure(exception))
+
             }
+
     }
+
+
+    // ----------------------------------- From list -----------------------------------
+    /**
+     * get one single Profile object
+     *
+     * @param campsiteId
+     * @return
+     *      - Profile if exist
+     *      - null if it does not exist
+     */
+    // https://kotlinlang.org/docs/collection-elements.html#retrieve-with-selector
+    fun getCampsiteFromListById(campsiteId: String): Campsite? {
+        return _allCampsites.find { it.campsiteId == campsiteId }
+
+    }
+
+
+    /**
+     * provide a list of Campsite objects from ownerId
+     *
+     * @param name
+     * @return List<Campsite> --> can be empty list if not match found
+     */
+
+    // https://www.tutorialspoint.com/kotlin/kotlin_list_contains_function.htm
+    fun getCampsiteFromListByName(name: String): List<Campsite> {
+        return _allCampsites.filter { it.campsiteName.contains(name, ignoreCase = true) }
+
+    }
+
+
 
     /*
     fun deleteCampsite(campsiteId: String) {

@@ -15,6 +15,7 @@ Date        Person     CSR#     Description
 2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
 2026-11-06  Sofia       1.05     fixed the get and set methods for the objects
+2026-11-08  Sofia      1.06     added exceptions and error handling
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -37,6 +38,10 @@ class LotteryEntryRepository {
         get() = _allLotteriesEntries
 
 
+
+    // ----------------------------------- Queries -----------------------------------
+
+
     /**
      * Creates behinds a LotteryEntry object and add it to the firebase database
      * with a random and unique id.
@@ -46,16 +51,17 @@ class LotteryEntryRepository {
      * @param status store the lottery status
      * @param positionLottery user entry in the list after randomization
      * @param result lamba function that provide if:
-     *      - The object was added successfully then it returns the id of that object
-     *      - The object was not added not successfully so it returns null
-     * @return nullable string
+     *      - Result.success(id) if successful
+     *      - Result.success(exception) if not successful
+     * @return Result<String>
      */
     fun addLotteryEntry(
         lotteryId: String,
         userId: String,
         status: String,
         positionLottery: Int,
-        result: (String?) -> Unit
+        result: (Result<String>) -> Unit
+
 
     ){
         // create a reference and id to the new profile
@@ -75,11 +81,13 @@ class LotteryEntryRepository {
         lotteryEntryRef
             .set(lotteryEntry)
             .addOnSuccessListener {
-                result(lotteryEntryRef.id)
+                result(Result.success(lotteryEntryRef.id))
             }
 
-            .addOnFailureListener {
-                result(null)
+            .addOnFailureListener { exception ->
+
+                result(Result.failure(exception))
+
             }
     }
 
@@ -87,27 +95,70 @@ class LotteryEntryRepository {
      * Updates behinds a LotteryEntry object into the firebase database .
      *
      * @param lotteryEntry lotteryEntry object
-     * @param result lamba function that provide if:
-     *      - successfully then it returns a boolean as true
-     *      - not successfully so it returns a boolean as false
-     * @return nullable string
+     * @param result lamba function as callback that provide if:
+     *      - Result.success(Unit) if successfully
+     *      - Result.failure(exception) if not successful
+     * @return Result<Unit>
      */
     fun updateLotteryEntry(
         lotteryEntry: LotteryEntry,
-        result: (Boolean) -> Unit
-    ){
-        val lotteryId = lotteryEntry.lotteryId
+        result: (Result<Unit>) -> Unit
+    ) {
         val lotteryEntryId = lotteryEntry.lotteryEntryId
+        val lotteryId = lotteryEntry.lotteryId
 
-        val lotteryEntryRef = db.collection("lotteries/$lotteryId/entries")
+        // Check IDs
+        if (lotteryEntryId.isBlank() || lotteryId.isBlank()) {
+            result(Result.failure(
+                IllegalArgumentException("Lottery or lottery entry ID cannot be empty.")
+            ))
+            return
+        }
 
-        lotteryEntryRef.document(lotteryEntryId)
-            .set(lotteryEntry)
-            .addOnSuccessListener {
-                result(true)
+        val lotteryRef = db.collection("lotteries").document(lotteryId)
+
+        val lotteryEntryRef = lotteryRef
+            .collection("entries")
+            .document(lotteryEntryId)
+
+        // Check lottery and entry before updating
+        db.runTransaction { transaction ->
+
+            val lotterySnapshot = transaction.get(lotteryRef)
+
+            // Check whether lottery exists
+            if (!lotterySnapshot.exists()) {
+                throw NoSuchElementException("Lottery does not exist.")
             }
-            .addOnFailureListener {
-                result(false)
+
+            val entrySnapshot = transaction.get(lotteryEntryRef)
+
+            // Check whether lottery entry exists
+            if (!entrySnapshot.exists()) {
+                throw NoSuchElementException("Lottery entry does not exist.")
+            }
+
+            // Check whether entry belongs to the specified lottery
+            val storedLotteryId = entrySnapshot.getString("lotteryId")
+
+            if (storedLotteryId != lotteryId) {
+                throw IllegalArgumentException(
+                    "The lottery entry does not belong to this lottery."
+                )
+            }
+
+            // Update lottery entry
+            transaction.set(lotteryEntryRef, lotteryEntry)
+
+            // We only care whether the operation succeeded
+            Unit
+
+        }
+            .addOnSuccessListener {
+                result(Result.success(Unit))
+            }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
             }
     }
 
@@ -122,35 +173,64 @@ class LotteryEntryRepository {
      * retrieves LotteryEntry
      *
      * @param lotteryId
-     * @param result lamba function that provide if:
-     *      - successfully then it returns the Campsite object
-     *      - not successfully so it returns null
-     * @return nullable LotteryEntry object
+     * @param result lamba function that has Result and if:
+     *      - Result.success(<List<LotteryEntry>) if successful
+     *      - Result.success(exception) if not successful
+     * @return Result<List<LotteryEntry>>
      */
     fun getLotteryEntriesByLotteryId(
         lotteryId: String,
-        result: (List<LotteryEntry>?) -> Unit
-    ){
-        val campsiteAvailabilityRef = db.collection("lotteries")
+        result: (Result<List<LotteryEntry>>) -> Unit
+    ) {
+        // Check ID
+        if (lotteryId.isBlank()) {
+            result(Result.failure(
+                IllegalArgumentException("Lottery ID cannot be empty.")
+            ))
+            return
+        }
+
+        val lotteryRef = db
+            .collection("lotteries")
             .document(lotteryId)
-            .collection("entries")
-            .get()
-            .addOnSuccessListener { documents ->
 
-                val entries : MutableList<LotteryEntry> = mutableListOf()
+        // Check whether lottery exists
+        lotteryRef.get()
+            .addOnSuccessListener { lotteryDocument ->
 
-                for (document in documents) {
-                    val entry = document.toObject(LotteryEntry::class.java)
-
-                    entries.add(entry)
+                if (!lotteryDocument.exists()) {
+                    result(Result.failure(
+                        NoSuchElementException("Lottery does not exist.")
+                    ))
+                    return@addOnSuccessListener
                 }
 
-                result(entries)
+                // Retrieve all lottery entries
+                lotteryRef
+                    .collection("entries")
+                    .get()
+                    .addOnSuccessListener { documents ->
+
+                        val lotteryEntries: MutableList<LotteryEntry> =
+                            mutableListOf()
+
+                        for (document in documents) {
+
+                            val lotteryEntry =
+                                document.toObject(LotteryEntry::class.java)
+
+                            lotteryEntries.add(lotteryEntry)
+                        }
+
+                        result(Result.success(lotteryEntries))
+                    }
+                    .addOnFailureListener { exception ->
+                        result(Result.failure(exception))
+                    }
             }
             .addOnFailureListener { exception ->
-                result(null)
+                result(Result.failure(exception))
             }
-
     }
 
     /**
@@ -207,6 +287,10 @@ class LotteryEntryRepository {
             .addOnSuccessListener { result(true) }
             .addOnFailureListener { result(false) }
     }
+
+
+    // ----------------------------------- From list -----------------------------------
+
 
 
 

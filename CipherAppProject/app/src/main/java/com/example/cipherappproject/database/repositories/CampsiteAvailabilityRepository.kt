@@ -15,12 +15,14 @@ Date        Person     CSR#     Description
 2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
 2026-11-06  Sofia       1.05     fixed the get and set methods for the objects
+2026-11-08  Sofia       1.06     added exceptions and error handling
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
  */
 
 import androidx.compose.runtime.mutableStateListOf
+import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.CampsiteAvailability
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
@@ -38,6 +40,9 @@ class CampsiteAvailabilityRepository {
         get() = _allCampsitesAvailability
 
 
+    // ----------------------------------- Queries -----------------------------------
+
+
     /**
      * Creates behinds a Campsite object and
      * add it to the firebase database with a random and unique id.
@@ -46,17 +51,17 @@ class CampsiteAvailabilityRepository {
      * @param startDate
      * @param endDate
      * @param status
-     * @param result
-     *      - The object was added successfully then it returns the id of that object
-     *      - The object was not added not successfully so it returns null
-     * @return nullable string
+     * @param result lamba function that provide if:
+     *      - Result.success(id) if successful
+     *      - Result.success(exception) if not successful
+     * @return Result<String>
      */
     fun createCampsiteAvailability(
         campsiteId: String,
         startDate: String,
         endDate: String,
         status: String,
-        result: (String?) -> Unit
+        result: (Result<String>) -> Unit
 
     ){
         // https://firebase.google.com/docs/firestore/data-model
@@ -77,11 +82,13 @@ class CampsiteAvailabilityRepository {
         // save the object in the firebase
         campsiteAvailabilityRef.set(campsiteAvailability)
             .addOnSuccessListener {
-                result(campsiteAvailabilityRef.id)
+                result(Result.success(campsiteAvailabilityRef.id))
             }
 
-            .addOnFailureListener {
-                result(null)
+            .addOnFailureListener { exception ->
+
+                result(Result.failure(exception))
+
             }
 
     }
@@ -90,30 +97,75 @@ class CampsiteAvailabilityRepository {
      * Updates behinds a CampsiteAvailability object
      *
      * @param campsiteAvailability object
-     * @param result lamba function that provide if:
-     *      - successfully then it returns a boolean as true
-     *      - not successfully so it returns a boolean as false
-     * @return Boolean
+     * @param result lamba function as callback that provide if:
+     *      - Result.success(Unit) if successfully
+     *      - Result.failure(exception) if not successful
+     * @return Result<Unit>
      */
 
     fun updateCampsiteAvailability(
         campsiteAvailability: CampsiteAvailability,
-        result: (Boolean) -> Unit
+        result: (Result<Unit>) -> Unit
     ){
+
         val campsiteAvailabilityId = campsiteAvailability.campsiteAvailabilityId
         val campsiteId = campsiteAvailability.campsiteId
 
-
-        val campsiteAvailabilityRef = db.collection("campsites/$campsiteId/availability")
-
-
-        campsiteAvailabilityRef.document(campsiteAvailabilityId)
-            .set(campsiteAvailability)
-            .addOnSuccessListener {
-            result(true)
+        //https://medium.com/@niranjanky14/4-kotlin-advanced-exception-17daf07ea51a
+        if (campsiteAvailabilityId.isBlank() || campsiteId.isBlank()) {
+            result(Result.failure(
+                IllegalArgumentException("Campsite or campsiteAvailability ID cannot be empty.")
+            ))
+            return
         }
-            .addOnFailureListener {
-                result(false)
+
+        val campsiteRef = db.collection("campsites").document(campsiteId)
+
+        val campsiteAvailabilityRef = campsiteRef
+            .collection("availability")
+            .document(campsiteAvailabilityId)
+
+
+        db.runTransaction { transaction ->
+            val campsiteSnapshot = transaction.get(campsiteRef)
+
+            // if object do not exist
+            if (!campsiteSnapshot.exists()) {
+                throw NoSuchElementException("Campsite does not exist.")
+            }
+
+
+            val availabilitySnapshot = transaction.get(campsiteAvailabilityRef)
+
+            if (!availabilitySnapshot.exists()) {
+                throw NoSuchElementException(
+                    "The availability for this campsite does not exist."
+                )
+            }
+
+            // Check whether availability belongs to the specified campsite
+            val storedCampsiteId = availabilitySnapshot.getString("campsiteId")
+
+            // https://medium.com/@niranjanky14/4-kotlin-advanced-exception-17daf07ea51a
+            if (storedCampsiteId != campsiteId) {
+                throw IllegalArgumentException(
+                    "The availability does not belong to this campsite."
+                )
+            }
+
+            // Update availability
+            transaction.set(campsiteAvailabilityRef, campsiteAvailability)
+
+            // since we do not care about get an object but just success or not
+            Unit
+
+        }
+            .addOnSuccessListener {
+                result(Result.success(Unit))
+            }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
+
             }
     }
 
@@ -123,63 +175,134 @@ class CampsiteAvailabilityRepository {
      *
      * @param campsiteAvailabilityId unique identifier of the CampsiteAvailability within the database
      * @param campsiteId when it becomes available
-     * @param result lamba function that provide if:
-     *      - successfully then it returns the CampsiteAvailability object
-     *      - not successfully so it returns null
-     * @return nullable CampsiteAvailability object
+     * @param result lamba function that has Result and if:
+     *      - Result.success(CampsiteAvailability) if successful
+     *      - Result.success(exception) if not successful
+     * @return Result<CampsiteAvailability>
      */
     fun getCampsiteAvailabilityById(
         campsiteAvailabilityId: String,
         campsiteId: String,
-        result: (CampsiteAvailability?) -> Unit
+        result: (Result<CampsiteAvailability>) -> Unit
     ){
-        val campsiteAvailabilityRef = db.collection("campsites/$campsiteId/availability")
+        // Check IDs
+        if (campsiteAvailabilityId.isBlank() || campsiteId.isBlank()) {
+            result(Result.failure(
+                IllegalArgumentException(
+                    "Campsite or campsiteAvailability ID cannot be empty."
+                )
+            ))
+            return
+        }
+
+        val campsiteAvailabilityRef = db
+            .collection("campsites")
+            .document(campsiteId)
+            .collection("availability")
             .document(campsiteAvailabilityId)
+
+        campsiteAvailabilityRef
             .get()
             .addOnSuccessListener { document ->
-                val campsite = document.toObject(CampsiteAvailability::class.java)
 
-                result(campsite)
+                // Check whether availability exists
+                if (!document.exists()) {
+                    result(Result.failure(
+                        NoSuchElementException(
+                            "Campsite availability does not exist."
+                        )
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                val campsiteAvailability =
+                    document.toObject(CampsiteAvailability::class.java)
+
+                // Check whether conversion was successful
+                if (campsiteAvailability == null) {
+                    result(Result.failure(
+                        IllegalStateException(
+                            "Failed to convert document to CampsiteAvailability."
+                        )
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                result(Result.success(campsiteAvailability))
             }
-
             .addOnFailureListener { exception ->
-                result(null)
+                result(Result.failure(exception))
             }
 
     }
+
     /**
      * retrieves a List of CampsiteAvailability
      *
      * @param campsiteId unique identifier of the CampsiteAvailability within the database
-     * @param result lamba function that provide if:
-     *      - successfully then it list of CampsiteAvailability objects. NOTE: can be empty list
-     *      - not successfully so it returns null
-     * @return nullable CampsiteAvailability object
+     * @param result lamba function that has Result and if:
+     *      - Result.success(List<CampsiteAvailability>) if successful
+     *      - Result.success(exception) if not successful
+     * @return Result<List<CampsiteAvailability>>
      */
     fun getAvailabilitiesByCampsiteId(
         campsiteId: String,
-        result: (List<CampsiteAvailability>?) -> Unit
+        result: (Result<List<CampsiteAvailability>>) -> Unit
     ) {
-        val campsiteAvailabilityRef = db.collection("campsites")
+
+        // Check campsite ID
+        if (campsiteId.isBlank()) {
+            result(Result.failure(
+                IllegalArgumentException("Campsite ID cannot be empty.")
+            ))
+            return
+        }
+
+        val campsiteRef = db
+            .collection("campsites")
             .document(campsiteId)
-            .collection("availability")
-            .get()
-            .addOnSuccessListener { documents ->
 
-                val availabilities : MutableList<CampsiteAvailability> = mutableListOf()
+        // Check whether campsite exists
+        campsiteRef.get()
+            .addOnSuccessListener { campsiteDocument ->
 
-                for (document in documents) {
-                    val campsite = document.toObject(CampsiteAvailability::class.java)
-
-                    availabilities .add(campsite)
+                if (!campsiteDocument.exists()) {
+                    result(Result.failure(
+                        NoSuchElementException("Campsite does not exist.")
+                    ))
+                    return@addOnSuccessListener
                 }
 
-                result(availabilities )
+                // Retrieve all availabilities
+                campsiteRef
+                    .collection("availability")
+                    .get()
+                    .addOnSuccessListener { documents ->
+
+                        val availabilities: MutableList<CampsiteAvailability> =
+                            mutableListOf()
+
+                        for (document in documents) {
+                            val campsiteAvailability =
+                                document.toObject(CampsiteAvailability::class.java)
+
+                            availabilities.add(campsiteAvailability)
+                        }
+
+                        result(Result.success(availabilities))
+                    }
+                    .addOnFailureListener { exception ->
+                        result(Result.failure(exception))
+                    }
             }
             .addOnFailureListener { exception ->
-                result(null)
+                result(Result.failure(exception))
             }
     }
+
+
+
+    // ----------------------------------- From list -----------------------------------
 
 
     init {
