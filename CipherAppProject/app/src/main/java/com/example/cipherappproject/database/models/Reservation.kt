@@ -29,7 +29,7 @@ NA
  * @property userId use to identify to which user comes from
  * @property campsiteId use to identify to which campsite is the reservation
  * @property lotteryId use to identify to which lottery the user won to have the chance to reserve
- * @property status determine if the reservation is canceled, past, active *
+ * @property status determine if the reservation is canceled, past, active
  * @property createdAt when reservation was made
  *
  *

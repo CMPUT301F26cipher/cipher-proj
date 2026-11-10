@@ -2,9 +2,18 @@ package com.example.cipherappproject
 
 import android.util.Log
 import com.example.cipherappproject.database.models.Campsite
+import com.example.cipherappproject.database.models.CampsiteAvailability
 import com.example.cipherappproject.database.models.Profile
+import com.example.cipherappproject.database.models.Lottery
+import com.example.cipherappproject.database.models.LotteryEntry
+import com.example.cipherappproject.database.models.Reservation
 import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.repositories.CampsiteAvailabilityRepository
 import com.example.cipherappproject.database.repositories.ProfileRepository
+import com.example.cipherappproject.database.repositories.LotteryRepository
+import com.example.cipherappproject.database.repositories.ReservationRepository
+import com.example.cipherappproject.database.repositories.LotteryEntryRepository
+
 import junit.framework.TestCase
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
@@ -239,6 +248,36 @@ class DatabaseUnitTest {
         Log.d("ProfileTest", "Non-existent profile update handled successfully")
     }
      */
+
+    // PASSED
+    /*
+    val profileRepo = ProfileRepository()
+
+    @Test
+    fun getProfileFromListByIdTest() {
+
+        val id = "V6msdUQoc0eJ0nGrglf5"
+
+        val startTime = System.currentTimeMillis()
+
+        while (!profileRepo.isProfilesLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Profiles failed to load from Firestore."
+            }
+            Thread.sleep(100)
+        }
+
+        val profile = profileRepo.getProfileFromListById(id)
+
+        assertTrue("Profile should exist and be type Profile",profile is Profile)
+
+
+        Log.d("ProfileTest", "profile object: $profile")
+    }
+
+     */
+
+
 
 
 
@@ -494,13 +533,865 @@ class DatabaseUnitTest {
      */
 
 
-
-
     // ----------------------------------- CampsiteAvailability -----------------------------------
-    // ----------------------------------- Lottery -----------------------------------
-    // ----------------------------------- LotteryEntry -----------------------------------
-    // ----------------------------------- Reservation -----------------------------------
 
+    // PASSED
+    /*
+    @Test
+    fun createCampsiteAvailabilityTest() {
+
+        val repository = CampsiteAvailabilityRepository()
+
+        // Create dummy availability data
+        val campsiteId = "E3trgc4ByPRblHL8rXkN"
+        val startDate = "2026-12-01"
+        val endDate = "2026-12-15"
+        val status = "active"
+
+        // Create CampsiteAvailability inside Firestore
+        val createResult = awaitCallback<Result<String>> { callback ->
+            repository.createCampsiteAvailability(
+                campsiteId = campsiteId,
+                startDate = startDate,
+                endDate = endDate,
+                status = status,
+                result = callback
+            )
+        }
+
+        // Extract availability ID or throw the Firebase exception
+        val campsiteAvailabilityId = createResult.getOrThrow()
+
+        // Create expected CampsiteAvailability object
+        val expectedAvailability = CampsiteAvailability(
+            campsiteAvailabilityId = campsiteAvailabilityId,
+            campsiteId = campsiteId,
+            startDate = startDate,
+            endDate = endDate,
+            status = status
+        )
+
+        // Retrieve the newly created availability from Firestore
+        val getResult = awaitCallback<Result<CampsiteAvailability>> { callback ->
+            repository.getCampsiteAvailabilityById(
+                campsiteAvailabilityId = campsiteAvailabilityId,
+                campsiteId = campsiteId,
+                result = callback
+            )
+        }
+
+        // Verify retrieval was successful
+        assertTrue(
+            "Campsite availability retrieval should succeed",
+            getResult.isSuccess
+        )
+
+        val actualAvailability = getResult.getOrThrow()
+
+        // Verify retrieved availability matches expected availability
+        assertEquals(expectedAvailability, actualAvailability)
+
+        Log.d(
+            "CampsiteAvailabilityTest",
+            "Created and retrieved availability: $campsiteAvailabilityId"
+        )
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun createCampsiteAvailabilityParentDoesNotExistTest() {
+
+        val repository = CampsiteAvailabilityRepository()
+
+        // Create dummy availability data
+        val campsiteId = "nonexistentCampsiteId"
+        val startDate = "2026-12-01"
+        val endDate = "2026-12-15"
+        val status = "active"
+
+        val createResult = awaitCallback<Result<String>> { callback ->
+            repository.createCampsiteAvailability(
+                campsiteId = campsiteId,
+                startDate = startDate,
+                endDate = endDate,
+                status = status,
+                result = callback
+            )
+        }
+
+        assertTrue(
+            "Creating availability with nonexistent parent campsite should fail",
+            createResult.isFailure
+        )
+
+        assertTrue(
+            "Failure should be NoSuchElementException",
+            createResult.exceptionOrNull() is NoSuchElementException
+        )
+
+        Log.d(
+            "CampsiteAvailabilityTest",
+            "Creating availability with nonexistent parent campsite failed as expected."
+        )
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateCampsiteAvailabilityExistsTest() {
+
+        val repository = CampsiteAvailabilityRepository()
+
+        // Create dummy availability data
+        val campsiteId = "E3trgc4ByPRblHL8rXkN"
+        val campsiteAvailabilityId = "i7K0NzjVTiKbUR9yYOUQ"
+
+        // Create updated CampsiteAvailability object
+        val updatedAvailability = CampsiteAvailability(
+            campsiteAvailabilityId = campsiteAvailabilityId,
+            campsiteId = campsiteId,
+            startDate = "2026-12-05",
+            endDate = "2026-12-20",
+            status = "inactive"
+        )
+
+        // Update CampsiteAvailability inside Firestore
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            repository.updateCampsiteAvailability(
+                updatedAvailability,
+                callback
+            )
+        }
+
+        assertTrue(
+            "Campsite availability update should succeed",
+            updateResult.isSuccess
+        )
+
+        // Retrieve updated availability from Firestore
+        val getResult = awaitCallback<Result<CampsiteAvailability>> { callback ->
+            repository.getCampsiteAvailabilityById(
+                campsiteAvailabilityId = campsiteAvailabilityId,
+                campsiteId = campsiteId,
+                result = callback
+            )
+        }
+
+        val actualAvailability = getResult.getOrThrow()
+
+        assertEquals(updatedAvailability, actualAvailability)
+
+        Log.d(
+            "CampsiteAvailabilityTest",
+            "Updated availability successfully: $campsiteAvailabilityId"
+        )
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateCampsiteAvailabilityDoesNotExistTest() {
+
+        val repository = CampsiteAvailabilityRepository()
+
+        // Create dummy availability data
+        val campsiteId = "E3trgc4ByPRblHL8rXkN"
+        val campsiteAvailabilityId = "nonexistentAvailabilityId"
+
+        // Create CampsiteAvailability object
+        val availability = CampsiteAvailability(
+            campsiteAvailabilityId = campsiteAvailabilityId,
+            campsiteId = campsiteId,
+            startDate = "2026-12-05",
+            endDate = "2026-12-20",
+            status = "inactive"
+        )
+
+        // Update CampsiteAvailability inside Firestore
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            repository.updateCampsiteAvailability(
+                availability,
+                callback
+            )
+        }
+
+        assertTrue(
+            "Updating nonexistent availability should fail",
+            updateResult.isFailure
+        )
+
+        assertTrue(
+            "Failure should be NoSuchElementException",
+            updateResult.exceptionOrNull() is NoSuchElementException
+        )
+
+        Log.d(
+            "CampsiteAvailabilityTest",
+            "Error message: ${updateResult.exceptionOrNull()?.message}"
+        )
+
+        Log.d(
+            "CampsiteAvailabilityTest",
+            "Updating nonexistent availability failed as expected."
+        )
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateCampsiteAvailabilityParentDoesNotExistTest() {
+
+        val repository = CampsiteAvailabilityRepository()
+
+        // Create dummy availability data
+        val campsiteId = "nonexistentCampsiteId"
+        val campsiteAvailabilityId = "i7K0NzjVTiKbUR9yYOUQ"
+
+        val availability = CampsiteAvailability(
+            campsiteAvailabilityId = campsiteAvailabilityId,
+            campsiteId = campsiteId,
+            startDate = "2026-12-01",
+            endDate = "2026-12-15",
+            status = "active"
+        )
+
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            repository.updateCampsiteAvailability(
+                availability,
+                callback
+            )
+        }
+
+        assertTrue(
+            "Updating availability with nonexistent parent campsite should fail",
+            updateResult.isFailure
+        )
+
+        assertTrue(
+            "Failure should be NoSuchElementException",
+            updateResult.exceptionOrNull() is NoSuchElementException
+        )
+
+        Log.d(
+            "CampsiteAvailabilityTest",
+            "Error message: ${updateResult.exceptionOrNull()?.message}"
+        )
+
+        Log.d(
+            "CampsiteAvailabilityTest",
+            "Updating availability with nonexistent parent campsite failed as expected."
+        )
+    }
+
+     */
+
+
+    // ----------------------------------- Lottery -----------------------------------
+
+    // PASSED
+    /*
+    @Test
+    fun createLotteryTest() {
+
+        val repository = LotteryRepository()
+
+        // Create dummy lottery data
+        val ownerId = "xL16fQPxP3ZCFonFdFGN"
+        val campsiteIds = mutableListOf("E3trgc4ByPRblHL8rXkN")
+        val numWinners = 2
+        val startDate = "2026-12-01"
+        val endDate = "2026-12-15"
+        val maxParticipants = 20
+        val status = "active"
+        val createdAt = "2026-11-09"
+
+        // Create Lottery inside Firestore
+        val createResult = awaitCallback<Result<String>> { callback ->
+            repository.createLottery(
+                ownerId = ownerId,
+                campsiteIds = campsiteIds,
+                numWinners = numWinners,
+                startDate = startDate,
+                endDate = endDate,
+                maxParticipants = maxParticipants,
+                status = status,
+                createdAt = createdAt,
+                result = callback
+            )
+        }
+
+        assertTrue(
+            "Lottery creation should succeed",
+            createResult.isSuccess
+        )
+
+        val lotteryId = createResult.getOrThrow()
+
+        Log.d(
+            "LotteryTest",
+            "Created lottery successfully. Lottery ID: $lotteryId"
+        )
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getLotteryByIdTest() {
+
+        val repository = LotteryRepository()
+
+        // Create dummy lottery data
+        val lotteryId = "OxwO8rKV36hkptiIoYLK"
+        val ownerId = "xL16fQPxP3ZCFonFdFGN"
+        val campsiteIds = mutableListOf("E3trgc4ByPRblHL8rXkN")
+        val numWinners = 2
+        val startDate = "2026-12-01"
+        val endDate = "2026-12-15"
+        val maxParticipants = 20
+        val status = "active"
+        val createdAt = "2026-11-09"
+
+        val expectedLottery = Lottery(
+            lotteryId = lotteryId,
+            ownerId = ownerId,
+            campsiteIds = campsiteIds,
+            numWinners = numWinners,
+            startDate = startDate,
+            endDate = endDate,
+            maxParticipants = maxParticipants,
+            status = status,
+            createdAt = createdAt
+        )
+
+        // Retrieve Lottery from Firestore
+        val getResult = awaitCallback<Result<Lottery>> { callback ->
+            repository.getLotteryById(
+                lotteryId = lotteryId,
+                result = callback
+            )
+        }
+
+        assertTrue(
+            "Lottery retrieval should succeed",
+            getResult.isSuccess
+        )
+
+        val actualLottery = getResult.getOrThrow()
+
+        assertEquals(expectedLottery, actualLottery)
+
+        Log.d(
+            "LotteryTest",
+            "Retrieved lottery successfully: $lotteryId"
+        )
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateLotteryTest() {
+
+        val repository = LotteryRepository()
+
+        // Create dummy lottery data
+        val lotteryId = "OxwO8rKV36hkptiIoYLK"
+        val ownerId = "xL16fQPxP3ZCFonFdFGN"
+        val campsiteIds = mutableListOf("E3trgc4ByPRblHL8rXkN")
+        val numWinners = 3
+        val startDate = "2026-12-05"
+        val endDate = "2026-12-20"
+        val maxParticipants = 30
+        val status = "active"
+        val createdAt = "2026-11-09"
+
+        val updatedLottery = Lottery(
+            lotteryId = lotteryId,
+            ownerId = ownerId,
+            campsiteIds = campsiteIds,
+            numWinners = numWinners,
+            startDate = startDate,
+            endDate = endDate,
+            maxParticipants = maxParticipants,
+            status = status,
+            createdAt = createdAt
+        )
+
+        // Update Lottery inside Firestore
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            repository.updateLottery(
+                updatedLottery,
+                callback
+            )
+        }
+
+        assertTrue(
+            "Lottery update should succeed",
+            updateResult.isSuccess
+        )
+
+        // Retrieve updated Lottery from Firestore
+        val getResult = awaitCallback<Result<Lottery>> { callback ->
+            repository.getLotteryById(
+                lotteryId = lotteryId,
+                result = callback
+            )
+        }
+
+        val actualLottery = getResult.getOrThrow()
+
+        assertEquals(updatedLottery, actualLottery)
+
+        Log.d(
+            "LotteryTest",
+            "Updated lottery successfully: $lotteryId"
+        )
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateNonexistentLotteryTest() {
+
+        val repository = LotteryRepository()
+
+        // Create dummy lottery data
+        val lotteryId = "nonexistentLotteryId"
+        val ownerId = "xL16fQPxP3ZCFonFdFGN"
+        val campsiteIds = mutableListOf("E3trgc4ByPRblHL8rXkN")
+        val numWinners = 3
+        val startDate = "2026-12-05"
+        val endDate = "2026-12-20"
+        val maxParticipants = 30
+        val status = "inactive"
+        val createdAt = "2026-11-09"
+
+        val lottery = Lottery(
+            lotteryId = lotteryId,
+            ownerId = ownerId,
+            campsiteIds = campsiteIds,
+            numWinners = numWinners,
+            startDate = startDate,
+            endDate = endDate,
+            maxParticipants = maxParticipants,
+            status = status,
+            createdAt = createdAt
+        )
+
+        // Update Lottery inside Firestore
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            repository.updateLottery(
+                lottery,
+                callback
+            )
+        }
+
+        assertTrue(
+            "Updating nonexistent lottery should fail",
+            updateResult.isFailure
+        )
+
+        assertTrue(
+            "Failure should be NoSuchElementException",
+            updateResult.exceptionOrNull() is NoSuchElementException
+        )
+
+        Log.d(
+            "LotteryTest",
+            "Error message: ${updateResult.exceptionOrNull()?.message}"
+        )
+    }
+
+     */
+
+
+    // ----------------------------------- LotteryEntry -----------------------------------
+    // PASSED
+    /*
+    @Test
+    fun addLotteryEntryTest() {
+        val repository = LotteryEntryRepository()
+
+        val lotteryId = "OxwO8rKV36hkptiIoYLK"
+        val userId = "zhuhRmZdl0UlokS43N2J"
+        val status = "registered"
+        val positionLottery = 1
+
+        val addResult = awaitCallback<Result<String>> { callback ->
+            repository.addLotteryEntry(
+                lotteryId = lotteryId,
+                userId = userId,
+                status = status,
+                positionLottery = positionLottery,
+                result = callback
+            )
+        }
+
+        assertTrue("Adding lottery entry should succeed", addResult.isSuccess)
+
+        val lotteryEntryId = addResult.getOrThrow()
+
+        Log.d("LotteryEntryTest", "Created Lottery Entry ID: $lotteryEntryId")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun addLotteryEntryLotteryDoesNotExistTest() {
+        val repository = LotteryEntryRepository()
+
+        val lotteryId = "nonexistentLotteryId"
+        val userId = "zhuhRmZdl0UlokS43N2J"
+        val status = "registered"
+        val positionLottery = 1
+
+        val addResult = awaitCallback<Result<String>> { callback ->
+            repository.addLotteryEntry(
+                lotteryId = lotteryId,
+                userId = userId,
+                status = status,
+                positionLottery = positionLottery,
+                result = callback
+            )
+        }
+
+        assertTrue("Adding entry to nonexistent lottery should fail", addResult.isFailure)
+
+        assertTrue(
+            "Failure should be NoSuchElementException",
+            addResult.exceptionOrNull() is NoSuchElementException
+        )
+
+        Log.d("LotteryEntryTest", "Error message: ${addResult.exceptionOrNull()?.message}")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getLotteryEntriesByLotteryIdTest() {
+        val repository = LotteryEntryRepository()
+
+        val lotteryId = "OxwO8rKV36hkptiIoYLK"
+
+        val getResult = awaitCallback<Result<List<LotteryEntry>>> { callback ->
+            repository.getLotteryEntriesByLotteryId(
+                lotteryId = lotteryId,
+                result = callback
+            )
+        }
+
+        assertTrue("Getting lottery entries should succeed", getResult.isSuccess)
+
+        val lotteryEntries = getResult.getOrThrow()
+
+        assertTrue("Lottery entries list should not be empty", lotteryEntries.isNotEmpty())
+
+        assertTrue(
+            "All entries should belong to the specified lottery",
+            lotteryEntries.all { it.lotteryId == lotteryId }
+        )
+
+        lotteryEntries.forEach { entry ->
+            Log.d("LotteryEntryTest", "Entry ID: ${entry.lotteryEntryId}")
+            Log.d("LotteryEntryTest", "Lottery ID: ${entry.lotteryId}")
+            Log.d("LotteryEntryTest", "User ID: ${entry.userId}")
+            Log.d("LotteryEntryTest", "Status: ${entry.status}")
+            Log.d("LotteryEntryTest", "Position: ${entry.positionLottery}")
+        }
+
+        Log.d("LotteryEntryTest", "Number of entries: ${lotteryEntries.size}")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateLotteryEntryTest() {
+        val repository = LotteryEntryRepository()
+
+        val lotteryId = "OxwO8rKV36hkptiIoYLK"
+        val lotteryEntryId = "sM35DERRXyYFTiyaa7Wq"
+        val userId = "zhuhRmZdl0UlokS43N2J"
+        val status = "winner"
+        val positionLottery = 1
+
+        val lotteryEntry = LotteryEntry(
+            lotteryEntryId = lotteryEntryId,
+            lotteryId = lotteryId,
+            userId = userId,
+            status = status,
+            positionLottery = positionLottery
+        )
+
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            repository.updateLotteryEntry(
+                lotteryEntry = lotteryEntry,
+                result = callback
+            )
+        }
+
+        assertTrue("Updating existing lottery entry should succeed", updateResult.isSuccess)
+
+        Log.d("LotteryEntryTest", "Lottery entry updated successfully.")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateLotteryEntryDoesNotExistTest() {
+        val repository = LotteryEntryRepository()
+
+        val lotteryId = "OxwO8rKV36hkptiIoYLK"
+        val lotteryEntryId = "nonexistentLotteryEntryId"
+        val userId = "zhuhRmZdl0UlokS43N2J"
+        val status = "winner"
+        val positionLottery = 1
+
+        val lotteryEntry = LotteryEntry(
+            lotteryEntryId = lotteryEntryId,
+            lotteryId = lotteryId,
+            userId = userId,
+            status = status,
+            positionLottery = positionLottery
+        )
+
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            repository.updateLotteryEntry(
+                lotteryEntry = lotteryEntry,
+                result = callback
+            )
+        }
+
+        assertTrue("Updating nonexistent lottery entry should fail", updateResult.isFailure)
+
+        assertTrue(
+            "Failure should be NoSuchElementException",
+            updateResult.exceptionOrNull() is NoSuchElementException
+        )
+
+        Log.d("LotteryEntryTest", "Error message: ${updateResult.exceptionOrNull()?.message}")
+    }
+
+     */
+
+    // ----------------------------------- Reservation -----------------------------------
+    // PASSED
+    /*
+    @Test
+    fun createReservationTest() {
+
+        val repository = ReservationRepository()
+
+        // Create dummy reservation data
+        val userId = "zhuhRmZdl0UlokS43N2J"
+        val campsiteId = "E3trgc4ByPRblHL8rXkN"
+        val lotteryId = "OxwO8rKV36hkptiIoYLK"
+        val status = "active"
+        val createdAt = "2026-11-09"
+
+        // Create Reservation inside Firestore
+        val createResult = awaitCallback<Result<String>> { callback ->
+            repository.createReservation(
+                userId = userId,
+                campsiteId = campsiteId,
+                lotteryId = lotteryId,
+                status = status,
+                createdAt = createdAt,
+                result = callback
+            )
+        }
+
+        assertTrue(
+            "Reservation creation should succeed",
+            createResult.isSuccess
+        )
+
+        val reservationId = createResult.getOrThrow()
+
+        Log.d(
+            "ReservationTest",
+            "Created reservation successfully. Reservation ID: $reservationId"
+        )
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getReservationByIdTest() {
+
+        val repository = ReservationRepository()
+
+        // Create dummy reservation data
+        val reservationId = "ZYNjuir5hsOX02BFvbzq"
+        val userId = "zhuhRmZdl0UlokS43N2J"
+        val campsiteId = "E3trgc4ByPRblHL8rXkN"
+        val lotteryId = "OxwO8rKV36hkptiIoYLK"
+        val status = "active"
+        val createdAt = "2026-11-09"
+
+        val expectedReservation = Reservation(
+            reservationId = reservationId,
+            userId = userId,
+            campsiteId = campsiteId,
+            lotteryId = lotteryId,
+            status = status,
+            createdAt = createdAt
+        )
+
+        // Retrieve Reservation from Firestore
+        val getResult = awaitCallback<Result<Reservation>> { callback ->
+            repository.getReservationById(
+                reservationId = reservationId,
+                result = callback
+            )
+        }
+
+        assertTrue(
+            "Reservation retrieval should succeed",
+            getResult.isSuccess
+        )
+
+        val actualReservation = getResult.getOrThrow()
+
+        assertEquals(expectedReservation, actualReservation)
+
+        Log.d(
+            "ReservationTest",
+            "Retrieved reservation successfully: $reservationId"
+        )
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateReservationTest() {
+
+        val repository = ReservationRepository()
+
+        // Create dummy reservation data
+        val reservationId = "ZYNjuir5hsOX02BFvbzq"
+        val userId = "zhuhRmZdl0UlokS43N2J"
+        val campsiteId = "E3trgc4ByPRblHL8rXkN"
+        val lotteryId = "OxwO8rKV36hkptiIoYLK"
+        val status = "inactive"
+        val createdAt = "2026-11-09"
+
+        val updatedReservation = Reservation(
+            reservationId = reservationId,
+            userId = userId,
+            campsiteId = campsiteId,
+            lotteryId = lotteryId,
+            status = status,
+            createdAt = createdAt
+        )
+
+        // Update Reservation inside Firestore
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            repository.updateReservation(
+                updatedReservation,
+                callback
+            )
+        }
+
+        assertTrue(
+            "Reservation update should succeed",
+            updateResult.isSuccess
+        )
+
+        // Retrieve updated Reservation from Firestore
+        val getResult = awaitCallback<Result<Reservation>> { callback ->
+            repository.getReservationById(
+                reservationId = reservationId,
+                result = callback
+            )
+        }
+
+        val actualReservation = getResult.getOrThrow()
+
+        assertEquals(updatedReservation, actualReservation)
+
+        Log.d(
+            "ReservationTest",
+            "Updated reservation successfully: $reservationId"
+        )
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateNonexistentReservationTest() {
+
+        val repository = ReservationRepository()
+
+        // Create dummy reservation data
+        val reservationId = "nonexistentReservationId"
+        val userId = "zhuhRmZdl0UlokS43N2J"
+        val campsiteId = "E3trgc4ByPRblHL8rXkN"
+        val lotteryId = "OxwO8rKV36hkptiIoYLK"
+        val status = "inactive"
+        val createdAt = "2026-11-09"
+
+        val reservation = Reservation(
+            reservationId = reservationId,
+            userId = userId,
+            campsiteId = campsiteId,
+            lotteryId = lotteryId,
+            status = status,
+            createdAt = createdAt
+        )
+
+        // Update Reservation inside Firestore
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            repository.updateReservation(
+                reservation,
+                callback
+            )
+        }
+
+        assertTrue(
+            "Updating nonexistent reservation should fail",
+            updateResult.isFailure
+        )
+
+        assertTrue(
+            "Failure should be NoSuchElementException",
+            updateResult.exceptionOrNull() is NoSuchElementException
+        )
+
+        Log.d(
+            "ReservationTest",
+            "Error message: ${updateResult.exceptionOrNull()?.message}"
+        )
+    }
+
+     */
 
     // ----------------------------------- callback for testing -----------------------------------
     /*Taken and learn from OpenAI, ChatGPT on 06-11-2026, with the subject of: "How to make sure the test case wait for

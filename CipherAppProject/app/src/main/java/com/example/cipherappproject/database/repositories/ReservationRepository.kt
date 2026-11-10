@@ -15,6 +15,7 @@ Date        Person     CSR#     Description
 2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
 2026-11-06  Sofia      1.04     delete getters and setters. Set the attributes to public.
 2026-11-08  Sofia      1.06     added exceptions and error handling
+2026-11-08  Sofia      1.07     added queries using the list
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -29,6 +30,7 @@ import com.example.cipherappproject.database.models.Reservation
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import java.time.LocalDate
 
 class ReservationRepository {
     private val db = Firebase.firestore
@@ -208,6 +210,93 @@ class ReservationRepository {
 
 
     // ----------------------------------- From list -----------------------------------
+    /**
+     * Get a Reservation object
+     *
+     * @param reservationId String
+     * @return Reservation? --> null if not match found
+     */
+    fun getReservationFromListById(reservationId: String): Reservation? {
+        return _allReservations.find { it.reservationId == reservationId }
+
+    }
+
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param userId String
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationFromListByUserId(userId: String): List<Reservation>  {
+        return _allReservations.filter { it.userId == userId }
+
+    }
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param userId String
+     * @param campsiteId String
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationsFromListByUserIdAndCampsiteId(userId: String, campsiteId: String
+    ): List<Reservation> {
+        return _allReservations.filter {
+            it.userId == userId && it.campsiteId == campsiteId
+        }
+    }
+
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param campsiteId String
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationsFromListByCampsiteId(campsiteId: String): List<Reservation>  {
+        return _allReservations.filter { it.campsiteId == campsiteId }
+
+    }
+
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param lotteryId String
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationsFromListByLotteryId(lotteryId: String): List<Reservation>  {
+        return _allReservations.filter { it.lotteryId == lotteryId }
+
+    }
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param status String
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationsFromListByStatus(status: String): List<Reservation>  {
+        return _allReservations.filter { it.status == status }
+
+    }
+
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param date LocalDate
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationsFromListActiveOnDate(date: LocalDate): List<Reservation> {
+        return _allReservations.filter { reservation ->
+            val startDate = LocalDate.parse(reservation.bookStartDate)
+            val endDate = LocalDate.parse(reservation.bookEndDate)
+
+            date in startDate..endDate
+        }
+    }
 
 
 

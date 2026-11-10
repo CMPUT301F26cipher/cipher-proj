@@ -15,6 +15,7 @@ Date        Person     CSR#     Description
 2026-11-06  Sofia      1.03     delete getters and setters. Set the attributes to public.
 2026-11-06  Madison    1.04     added query get by deviceId
 2026-11-08  Sofia      1.05     added exceptions and error handling. Commented deviceId for now.
+2026-11-08  Sofia      1.07     added queries using the list
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -22,13 +23,14 @@ NA
 
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.Profile
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
-
+import androidx.compose.runtime.State
 class ProfileRepository {
 
     private val db = Firebase.firestore
@@ -37,6 +39,11 @@ class ProfileRepository {
 
     val profiles: List<Profile>
         get() = _allProfiles
+
+    private val _isProfilesLoaded = mutableStateOf(false)
+
+    val isProfilesLoaded: State<Boolean>
+        get() = _isProfilesLoaded
 
 
     // ----------------------------------- Queries -----------------------------------
@@ -222,12 +229,10 @@ class ProfileRepository {
     // ----------------------------------- From list -----------------------------------
 
     /**
-     * get one single Profile object
+     * Get one single Profile object
      *
-     * @param profileId
-     * @return
-     *      - Profile if exist
-     *      - null if it does not exist
+     * @param profileId String
+     * @return Profile? --> null if not match found
      */
     // https://kotlinlang.org/docs/collection-elements.html#retrieve-with-selector
     fun getProfileFromListById(profileId: String): Profile? {
@@ -236,12 +241,10 @@ class ProfileRepository {
     }
 
     /**
-     * get one single Profile object
+     * Get one single Profile object
      *
-     * @param deviceId
-     * @return
-     *      - Profile if exist
-     *      - null if it does not exist
+     * @param deviceId String
+     * @return Profile? --> null if not match found
      */
     fun getProfileFromListByDeviceId(deviceId: String): Profile? {
         return _allProfiles.find { it.deviceId == deviceId }
@@ -250,7 +253,7 @@ class ProfileRepository {
 
 
     /**
-     * provide a list of profile objects that has a given name
+     * Get a list of Profile objects
      *
      * @param profileName
      * @return List<Profile> --> can be empty list if not match found
@@ -265,12 +268,10 @@ class ProfileRepository {
 
 
     /**
-     * get one single Profile object
+     * Get one single Profile object
      *
-     * @param profileEmail
-     * @return
-     *      - Profile if exist
-     *      - null if it does not exist
+     * @param profileEmail String
+     * @return Profile? --> null if not match found
      */
 
     fun getProfileFromListByEmail(profileEmail: String): Profile? {
@@ -279,12 +280,10 @@ class ProfileRepository {
     }
 
     /**
-     * get one single Profile object
+     * Get a Profile object String
      *
-     * @param profileRole
-     * @return
-     *      - Profile if exist
-     *      - null if it does not exist
+     * @param profileRole String
+     * @return List<Profile> --> can be empty list if not match found
      */
 
     // Taken and learn from OpenAI, ChatPGT on 09-11-2026 with the question of "How to check and return an element in list in kotlin? can we use filter on it too?"
@@ -300,9 +299,9 @@ class ProfileRepository {
 
 
     /**
-     * provide a list of profile objects that has a given name
+     * Get a list of Profile objects
      *
-     * @param profileStatus
+     * @param profileStatus String
      * @return List<Profile> --> can be empty list if not match found
      */
 
@@ -310,7 +309,6 @@ class ProfileRepository {
         return _allProfiles.filter { it.status == profileStatus}
 
     }
-
 
 
     init {
@@ -328,6 +326,8 @@ class ProfileRepository {
                     _allProfiles.add(profile)
                 }
             }
+
+            _isProfilesLoaded.value = true
         }
     }
 

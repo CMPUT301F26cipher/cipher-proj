@@ -15,7 +15,8 @@ Date        Person     CSR#     Description
 2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
 2026-11-06  Sofia       1.05     fixed the get and set methods for the objects
-2026-11-08  Sofia      1.06     added exceptions and error handling
+2026-11-08  Sofia       1.06     added exceptions and error handling
+2026-11-08  Sofia       1.07     added queries using the list
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -26,6 +27,7 @@ import com.example.cipherappproject.database.models.LotteryEntry
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import java.time.LocalDate
 
 
 class LotteryEntryRepository {
@@ -61,34 +63,45 @@ class LotteryEntryRepository {
         status: String,
         positionLottery: Int,
         result: (Result<String>) -> Unit
+    ) {
+        // Create a reference to the parent lottery
+        val lotteryRef = db.collection("lotteries").document(lotteryId)
 
 
-    ){
-        // create a reference and id to the new profile
-        val lotteryEntryRef = db.collection("lotteries/$lotteryId/entries").document()
+        db.runTransaction { transaction ->
+            val lotterySnapshot = transaction.get(lotteryRef)
 
-        // create lottery object
-        val lotteryEntry = LotteryEntry(
-            lotteryEntryId = lotteryEntryRef.id,
-            lotteryId = lotteryId,
-            userId = userId,
-            status = status,
-            positionLottery = positionLottery,
-        )
-
-        // save the object in the firebase
-        //Tasks.await(lotteryEntryRef.set(lotteryEntry))
-        lotteryEntryRef
-            .set(lotteryEntry)
-            .addOnSuccessListener {
-                result(Result.success(lotteryEntryRef.id))
+            // Check if the parent lottery exists
+            if (!lotterySnapshot.exists()) {
+                throw NoSuchElementException("Lottery does not exist.")
             }
 
+            val lotteryEntryRef = lotteryRef
+                .collection("entries")
+                .document()
+
+            // Create object
+            val lotteryEntry = LotteryEntry(
+                lotteryEntryId = lotteryEntryRef.id,
+                lotteryId = lotteryId,
+                userId = userId,
+                status = status,
+                positionLottery = positionLottery
+            )
+
+            // set entry
+            transaction.set(lotteryEntryRef, lotteryEntry)
+
+            // return id
+            lotteryEntryRef.id
+
+        }
+            .addOnSuccessListener { lotteryEntryId -> // since is success return id
+                result(Result.success(lotteryEntryId))
+        }
             .addOnFailureListener { exception ->
-
                 result(Result.failure(exception))
-
-            }
+        }
     }
 
     /**
@@ -182,7 +195,7 @@ class LotteryEntryRepository {
         lotteryId: String,
         result: (Result<List<LotteryEntry>>) -> Unit
     ) {
-        // Check ID
+        // Check id
         if (lotteryId.isBlank()) {
             result(Result.failure(
                 IllegalArgumentException("Lottery ID cannot be empty.")
@@ -232,6 +245,8 @@ class LotteryEntryRepository {
                 result(Result.failure(exception))
             }
     }
+
+    /*
 
     /**
      * retrieves LotteryEntry object by UserId
@@ -288,8 +303,128 @@ class LotteryEntryRepository {
             .addOnFailureListener { result(false) }
     }
 
+     */
+
 
     // ----------------------------------- From list -----------------------------------
+    /**
+     * Get a LotteryEntry object
+     *
+     * @param lotteryId String
+     * @param lotteryEntryId String
+     * @return LotteryEntry? --> null if not match found
+     */
+
+    fun getLotteryEntryFromListById(lotteryId: String, lotteryEntryId: String): LotteryEntry? {
+
+        return _allLotteriesEntries.find {
+
+            it.lotteryId == lotteryId && it.lotteryEntryId == lotteryEntryId
+        }
+    }
+
+    /**
+     * Get a list of LotteryEntry objects
+     *
+     * @param lotteryId String
+     * @return List<LotteryEntry> --> can be empty list if not match found
+     */
+    fun getLotteryEntriesFromListByLotteryId(lotteryId: String): List<LotteryEntry> {
+
+        return _allLotteriesEntries.filter {
+            it.lotteryId == lotteryId
+        }
+    }
+
+
+    /**
+     * Get a list of LotteryEntry objects
+     *
+     * @param userId String
+     * @return List<LotteryEntry> --> can be empty list if not match found
+     */
+    fun getLotteryEntriesFromListByUserId(userId: String): List<LotteryEntry> {
+
+        return _allLotteriesEntries.filter {
+            it.userId == userId
+        }
+    }
+
+
+    /**
+     * Get a list of LotteryEntry objects
+     *
+     * @param status String
+     * @return List<LotteryEntry> --> can be empty list if not match found
+     */
+    fun getLotteryEntriesFromListByStatus(status: String): List<LotteryEntry> {
+
+        return _allLotteriesEntries.filter {
+            it.status == status
+        }
+    }
+
+
+    /**
+     * Get a LotteryEntry object
+     *
+     * @param lotteryId String
+     * @param userId String
+     * @return LotteryEntry? --> null if not match found
+     */
+    fun getLotteryEntryFromListByLotteryIdAndUserId(lotteryId: String, userId: String): LotteryEntry? {
+
+        return _allLotteriesEntries.find {
+            it.lotteryId == lotteryId && it.userId == userId
+        }
+    }
+
+    /**
+     * Get a list of LotteryEntry objects
+     *
+     * @param lotteryId String
+     * @param status String
+     * @return List<LotteryEntry> --> can be empty list if not match found
+     */
+    fun getLotteryEntriesFromListByLotteryIdAndStatus(lotteryId: String,status: String): List<LotteryEntry> {
+        return _allLotteriesEntries.filter {
+
+            it.lotteryId == lotteryId && it.status == status
+        }
+    }
+
+
+    /**
+     * Get a LotteryEntry object
+     *
+     * @param lotteryId String
+     * @param position Int
+     * @return LotteryEntry? --> null if not match found
+     */
+    fun getLotteryEntryFromListByLotteryIdAndPosition(lotteryId: String, position: Int): LotteryEntry? {
+        return _allLotteriesEntries.find {
+            it.lotteryId == lotteryId && it.positionLottery == position
+        }
+    }
+
+
+    /**
+     * Get a LotteryEntry object
+     *
+     * @param lotteryId String
+     * @return LotteryEntry? --> null if not match found
+     */
+
+    // https://www.baeldung.com/kotlin/sort
+    fun getLotteryEntriesFromListByLotteryIdOrderedByPosition(lotteryId: String): List<LotteryEntry> {
+        return _allLotteriesEntries
+            .filter { it.lotteryId == lotteryId }
+
+            /*Taken and learn from OpenAI, ChatGPT on 2026-11-09 on "How can we handle null values in a list"*/
+            // if us not null use that positionLottery, else if it null use the Int.MAX_VALUE instead
+            .sortedBy { it.positionLottery ?: Int.MAX_VALUE }
+            //.sortedBy { it.positionLottery }
+    }
 
 
 

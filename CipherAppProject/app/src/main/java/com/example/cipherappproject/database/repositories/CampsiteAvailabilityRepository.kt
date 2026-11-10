@@ -16,6 +16,7 @@ Date        Person     CSR#     Description
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
 2026-11-06  Sofia       1.05     fixed the get and set methods for the objects
 2026-11-08  Sofia       1.06     added exceptions and error handling
+2026-11-08  Sofia       1.07     added queries using the list. Modified added as a transaction query.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -24,9 +25,11 @@ NA
 import androidx.compose.runtime.mutableStateListOf
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.CampsiteAvailability
+import com.example.cipherappproject.database.models.Reservation
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import java.time.LocalDate
 
 class CampsiteAvailabilityRepository {
 
@@ -34,10 +37,10 @@ class CampsiteAvailabilityRepository {
 
     // https://firebase.google.com/docs/firestore/pipelines/stages/input/collection-group
     private val campsitesAvailabilityRef = db.collectionGroup("availability")
-    private val _allCampsitesAvailability = mutableStateListOf<CampsiteAvailability>()
+    private val _allCampsiteAvailabilities = mutableStateListOf<CampsiteAvailability>()
 
     val campsitesAvailability : List<CampsiteAvailability>
-        get() = _allCampsitesAvailability
+        get() = _allCampsiteAvailabilities
 
 
     // ----------------------------------- Queries -----------------------------------
@@ -62,35 +65,45 @@ class CampsiteAvailabilityRepository {
         endDate: String,
         status: String,
         result: (Result<String>) -> Unit
+    ) {
+        // create a reference to the parent campsite
+        val campsiteRef = db.collection("campsites").document(campsiteId)
 
-    ){
-        // https://firebase.google.com/docs/firestore/data-model
-        // create a reference and id to the new document
-        val campsiteAvailabilityRef = db.collection("campsites/$campsiteId/availability").document()
+        db.runTransaction { transaction ->
+            val campsiteSnapshot = transaction.get(campsiteRef)
 
-        // create object
-        val campsiteAvailability = CampsiteAvailability(
-            campsiteAvailabilityId = campsiteAvailabilityRef.id,
-            campsiteId = campsiteId,
-            startDate = startDate,
-            endDate = endDate,
-            status = status
+            // check if the parent campsite exists
+            if (!campsiteSnapshot.exists()) {
+                throw NoSuchElementException("Campsite does not exist.")
+            }
 
-        )
+            val campsiteAvailabilityRef = campsiteRef
+                .collection("availability")
+                .document()
 
-        //Tasks.await(campsiteAvailabilityRef.set(campsiteAvailability))
-        // save the object in the firebase
-        campsiteAvailabilityRef.set(campsiteAvailability)
-            .addOnSuccessListener {
-                result(Result.success(campsiteAvailabilityRef.id))
+            // create object
+            val campsiteAvailability = CampsiteAvailability(
+                campsiteAvailabilityId = campsiteAvailabilityRef.id,
+                campsiteId = campsiteId,
+                startDate = startDate,
+                endDate = endDate,
+                status = status
+            )
+
+            // set availability
+            transaction.set(campsiteAvailabilityRef, campsiteAvailability)
+
+            // return id
+            campsiteAvailabilityRef.id
+
+        }
+            .addOnSuccessListener { campsiteAvailabilityId -> // since is success return id
+                result(Result.success(campsiteAvailabilityId))
             }
 
             .addOnFailureListener { exception ->
-
                 result(Result.failure(exception))
-
             }
-
     }
 
     /**
@@ -303,6 +316,86 @@ class CampsiteAvailabilityRepository {
 
 
     // ----------------------------------- From list -----------------------------------
+    /**
+     * Get a CampsiteAvailability object
+     *
+     * @param campsiteId String
+     * @param campsiteAvailabilityId String
+     * @return CampsiteAvailability? --> null if not match found
+     */
+    fun getCampsiteAvailabilityFromListById(campsiteId: String, campsiteAvailabilityId: String): CampsiteAvailability? {
+        return _allCampsiteAvailabilities.find {
+
+            it.campsiteId == campsiteId && it.campsiteAvailabilityId == campsiteAvailabilityId
+        }
+    }
+
+
+    /**
+     * Get a list of CampsiteAvailability objects
+     *
+     * @param campsiteId String
+     * @return List<CampsiteAvailability> --> can be empty list if not match found
+     */
+    fun getCampsiteAvailabilitiesFromListByCampsiteId(campsiteId: String): List<CampsiteAvailability> {
+
+        return _allCampsiteAvailabilities.filter {
+            it.campsiteId == campsiteId
+        }
+    }
+
+
+
+    /**
+     * Get a list of CampsiteAvailability objects
+     *
+     * @param date LocalDate
+     * @return List<CampsiteAvailability> --> can be empty list if not match found
+     */
+    fun getCampsiteAvailabilitiesFromListActiveOnDate( date: LocalDate): List<CampsiteAvailability> {
+
+        return _allCampsiteAvailabilities.filter { availability ->
+            val startDate = LocalDate.parse(availability.startDate)
+            val endDate = LocalDate.parse(availability.endDate)
+
+            date in startDate..endDate
+        }
+    }
+
+
+    /**
+     * Get a list of CampsiteAvailability objects
+     *
+     * @param status String
+     * @return List<CampsiteAvailability> --> can be empty list if not match found
+     */
+    fun getCampsiteAvailabilitiesFromListByStatus(status: String): List<CampsiteAvailability> {
+
+        return _allCampsiteAvailabilities.filter {
+            it.status == status
+        }
+    }
+
+
+    /**
+     * Get a list of CampsiteAvailability objects
+     *
+     * @param campsiteId String
+     * @param status String
+     *
+     * @return List<CampsiteAvailability> --> can be empty list if not match found
+     */
+    fun getCampsiteAvailabilitiesFromListByCampsiteIdAndStatus(campsiteId: String, status: String): List<CampsiteAvailability> {
+
+        return _allCampsiteAvailabilities.filter {
+            it.campsiteId == campsiteId && it.status == status
+        }
+    }
+
+
+    fun getAvailableBookingDates(campsiteId: String, status: String){
+
+    }
 
 
     init {
@@ -311,13 +404,13 @@ class CampsiteAvailabilityRepository {
                 return@addSnapshotListener
             }
 
-            _allCampsitesAvailability.clear()
+            _allCampsiteAvailabilities.clear()
 
             snapshot?.documents?.forEach { document ->
                 val campsiteAvailability = document.toObject(CampsiteAvailability::class.java) // pass from firestore to kotlin object
 
                 if (campsiteAvailability != null) {
-                    _allCampsitesAvailability.add(campsiteAvailability)
+                    _allCampsiteAvailabilities.add(campsiteAvailability)
                 }
             }
         }

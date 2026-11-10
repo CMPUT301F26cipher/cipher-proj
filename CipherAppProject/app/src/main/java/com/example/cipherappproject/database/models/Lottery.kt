@@ -44,11 +44,12 @@ data class Lottery (
     // one lottery can be applicable to many lotteries
     val campsiteIds: MutableList<String> = mutableListOf(),
     var numWinners: Int = 0,
-    var startDate: String = "", // Format can be yyyy-mm-hh-ss or even shorter
+    var startDate: String = "", // Format can be yyyy-mm-dd or even shorter
     var endDate: String = "",
     var maxParticipants: Int? = null, // is optional for the owner
     var status: String = "",
-    val createdAt: String = "" // also the yyyy-mm-hh format --> useful for the notifications!
+    val createdAt: String = "" // also the yyyy-mm-dd format --> useful for the notifications!
+    // use val createdAt: Timestamp? = null
 ) {
 
     fun addCampsiteIds(campsiteId: String) {

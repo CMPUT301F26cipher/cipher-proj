@@ -16,6 +16,7 @@ Date        Person     CSR#     Description
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
 2026-11-06  Sofia       1.05     fixed the get and set methods for the obejcts
 2026-11-08  Sofia       1.06     added exceptions and error handling
+2026-11-08  Sofia       1.07     added queries using the list
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -234,12 +235,10 @@ class CampsiteRepository {
 
     // ----------------------------------- From list -----------------------------------
     /**
-     * get one single Profile object
+     * Get a Campsite object
      *
-     * @param campsiteId
-     * @return
-     *      - Profile if exist
-     *      - null if it does not exist
+     * @param campsiteId String
+     * @return Campsite? --> null if not match found
      */
     // https://kotlinlang.org/docs/collection-elements.html#retrieve-with-selector
     fun getCampsiteFromListById(campsiteId: String): Campsite? {
@@ -249,9 +248,9 @@ class CampsiteRepository {
 
 
     /**
-     * provide a list of Campsite objects from ownerId
+     * Get a list of Campsite objects
      *
-     * @param name
+     * @param name String
      * @return List<Campsite> --> can be empty list if not match found
      */
 
@@ -262,32 +261,104 @@ class CampsiteRepository {
     }
 
 
+    /**
+     * Get a list of Campsite objects
+     *
+     * @param ownerId String
+     * @return List<Campsite> --> can be empty list if not match found
+     */
+
+    fun getCampsiteFromListByOwnerId(ownerId: String): List<Campsite> {
+        return _allCampsites.filter { it.ownerId == ownerId }
+
+    }
+
+
+    /**
+     * Get a list of Campsite objects
+     *
+     * @param status String
+     * @return List<Campsite> --> can be empty list if not match found
+     */
+
+    fun getCampsiteFromListByStatus(status: String): List<Campsite> {
+        return _allCampsites.filter { it.status == status }
+
+    }
+
+    /**
+     * Get a list of Campsite objects
+     *
+     * @param pricePerNight Double
+     * @return List<Campsite> --> can be empty list if not match found
+     */
+
+    fun getCampsiteFromListLessThanPrice(pricePerNight: Double): List<Campsite> {
+        return _allCampsites.filter { it.pricePerNight < pricePerNight }
+
+    }
+
+    /**
+     * Get a list of Campsite objects
+     *
+     * @param pricePerNight Double
+     * @return List<Campsite> --> can be empty list if not match found
+     */
+
+    fun getCampsiteFromListMoreThanPrice(pricePerNight: Double): List<Campsite> {
+        return _allCampsites.filter { it.pricePerNight > pricePerNight }
+
+    }
+
+    /**
+     * Get a list of Campsite objects
+     *
+     * @param startPrice Double
+     * @param endPrice Double
+     * @return List<Campsite> --> can be empty list if not match found
+     */
+
+    fun getCampsiteFromListBetweenPrice(startPrice: Double, endPrice: Double): List<Campsite> {
+
+        // https://kotlinlang.org/docs/collection-aggregate.html
+
+        // either if both are in the correct place
+        val minPrice = minOf(startPrice, endPrice)
+        val maxPrice = maxOf(startPrice, endPrice)
+
+        return _allCampsites.filter {
+            it.pricePerNight in minPrice..maxPrice
+        }
+
+    }
+
+
+    /**
+     * Get a list of Campsite objects
+     *
+     * @param amenities List<String>
+     * @return List<Campsite> --> can be empty list if not match found
+     */
+
+    fun getCampsitesFromListByAmenities(amenities: List<String>): List<Campsite> {
+
+        // filter goes for each campsite in _allCampsites
+        return _allCampsites.filter { campsite ->
+
+            // check each amenity for the current campsite
+            campsite.amenities.any { campsiteAmenity  ->
+
+                // check if the current campsite amenity is in the amenities list argument
+                amenities.any { it.equals(campsiteAmenity , ignoreCase = true) }
+            }
+        }
+    }
+
 
     /*
     fun deleteCampsite(campsiteId: String) {
         campsitesRef.document(campsiteId)
             .delete() // need to check if this also affects lotteries, reservations, availability, images??? frick
-
-    }*/
-
-    /*
-    fun getCampsitesByOwner() {
-
-    }
-
-    fun getCampsitesByTags() {
-
-    }
-
-    fun getCampsitesByAmenities() {
-
-    }
-
-    fun getCampsitesByLocation() {
-
-    }
-
-    fun getCampsitesByPrice() {
 
     }*/
 

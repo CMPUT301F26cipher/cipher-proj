@@ -16,6 +16,7 @@ Date        Person     CSR#     Description
 2026-05-11  Justin     1.04     added a validation step as it verifies campsite ownership and saves lottery settings.
 2026-11-06  Sofia      1.05     fixed the get and set methods for the objects
 2026-11-08  Sofia      1.06     added exceptions and error handling
+2026-11-08  Sofia      1.07     added queries using the list
 --------------------------------------------------------------------------------------
 Future Enhancements
 More secure measures/validation if needed????
@@ -31,6 +32,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.Source
+import java.time.LocalDate
 
 class LotteryRepository {
 
@@ -69,7 +71,7 @@ class LotteryRepository {
         endDate: String,
         maxParticipants: Int,
         status: String,
-        createdAt: String,
+        createdAt: String, // createdAt = Timestamp.now()
         result: (Result<String>) -> Unit
 
     ) {
@@ -164,71 +166,6 @@ class LotteryRepository {
 
 
 
-    /*
-        Verifies that selected campsites exist and belong to the owner, and then saves the lottery with a generated document ID
-
-        Report confirmed save success or an ownership/database error through callbacks. 
-
-     */
-
-    // im going to review this later!
-
-    /*
-    fun saveNewLottery( // THis function verifies campsite ownership and saves a new lottery. 
-        lottery: Lottery,
-        onSuccess: (String) -> Unit,
-        onFailure: (String) -> Unit
-    ) {
-        if (lottery.getLotteryOwnerId().isBlank()) {
-            onFailure("An owner is required.")
-            return
-        }
-
-        val campsiteIds = lottery.campsiteIds
-
-        if (campsiteIds.isEmpty() || campsiteIds.any { it.isBlank() }) {
-            onFailure("Select at least one campsite.")
-            return
-        }
-
-        val campsiteReads = campsiteIds.map { campsiteId ->
-            db.collection("campsites")
-                .document(campsiteId)
-                .get(Source.SERVER)
-        }
-
-        Tasks.whenAllSuccess<DocumentSnapshot>(campsiteReads)
-            .addOnSuccessListener { documents ->
-                val ownsEveryCampsite = documents.all { document ->
-                    document.exists() &&
-                        document.getString("ownerId") == lottery.getLotteryOwnerId()
-                }
-
-                if (!ownsEveryCampsite) {
-                    onFailure("You can only list campsites you own.")
-                } else {
-                    val reference = lotteriesRef.document()
-
-                    val savedLottery = lottery.copy(
-                        lotteryId = reference.id,
-                        campsiteIds = campsiteIds as MutableList<String> // Fixed by Bailey, take a look at it?
-                    )
-
-                    reference.set(savedLottery)
-                        .addOnSuccessListener {
-                            onSuccess(reference.id)
-                        }
-                        .addOnFailureListener {
-                            onFailure("Could not save lottery. Please try again.")
-                        }
-                }
-            }
-            .addOnFailureListener {
-                onFailure("Could not verify the campsite ownership. Check your connection.")
-            }
-    }*/
-
-
 
     /**
      * get one single Lottery object
@@ -295,6 +232,90 @@ class LotteryRepository {
 
     // ----------------------------------- From list -----------------------------------
 
+    /**
+     * get one single Lottery object
+     *
+     * @param lotteryId String
+     * @return Lottery?
+     *      - Profile if exist
+     *      - null if it does not exist
+     */
+    fun getLotteryFromListById(lotteryId: String): Lottery? {
+        return _allLotteries.find { it.lotteryId == lotteryId }
+
+    }
+
+
+
+    /**
+     * Get a list of Lottery objects
+     *
+     * @param ownerId
+     * @return List<Lottery>
+     */
+    fun getLotteriesFromListByOwnerId(ownerId: String): List<Lottery> {
+        return _allLotteries.filter { it.ownerId == ownerId}
+    }
+
+
+
+    /**
+     * Get one single Lottery object
+     *
+     * @param status
+     * @return List<Lottery>
+     */
+    fun getLotteriesFromListByStatus(status: String): List<Lottery> {
+        return _allLotteries.filter { it.status == status}
+    }
+
+
+    /*The following three were helped to be refined by OpenAI, ChatGPT and Android Studio suggestions on 2026-11-09 from my initial code.*/
+
+    /**
+     * Get a list of Lottery objects
+     *
+     * @param date LocalDate
+     * @return List<Lottery>
+     */
+    fun getLotteriesFromListActiveOnDate(date: LocalDate): List<Lottery> {
+        return _allLotteries.filter { lottery ->
+            val startDate = LocalDate.parse(lottery.startDate)
+            val endDate = LocalDate.parse(lottery.endDate)
+
+            date in startDate..endDate
+        }
+    }
+
+    /**
+     * Get a list of Lottery objects
+     *
+     * @return List<Lottery> --> can be empty list if not match found
+     */
+    fun getLotteriesFromListUpcoming(): List<Lottery> {
+        val today = LocalDate.now()
+
+        return _allLotteries.filter {
+            LocalDate.parse(it.startDate) > today
+        }
+    }
+
+    // val date = timestamp?.toDate() --> createdAt
+
+
+    /**
+     * Get a list of Lottery objects
+     *
+     * @return List<Lottery>
+     */
+    fun getLotteriesFromListExpired(): List<Lottery> {
+        val today = LocalDate.now()
+
+        return _allLotteries.filter {
+            LocalDate.parse(it.endDate) < today
+        }
+    }
+
 
     /*
     fun deleteLottery(lotteryId: String){
@@ -319,4 +340,72 @@ class LotteryRepository {
             }
         }
     }
+
+
+
+    /*
+        Verifies that selected campsites exist and belong to the owner, and then saves the lottery with a generated document ID
+
+        Report confirmed save success or an ownership/database error through callbacks.
+
+     */
+
+    // im going to review this later!
+
+    /*
+    fun saveNewLottery( // THis function verifies campsite ownership and saves a new lottery.
+        lottery: Lottery,
+        onSuccess: (String) -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        if (lottery.getLotteryOwnerId().isBlank()) {
+            onFailure("An owner is required.")
+            return
+        }
+
+        val campsiteIds = lottery.campsiteIds
+
+        if (campsiteIds.isEmpty() || campsiteIds.any { it.isBlank() }) {
+            onFailure("Select at least one campsite.")
+            return
+        }
+
+        val campsiteReads = campsiteIds.map { campsiteId ->
+            db.collection("campsites")
+                .document(campsiteId)
+                .get(Source.SERVER)
+        }
+
+        Tasks.whenAllSuccess<DocumentSnapshot>(campsiteReads)
+            .addOnSuccessListener { documents ->
+                val ownsEveryCampsite = documents.all { document ->
+                    document.exists() &&
+                        document.getString("ownerId") == lottery.getLotteryOwnerId()
+                }
+
+                if (!ownsEveryCampsite) {
+                    onFailure("You can only list campsites you own.")
+                } else {
+                    val reference = lotteriesRef.document()
+
+                    val savedLottery = lottery.copy(
+                        lotteryId = reference.id,
+                        campsiteIds = campsiteIds as MutableList<String> // Fixed by Bailey, take a look at it?
+                    )
+
+                    reference.set(savedLottery)
+                        .addOnSuccessListener {
+                            onSuccess(reference.id)
+                        }
+                        .addOnFailureListener {
+                            onFailure("Could not save lottery. Please try again.")
+                        }
+                }
+            }
+            .addOnFailureListener {
+                onFailure("Could not verify the campsite ownership. Check your connection.")
+            }
+    }*/
+
+
 }
