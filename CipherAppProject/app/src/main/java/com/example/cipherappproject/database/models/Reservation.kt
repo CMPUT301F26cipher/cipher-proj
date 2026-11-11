@@ -43,4 +43,5 @@ data class Reservation (
     val createdAt: String = "",
     val bookStartDate: String = "",
     val bookEndDate: String = ""
+    // NEED PRICE
 )

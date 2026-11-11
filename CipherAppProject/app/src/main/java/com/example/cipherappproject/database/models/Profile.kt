@@ -42,4 +42,6 @@ data class Profile (
     var imageProfilePath: String = "",
     val deviceId: String = "",
     var status: String = "",
+    // PHONE NUMBER
+    // OPT OUT NOTIFICATIONS
 )
