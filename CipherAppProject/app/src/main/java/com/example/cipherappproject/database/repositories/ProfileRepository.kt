@@ -16,6 +16,7 @@ Date        Person     CSR#     Description
 2026-11-06  Madison    1.04     added query get by deviceId
 2026-11-08  Sofia      1.05     added exceptions and error handling. Commented deviceId for now.
 2026-11-08  Sofia      1.07     added queries using the list
+2026-11-12  Sofia      1.08     added phone number, state boolean for list local queries.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -31,6 +32,18 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import androidx.compose.runtime.State
+
+
+
+/**
+ * Manages profile data stored in the Firebase Firestore database.
+ *
+ * Provides methods to add, retrieve, and update profile documents
+ * directly from Firestore, as well as methods to search and filter
+ * from the local profile list.
+ *
+ * The local list is synchronized with Firestore using a snapshot listener.
+ */
 class ProfileRepository {
 
     private val db = Firebase.firestore
@@ -40,6 +53,9 @@ class ProfileRepository {
     val profiles: List<Profile>
         get() = _allProfiles
 
+    /*Taken and learn from OpenAI, ChatGPT on 2026-11-10
+    on "How can I make sure I wait for all the objects be already
+    inside the local list? and how it works?"*/
     private val _isProfilesLoaded = mutableStateOf(false)
 
     val isProfilesLoaded: State<Boolean>
@@ -58,9 +74,10 @@ class ProfileRepository {
      * @param imageProfilePath
      * @param deviceId
      * @param status
+     * @param phoneNumber
      * @param result lamba function that provide if:
      *      - Result.success(id) if successful
-     *      - Result.success(exception) if not successful
+     *      - Result.failure(exception) if not successful
      * @return Result<String>
      */
     fun addProfile(
@@ -70,6 +87,7 @@ class ProfileRepository {
         imageProfilePath: String,
         deviceId: String,
         status: String,
+        phoneNumber: String,
         result: (Result<String>) -> Unit
 
 
@@ -85,7 +103,8 @@ class ProfileRepository {
             role = role,
             imageProfilePath = imageProfilePath,
             deviceId = deviceId,
-            status = status
+            status = status,
+            phoneNumber = phoneNumber
         )
 
         // save the object in the firebase
@@ -172,7 +191,7 @@ class ProfileRepository {
      * @param profileId
      * @param result lamba function that has Result and if:
      *      - Result.success(Profile) if successful
-     *      - Result.success(exception) if not successful
+     *      - Result.failure(exception) if not successful
      * @return Result<Profile>
      */
     /*taken and learned from https://firebase.google.com/docs/firestore/query-data/queries*/

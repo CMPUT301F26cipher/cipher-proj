@@ -17,12 +17,15 @@ Date        Person     CSR#     Description
 2026-11-06  Sofia       1.05     fixed the get and set methods for the objects
 2026-11-08  Sofia       1.06     added exceptions and error handling
 2026-11-08  Sofia       1.07     added queries using the list. Modified added as a transaction query.
+2026-11-12  Sofia       1.08     added state boolean for list local queries.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
  */
 
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.CampsiteAvailability
 import com.example.cipherappproject.database.models.Reservation
@@ -30,6 +33,15 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import java.time.LocalDate
+
+
+/**
+ * Manages Campsite Availability data stored in the Firebase Firestore database.
+ *
+ * Provides methods to add, retrieve, and update Campsite Availability documents directly from Firestore, as well as methods to search and filter from the local Campsite Availability list.
+ *
+ * The local list is synchronized with Firestore using a snapshot listener.
+ */
 
 class CampsiteAvailabilityRepository {
 
@@ -42,6 +54,11 @@ class CampsiteAvailabilityRepository {
     val campsitesAvailability : List<CampsiteAvailability>
         get() = _allCampsiteAvailabilities
 
+
+    private val _isCampsiteAvailabilitiesLoaded = mutableStateOf(false)
+
+    val isCampsiteAvailabilitiesLoaded: State<Boolean>
+        get() = _isCampsiteAvailabilitiesLoaded
 
     // ----------------------------------- Queries -----------------------------------
 
@@ -56,7 +73,7 @@ class CampsiteAvailabilityRepository {
      * @param status
      * @param result lamba function that provide if:
      *      - Result.success(id) if successful
-     *      - Result.success(exception) if not successful
+     *      - Result.failure(exception) if not successful
      * @return Result<String>
      */
     fun createCampsiteAvailability(
@@ -190,7 +207,7 @@ class CampsiteAvailabilityRepository {
      * @param campsiteId when it becomes available
      * @param result lamba function that has Result and if:
      *      - Result.success(CampsiteAvailability) if successful
-     *      - Result.success(exception) if not successful
+     *      - Result.failure(exception) if not successful
      * @return Result<CampsiteAvailability>
      */
     fun getCampsiteAvailabilityById(
@@ -413,6 +430,8 @@ class CampsiteAvailabilityRepository {
                     _allCampsiteAvailabilities.add(campsiteAvailability)
                 }
             }
+
+            _isCampsiteAvailabilitiesLoaded.value = true
         }
     }
 

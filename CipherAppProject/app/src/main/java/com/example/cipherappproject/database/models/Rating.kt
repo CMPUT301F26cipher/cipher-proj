@@ -27,9 +27,9 @@ NA
  * @property userId use to identify to which user comes from
  * @property campsiteId use to identify to which campsite comes from
  * @property review the user review
- * @property status determine if the reservation is removed, active, hidden, etc
+ * @property status determine if the reservation is removed, active, hidden, etc --> check enum class
  * @property rating the rating from the usr
- * @property createdAt when it was made changed to timestamp
+ * @property createdAt when it was made changed to timestamp IT IS AUTOMATIC DO NOT ADD IT!
  *
  *
  */

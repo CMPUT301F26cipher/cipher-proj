@@ -17,17 +17,28 @@ Date        Person     CSR#     Description
 2026-11-06  Sofia       1.05     fixed the get and set methods for the objects
 2026-11-08  Sofia       1.06     added exceptions and error handling
 2026-11-08  Sofia       1.07     added queries using the list
+2026-11-12  Sofia       1.08     added state boolean for list local queries.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
 */
 
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import com.example.cipherappproject.database.models.LotteryEntry
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import java.time.LocalDate
+
+/**
+ * Manages Lottery Entry data stored in the Firebase Firestore database.
+ *
+ * Provides methods to add, retrieve, and update Lottery Entry documents directly from Firestore, as well as methods to search and filter from the local Lottery Entry list.
+ *
+ * The local list is synchronized with Firestore using a snapshot listener.
+ */
 
 
 class LotteryEntryRepository {
@@ -40,6 +51,10 @@ class LotteryEntryRepository {
         get() = _allLotteriesEntries
 
 
+    private val _isLotteriesEntriesLoaded = mutableStateOf(false)
+
+    val isLotteriesEntriesLoaded: State<Boolean>
+        get() = _isLotteriesEntriesLoaded
 
     // ----------------------------------- Queries -----------------------------------
 
@@ -54,7 +69,7 @@ class LotteryEntryRepository {
      * @param positionLottery user entry in the list after randomization
      * @param result lamba function that provide if:
      *      - Result.success(id) if successful
-     *      - Result.success(exception) if not successful
+     *      - Result.failure(exception) if not successful
      * @return Result<String>
      */
     fun addLotteryEntry(
@@ -188,7 +203,7 @@ class LotteryEntryRepository {
      * @param lotteryId
      * @param result lamba function that has Result and if:
      *      - Result.success(<List<LotteryEntry>) if successful
-     *      - Result.success(exception) if not successful
+     *      - Result.failure(exception) if not successful
      * @return Result<List<LotteryEntry>>
      */
     fun getLotteryEntriesByLotteryId(
@@ -444,16 +459,9 @@ class LotteryEntryRepository {
                     _allLotteriesEntries.add(lotteryEntry)
                 }
             }
+
+            _isLotteriesEntriesLoaded.value = true
         }
     }
-
-    fun addLotteryEntry(){ // needs to make sure is only once and add 1 only
-        // lotteries/lotteryId/entries/userId
-
-
-
-    }
-
-
 
 }

@@ -31,7 +31,7 @@ NA
  * @property toUserId use to identify to which user is the notification
  * @property title the title of the notification
  * @property message the text of the notification
- * @property createdAt when notification was made
+ * @property createdAt when notification was made IT IS AUTOMATIC DO NOT ADD IT!
  *
  *
  */

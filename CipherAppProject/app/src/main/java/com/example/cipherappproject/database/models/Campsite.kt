@@ -41,8 +41,8 @@ NA
  * @property qrCodeImagePath the campsite qr code path
  * @property status meant to be if the owner deletes their profile the campsites related to it just become all unavailable --> available, notAvailable
  * @property rules the campsite rules
- * @property policies the campsite polices --> cancellation, reservation, etc
- * @property createdAt when it was created --> changed to timestamp
+ * @property policies the campsite polices --> check enum
+ * @property createdAt when it was created --> changed to timestamp IT IS AUTOMATIC DO NOT ADD IT!
  *
  *
  */

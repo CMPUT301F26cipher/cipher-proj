@@ -16,13 +16,16 @@ Date        Person     CSR#     Description
 2026-11-06  Sofia      1.04     delete getters and setters. Set the attributes to public.
 2026-11-08  Sofia      1.06     added exceptions and error handling
 2026-11-08  Sofia      1.07     added queries using the list
+2026-11-12  Sofia      1.08     added state boolean for list local queries.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
  */
 
 import android.util.Log
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.Profile
@@ -32,6 +35,14 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import java.time.LocalDate
 
+/**
+ * Manages Reservation data stored in the Firebase Firestore database.
+ *
+ * Provides methods to add, retrieve, and update Reservation documents directly from Firestore, as well as methods to search and filter from the local Reservation list.
+ *
+ * The local list is synchronized with Firestore using a snapshot listener.
+ */
+
 class ReservationRepository {
     private val db = Firebase.firestore
     private val reservationsRef = db.collection("reservations")
@@ -40,6 +51,12 @@ class ReservationRepository {
 
     val reservations: List<Reservation>
         get() = _allReservations
+
+
+    private val _isReservationsLoaded = mutableStateOf(false)
+
+    val isReservationsLoaded: State<Boolean>
+        get() = _isReservationsLoaded
 
     // ----------------------------------- Queries -----------------------------------
 
@@ -52,10 +69,13 @@ class ReservationRepository {
      * @param campsiteId
      * @param lotteryId
      * @param status
-     * @param createdAt
+     * @param bookStartDate
+     * @param bookEndDate
+     * @param pricePerNight
+     * @param totalPrice
      * @param result lamba function that provide if:
      *      - Result.success(id) if successful
-     *      - Result.success(exception) if not successful
+     *      - Result.failure(exception) if not successful
      * @return Result<String>
      */
     fun createReservation(
@@ -63,7 +83,10 @@ class ReservationRepository {
         campsiteId: String,
         lotteryId: String,
         status: String,
-        createdAt: String,
+        bookStartDate: String,
+        bookEndDate: String,
+        pricePerNight: Double,
+        totalPrice: Double,
         result: (Result<String>) -> Unit
 
     ){
@@ -77,7 +100,10 @@ class ReservationRepository {
             campsiteId = campsiteId,
             lotteryId = lotteryId,
             status = status,
-            createdAt = createdAt
+            bookStartDate = bookStartDate,
+            bookEndDate = bookEndDate,
+            pricePerNight = pricePerNight,
+            totalPrice = totalPrice
 
         )
 
@@ -156,7 +182,7 @@ class ReservationRepository {
      * @param reservationId
      * @param result lamba function that has Result and if:
      *      - Result.success(Reservation) if successful
-     *      - Result.success(exception) if not successful
+     *      - Result.failure(exception) if not successful
      * @return Result<Reservation>
      */
     fun getReservationById(
@@ -315,6 +341,8 @@ class ReservationRepository {
                     _allReservations.add(reservation)
                 }
             }
+
+            _isReservationsLoaded.value = true
         }
     }
 

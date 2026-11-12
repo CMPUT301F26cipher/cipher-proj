@@ -17,13 +17,16 @@ Date        Person     CSR#     Description
 2026-11-06  Sofia      1.05     fixed the get and set methods for the objects
 2026-11-08  Sofia      1.06     added exceptions and error handling
 2026-11-08  Sofia      1.07     added queries using the list
+2026-11-12  Sofia      1.08     deleted created at and added state boolean for list local queries.
 --------------------------------------------------------------------------------------
 Future Enhancements
 More secure measures/validation if needed????
  */
 
 import android.util.Log
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
 import com.example.cipherappproject.database.models.Profile
@@ -33,6 +36,14 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.Source
 import java.time.LocalDate
+
+/**
+ * Manages Lottery data stored in the Firebase Firestore database.
+ *
+ * Provides methods to add, retrieve, and update Lottery Availability documents directly from Firestore, as well as methods to search and filter from the local Lottery Availability list.
+ *
+ * The local list is synchronized with Firestore using a snapshot listener.
+ */
 
 class LotteryRepository {
 
@@ -44,6 +55,10 @@ class LotteryRepository {
     val lotteries: List<Lottery>
         get() = _allLotteries
 
+    private val _isLotteriesLoaded = mutableStateOf(false)
+
+    val isLotteriesLoaded: State<Boolean>
+        get() = _isLotteriesLoaded
 
     // ----------------------------------- Queries -----------------------------------
 
@@ -56,8 +71,8 @@ class LotteryRepository {
      * @param numWinners
      * @param startDate
      * @param endDate
+     * @param maxParticipants
      * @param status
-     * @param createdAt
      * @param result lamba function that provide if:
      *      - Result.success(id) if successful
      *      - Result.success(exception) if not successful
@@ -71,7 +86,6 @@ class LotteryRepository {
         endDate: String,
         maxParticipants: Int,
         status: String,
-        createdAt: String, // createdAt = Timestamp.now()
         result: (Result<String>) -> Unit
 
     ) {
@@ -88,7 +102,6 @@ class LotteryRepository {
             endDate = endDate,
             maxParticipants = maxParticipants,
             status = status,
-            createdAt = createdAt
         )
         //Tasks.await(lotteryRef.set(lottery))
         // save the object in the firebase
@@ -338,6 +351,8 @@ class LotteryRepository {
                     _allLotteries.add(lottery)
                 }
             }
+
+            _isLotteriesLoaded.value = true
         }
     }
 

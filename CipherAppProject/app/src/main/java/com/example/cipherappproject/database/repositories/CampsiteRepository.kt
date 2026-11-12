@@ -17,6 +17,7 @@ Date        Person     CSR#     Description
 2026-11-06  Sofia       1.05     fixed the get and set methods for the obejcts
 2026-11-08  Sofia       1.06     added exceptions and error handling
 2026-11-08  Sofia       1.07     added queries using the list
+2026-11-12  Sofia       1.08     added rules, policies and comments. Also added state boolean for list local queries.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -24,20 +25,36 @@ NA
 
 import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.State
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.Profile
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
+/**
+ * Manages Campsite data stored in the Firebase Firestore database.
+ *
+ * Provides methods to add, retrieve, and update Campsite documents
+ * directly from Firestore, as well as methods to search and filter
+ * from the local Campsite list.
+ *
+ * The local list is synchronized with Firestore using a snapshot listener.
+ */
+
 class CampsiteRepository {
     private val db = Firebase.firestore
     private val campsitesRef = db.collection("campsites")
     private val _allCampsites = mutableStateListOf<Campsite>()
 
-
     val campsites: List<Campsite>
         get() = _allCampsites
+
+    private val _isCampsitesLoaded = mutableStateOf(false)
+
+    val isCampsitesLoaded: State<Boolean>
+        get() = _isCampsitesLoaded
 
 
     // ----------------------------------- Queries -----------------------------------
@@ -57,9 +74,11 @@ class CampsiteRepository {
      * @param maxGuests how many guest the campsite can hold
      * @param qrCodeImagePath the campsite qr code path
      * @param status the campsite qr code path
+     * @param rules the campsite rules
+     * @param policies the campsite polices --> check enum
      * @param result lamba function that provide if:
      *      - Result.success(id) if successful
-     *      - Result.success(exception) if not successful
+     *      - Result.failure(exception) if not successful
      * @return Result<String>
      */
 
@@ -80,6 +99,8 @@ class CampsiteRepository {
         tags: MutableList<String>,
         qrCodeImagePath: String,
         status: String,
+        rules: MutableList<String>,
+        policies: MutableList<String>,
         result: (Result<String>) -> Unit
 
     ){
@@ -99,7 +120,10 @@ class CampsiteRepository {
             imagePath = imagePath,
             tags = tags,
             qrCodeImagePath = qrCodeImagePath,
-            status = status
+            status = status,
+            rules = rules,
+            policies = policies
+
         )
 
         //Tasks.await(campsiteRef.set(campsite))
@@ -122,7 +146,7 @@ class CampsiteRepository {
      * @param campsiteId
      * @param result lamba function that has Result and if:
      *      - Result.success(Campsite) if successful
-     *      - Result.success(exception) if not successful
+     *      - Result.failure(exception) if not successful
      * @return Result<Campsite>
      */
     
@@ -279,6 +303,8 @@ class CampsiteRepository {
      *
      * @param status String
      * @return List<Campsite> --> can be empty list if not match found
+     *
+     * Example: getCampsiteFromListByStatus(CampsiteStatus.ACTIVE.name)
      */
 
     fun getCampsiteFromListByStatus(status: String): List<Campsite> {
@@ -378,6 +404,8 @@ class CampsiteRepository {
                     _allCampsites.add(campsite)
                 }
             }
+
+            _isCampsitesLoaded.value = true
         }
     }
 

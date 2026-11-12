@@ -36,8 +36,8 @@ NA
  * @property startDate the opening date of the lottery
  * @property endDate the close date of the lottery
  * @property maxParticipants if owner decides a maximum number of participants
- * @property status use to help determine if the lottery is open, drawn, finished
- * @property createdAt when lottery was created --> changed to timestamp
+ * @property status use to help determine if the lottery is open, drawn, finished --> check enum class
+ * @property createdAt when lottery was created --> changed to timestamp IT IS AUTOMATIC DO NOT ADD IT!
  *
  *
  */

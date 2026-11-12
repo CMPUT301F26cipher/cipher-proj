@@ -32,8 +32,8 @@ NA
  * @property userId use to identify to which user comes from
  * @property campsiteId use to identify to which campsite is the reservation
  * @property lotteryId use to identify to which lottery the user won to have the chance to reserve
- * @property status determine if the reservation is canceled, past, active
- * @property createdAt when reservation was made --> changed to timestamp
+ * @property status determine if the reservation is canceled, past, active --> check enum class
+ * @property createdAt when reservation was made --> changed to timestamp IT IS AUTOMATIC DO NOT ADD IT!
  * @property bookStartDate the start date for the campsite reservation
  * @property bookEndDate the end date for the campsite reservation
  * @property pricePerNight the price per night for the campsite

@@ -30,8 +30,8 @@ NA
  * @property fromUserId use to identify from which user is the message
  * @property toUserId use to identify to which user is the message
  * @property message the text of the message
- * @property createdAt when message was made
- * @property status the status of the message removed, sent, etc
+ * @property createdAt when message was made IT IS AUTOMATIC DO NOT ADD IT!
+ * @property status the status of the message removed, sent, etc --> check enum class
  *
  *
  */
