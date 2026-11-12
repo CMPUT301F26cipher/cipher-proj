@@ -16,6 +16,15 @@ Future Enhancements
 NA
  */
 
+/**
+ * Represents the possible roles of a Profile:
+ *
+ * - USER
+ * - OWNER
+ * - ADMIN
+ */
+
+
 enum class ProfileRole {
     USER,
     OWNER,

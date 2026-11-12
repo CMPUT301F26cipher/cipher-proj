@@ -16,6 +16,15 @@ Future Enhancements
 NA
  */
 
+/**
+ * Represents the possible statuses of a Lottery:
+ *
+ * - OPEN
+ * - CANCELLED
+ * - COMPLETED
+ * - PROCESSING
+ */
+
 enum class LotteryStatus {
     OPEN,
     CANCELLED,

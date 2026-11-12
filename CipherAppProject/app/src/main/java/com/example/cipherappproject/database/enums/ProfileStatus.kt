@@ -16,6 +16,14 @@ Future Enhancements
 NA
  */
 
+/**
+ * Represents the possible statuses of Profile
+ *
+ * - ACTIVE
+ * - DELETED
+ */
+
+
 enum class ProfileStatus {
     ACTIVE,
     DELETED

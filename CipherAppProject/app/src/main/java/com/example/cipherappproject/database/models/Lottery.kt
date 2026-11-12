@@ -1,5 +1,7 @@
 package com.example.cipherappproject.database.models
 
+import com.google.firebase.Timestamp
+
 /*
 --------------------------------------------------------------------------------------
 Program Name: Lottery.kt
@@ -13,6 +15,7 @@ Date        Person     CSR#     Description
 2026-10-27  Sofia      1.01     added skeleton
 2026-11-03  Sofia      1.02     fixed getters and setters
 2026-11-03  Sofia      1.03     fixed getters, getters, and default values
+2026-11-11   Sofia     1.05     changed created at as timestamp
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -34,7 +37,7 @@ NA
  * @property endDate the close date of the lottery
  * @property maxParticipants if owner decides a maximum number of participants
  * @property status use to help determine if the lottery is open, drawn, finished
- * @property createdAt when lottery was created
+ * @property createdAt when lottery was created --> changed to timestamp
  *
  *
  */
@@ -48,8 +51,7 @@ data class Lottery (
     var endDate: String = "",
     var maxParticipants: Int? = null, // is optional for the owner
     var status: String = "",
-    val createdAt: String = "" // also the yyyy-mm-dd format --> useful for the notifications!
-    // use val createdAt: Timestamp? = null
+    val createdAt: Timestamp = Timestamp.now()
 ) {
 
     fun addCampsiteIds(campsiteId: String) {

@@ -1,5 +1,7 @@
 package com.example.cipherappproject.database.models
 
+import com.google.firebase.Timestamp
+
 /*
 --------------------------------------------------------------------------------------
 Program Name: Notification.kt
@@ -11,6 +13,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-10  Sofia      1.01     added skeleton
+2026-11-11   Sofia     1.02     added if is read, created at as timestamp, and event type
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -36,9 +39,10 @@ NA
 data class Notification (
     val notificationId: String = "",
     val eventId: String = "",
+    val eventType: String = "",
     val toUserId: String = "",
     val title: String = "",
     val message: String = "",
-    val createdAt: String = ""
-
+    val createdAt: Timestamp = Timestamp.now(),
+    var isRead: Boolean = false
 )

@@ -1,5 +1,7 @@
 package com.example.cipherappproject.database.models
 
+import com.google.firebase.Timestamp
+
 /*
 --------------------------------------------------------------------------------------
 Program Name: Message.kt
@@ -11,6 +13,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-10  Sofia      1.01     added skeleton
+2026-11-11   Sofia     1.02     added if is read, created at as timestamp, and event type
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -28,6 +31,7 @@ NA
  * @property toUserId use to identify to which user is the message
  * @property message the text of the message
  * @property createdAt when message was made
+ * @property status the status of the message removed, sent, etc
  *
  *
  */
@@ -38,5 +42,6 @@ data class Message (
     val fromUserId: String = "",
     val toUserId: String = "",
     val message: String = "",
-    val createdAt: String = ""
+    val createdAt: Timestamp = Timestamp.now(),
+    var status: String = ""
 )

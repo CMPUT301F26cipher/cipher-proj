@@ -16,8 +16,21 @@ Future Enhancements
 NA
  */
 
+
+/**
+ * Represents the possible statuses of Reservation
+ *
+ * - CANCELED
+ * - PAST
+ * - ACTIVE
+ * - PENDING
+ * - REJECTED --> if the owner or admin cancel reservation
+ */
+
 enum class ReservationStatus {
     CANCELED,
     PAST,
-    ACTIVE
+    ACTIVE,
+    PENDING,
+    REJECTED
 }
