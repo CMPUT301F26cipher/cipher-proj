@@ -19,6 +19,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-12  Sofia      1.01     added skeleton
+2026-11-15  Sofia      1.02     added states to the local list and changes init too
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -30,7 +31,7 @@ NA
  *
  * Provides methods to add, retrieve, and update Notification documents
  * directly from Firestore, as well as methods to search and filter
- * from the local Notification list.
+ * from the local Notification list. This local list is inside a state.
  *
  * The local list is synchronized with Firestore using a snapshot listener.
  */
@@ -39,9 +40,9 @@ class NotificationRepository {
 
     private val db = Firebase.firestore
     private val notificationsRef = db.collection("notifications")
-    private val _allNotifications = mutableStateListOf<Notification>()
+    private val _allNotifications = mutableStateOf<List<Notification>>(emptyList())
 
-    val notifications: List<Notification>
+    val notifications: State<List<Notification>>
         get() = _allNotifications
 
 
@@ -227,7 +228,7 @@ class NotificationRepository {
      */
     // https://kotlinlang.org/docs/collection-elements.html#retrieve-with-selector
     fun getNotificationFromListById(notificationId: String): Notification? {
-        return _allNotifications.find { it.notificationId == notificationId }
+        return _allNotifications.value.find { it.notificationId == notificationId }
 
     }
 
@@ -238,7 +239,7 @@ class NotificationRepository {
      * @return List<Notification> --> can be empty list if not match found
      */
     fun getNotificationsFromListByUserId(userId: String): List<Notification> {
-        return _allNotifications.filter { it.toUserId == userId }
+        return _allNotifications.value.filter { it.toUserId == userId }
     }
 
 
@@ -249,7 +250,7 @@ class NotificationRepository {
      * @return List<Notification> --> can be empty list if not match found
      */
     fun getNotificationsFromListByReadStatus(isRead: Boolean): List<Notification> {
-        return _allNotifications.filter { it.isRead == isRead }
+        return _allNotifications.value.filter { it.isRead == isRead }
     }
 
     /**
@@ -259,7 +260,7 @@ class NotificationRepository {
      * @return List<Notification> --> can be empty list if not match found
      */
     fun getUnreadNotificationsFromListByUserId(userId: String): List<Notification> {
-        return _allNotifications.filter {
+        return _allNotifications.value.filter {
             it.toUserId == userId && !it.isRead
         }
     }
@@ -271,7 +272,7 @@ class NotificationRepository {
      * @return List<Notification> --> can be empty list if not match found
      */
     fun getNotificationsFromListByEventId(eventId: String): List<Notification> {
-        return _allNotifications.filter { it.eventId == eventId }
+        return _allNotifications.value.filter { it.eventId == eventId }
     }
 
     /**
@@ -281,7 +282,7 @@ class NotificationRepository {
      * @return List<Notification> --> can be empty list if not match found
      */
     fun getNotificationsFromListByEventType(eventType: String): List<Notification> {
-        return _allNotifications.filter { it.eventType == eventType }
+        return _allNotifications.value.filter { it.eventType == eventType }
     }
 
 
@@ -291,15 +292,15 @@ class NotificationRepository {
                 return@addSnapshotListener
             }
 
-            _allNotifications.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val notification = document.toObject(Notification::class.java) // pass from firestore to kotlin object
-
-                if (notification != null) {
-                    _allNotifications.add(notification)
-                }
+            if (snapshot == null) {
+                return@addSnapshotListener
             }
+
+            val updatedNotifications = snapshot.documents.mapNotNull { document ->
+                document.toObject(Notification::class.java)
+            }
+
+            _allNotifications.value = updatedNotifications
 
             _isNotificationsLoaded.value = true
         }

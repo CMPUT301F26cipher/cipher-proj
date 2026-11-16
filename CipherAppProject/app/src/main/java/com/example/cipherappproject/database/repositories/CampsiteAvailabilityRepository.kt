@@ -18,6 +18,8 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia       1.06     added exceptions and error handling
 2026-11-08  Sofia       1.07     added queries using the list. Modified added as a transaction query.
 2026-11-12  Sofia       1.08     added state boolean for list local queries.
+2026-11-15  Sofia      1.09     added states to the local list and changes init too
+
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -26,9 +28,9 @@ NA
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import com.example.cipherappproject.database.models.Campsite
+import com.example.cipherappproject.database.enums.CampsiteAvailabilityStatus
+import com.example.cipherappproject.database.enums.ReservationStatus
 import com.example.cipherappproject.database.models.CampsiteAvailability
-import com.example.cipherappproject.database.models.Reservation
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -38,20 +40,23 @@ import java.time.LocalDate
 /**
  * Manages Campsite Availability data stored in the Firebase Firestore database.
  *
- * Provides methods to add, retrieve, and update Campsite Availability documents directly from Firestore, as well as methods to search and filter from the local Campsite Availability list.
+ * Provides methods to add, retrieve, and update Campsite Availability documents directly from Firestore, as well as methods to search and filter from the local Campsite Availability list. This local list is inside a state.
  *
  * The local list is synchronized with Firestore using a snapshot listener.
  */
 
-class CampsiteAvailabilityRepository {
+class CampsiteAvailabilityRepository (
+    // to get all available dates to book
+    private val reservationRepository: ReservationRepository
+){
 
     private val db = Firebase.firestore
 
     // https://firebase.google.com/docs/firestore/pipelines/stages/input/collection-group
     private val campsitesAvailabilityRef = db.collectionGroup("availability")
-    private val _allCampsiteAvailabilities = mutableStateListOf<CampsiteAvailability>()
+    private val _allCampsiteAvailabilities = mutableStateOf<List<CampsiteAvailability>>(emptyList())
 
-    val campsitesAvailability : List<CampsiteAvailability>
+    val campsitesAvailability : State<List<CampsiteAvailability>>
         get() = _allCampsiteAvailabilities
 
 
@@ -341,7 +346,7 @@ class CampsiteAvailabilityRepository {
      * @return CampsiteAvailability? --> null if not match found
      */
     fun getCampsiteAvailabilityFromListById(campsiteId: String, campsiteAvailabilityId: String): CampsiteAvailability? {
-        return _allCampsiteAvailabilities.find {
+        return _allCampsiteAvailabilities.value.find {
 
             it.campsiteId == campsiteId && it.campsiteAvailabilityId == campsiteAvailabilityId
         }
@@ -356,7 +361,7 @@ class CampsiteAvailabilityRepository {
      */
     fun getCampsiteAvailabilitiesFromListByCampsiteId(campsiteId: String): List<CampsiteAvailability> {
 
-        return _allCampsiteAvailabilities.filter {
+        return _allCampsiteAvailabilities.value.filter {
             it.campsiteId == campsiteId
         }
     }
@@ -371,7 +376,7 @@ class CampsiteAvailabilityRepository {
      */
     fun getCampsiteAvailabilitiesFromListActiveOnDate( date: LocalDate): List<CampsiteAvailability> {
 
-        return _allCampsiteAvailabilities.filter { availability ->
+        return _allCampsiteAvailabilities.value.filter { availability ->
             val startDate = LocalDate.parse(availability.startDate)
             val endDate = LocalDate.parse(availability.endDate)
 
@@ -388,7 +393,7 @@ class CampsiteAvailabilityRepository {
      */
     fun getCampsiteAvailabilitiesFromListByStatus(status: String): List<CampsiteAvailability> {
 
-        return _allCampsiteAvailabilities.filter {
+        return _allCampsiteAvailabilities.value.filter {
             it.status == status
         }
     }
@@ -404,14 +409,76 @@ class CampsiteAvailabilityRepository {
      */
     fun getCampsiteAvailabilitiesFromListByCampsiteIdAndStatus(campsiteId: String, status: String): List<CampsiteAvailability> {
 
-        return _allCampsiteAvailabilities.filter {
+        return _allCampsiteAvailabilities.value.filter {
             it.campsiteId == campsiteId && it.status == status
         }
     }
 
+    /**
+     * Get a list of LocalDate
+     *
+     * This function assume the reservation are inclusive start date and end date.
+     * It also assumes that the user can only book linear dates so that there is not
+     * dates far from each other.
+     *
+     * @param campsiteId String
+     *
+     * @return List<LocalDate> --> can be empty list if not match found
+     */
 
-    fun getAvailableBookingDates(campsiteId: String, status: String){
+    /*Taken and learn from OpenAI, ChatGPT on 2026-11-15 on "How to get all the available dates within a range but as a list? because there can be free dates in between"*/
+    fun getAvailableBookingDates(campsiteId: String): List<LocalDate> {
 
+        // Check if both repositories have finished loading
+        if (!_isCampsiteAvailabilitiesLoaded.value ||
+            !reservationRepository.isReservationsLoaded.value
+        ) {
+            return emptyList()
+        }
+
+        // Get active availability periods for this campsite
+        val availabilities = _allCampsiteAvailabilities.value.filter {
+            it.campsiteId == campsiteId && it.status == CampsiteAvailabilityStatus.ACTIVE.name
+        }
+
+        // Get reservations that block dates
+        val reservations = reservationRepository.getReservationsFromListByCampsiteId(campsiteId).filter {
+            it.status == ReservationStatus.ACTIVE.name || it.status == ReservationStatus.PENDING.name
+        }
+
+        // Expand availability periods into individual dates
+        val availableDates = availabilities.flatMap { availability ->
+            val startDate = LocalDate.parse(availability.startDate)
+            val endDate = LocalDate.parse(availability.endDate)
+
+            generateSequence(startDate) { currentDate ->
+                if (currentDate < endDate) {
+                    currentDate.plusDays(1)
+                } else {
+                    null
+                }
+            }.toList()
+        }
+
+        // Expand reservation periods into individual dates
+        val reservedDates = reservations.flatMap { reservation ->
+            val startDate = LocalDate.parse(reservation.bookStartDate)
+            val endDate = LocalDate.parse(reservation.bookEndDate)
+
+            generateSequence(startDate) { currentDate ->
+                if (currentDate < endDate) {
+                    currentDate.plusDays(1)
+                } else {
+                    null
+                }
+            }.toList()
+        }
+
+        // Remove reserved dates and duplicate dates
+        return availableDates
+            .distinct()
+            .filter { it !in reservedDates }
+            .sorted()
     }
 
 
@@ -421,20 +488,19 @@ class CampsiteAvailabilityRepository {
                 return@addSnapshotListener
             }
 
-            _allCampsiteAvailabilities.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val campsiteAvailability = document.toObject(CampsiteAvailability::class.java) // pass from firestore to kotlin object
-
-                if (campsiteAvailability != null) {
-                    _allCampsiteAvailabilities.add(campsiteAvailability)
-                }
+            if (snapshot == null) {
+                return@addSnapshotListener
             }
+
+            val updatedCampsiteAvailabilities = snapshot.documents.mapNotNull { document ->
+                document.toObject(CampsiteAvailability::class.java)
+            }
+
+            _allCampsiteAvailabilities.value = updatedCampsiteAvailabilities
 
             _isCampsiteAvailabilitiesLoaded.value = true
         }
     }
-
 
 }
 

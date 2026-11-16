@@ -28,8 +28,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import com.example.cipherappproject.database.models.Lottery
-import com.example.cipherappproject.database.models.LotteryEntry
-import com.example.cipherappproject.database.models.Profile
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -40,7 +38,7 @@ import java.time.LocalDate
 /**
  * Manages Lottery data stored in the Firebase Firestore database.
  *
- * Provides methods to add, retrieve, and update Lottery Availability documents directly from Firestore, as well as methods to search and filter from the local Lottery Availability list.
+ * Provides methods to add, retrieve, and update Lottery Availability documents directly from Firestore, as well as methods to search and filter from the local Lottery Availability list. This local list is inside a state.
  *
  * The local list is synchronized with Firestore using a snapshot listener.
  */
@@ -49,10 +47,10 @@ class LotteryRepository {
 
     private val db = Firebase.firestore
     private val lotteriesRef = db.collection("lotteries")
-    private val _allLotteries = mutableStateListOf<Lottery>()
+    private val _allLotteries = mutableStateOf<List<Lottery>>(emptyList())
 
 
-    val lotteries: List<Lottery>
+    val lotteries: State<List<Lottery>>
         get() = _allLotteries
 
     private val _isLotteriesLoaded = mutableStateOf(false)
@@ -254,7 +252,7 @@ class LotteryRepository {
      *      - null if it does not exist
      */
     fun getLotteryFromListById(lotteryId: String): Lottery? {
-        return _allLotteries.find { it.lotteryId == lotteryId }
+        return _allLotteries.value.find { it.lotteryId == lotteryId }
 
     }
 
@@ -267,7 +265,7 @@ class LotteryRepository {
      * @return List<Lottery>
      */
     fun getLotteriesFromListByOwnerId(ownerId: String): List<Lottery> {
-        return _allLotteries.filter { it.ownerId == ownerId}
+        return _allLotteries.value.filter { it.ownerId == ownerId}
     }
 
 
@@ -279,7 +277,7 @@ class LotteryRepository {
      * @return List<Lottery>
      */
     fun getLotteriesFromListByStatus(status: String): List<Lottery> {
-        return _allLotteries.filter { it.status == status}
+        return _allLotteries.value.filter { it.status == status}
     }
 
 
@@ -292,7 +290,7 @@ class LotteryRepository {
      * @return List<Lottery>
      */
     fun getLotteriesFromListActiveOnDate(date: LocalDate): List<Lottery> {
-        return _allLotteries.filter { lottery ->
+        return _allLotteries.value.filter { lottery ->
             val startDate = LocalDate.parse(lottery.startDate)
             val endDate = LocalDate.parse(lottery.endDate)
 
@@ -308,7 +306,7 @@ class LotteryRepository {
     fun getLotteriesFromListUpcoming(): List<Lottery> {
         val today = LocalDate.now()
 
-        return _allLotteries.filter {
+        return _allLotteries.value.filter {
             LocalDate.parse(it.startDate) > today
         }
     }
@@ -324,7 +322,7 @@ class LotteryRepository {
     fun getLotteriesFromListExpired(): List<Lottery> {
         val today = LocalDate.now()
 
-        return _allLotteries.filter {
+        return _allLotteries.value.filter {
             LocalDate.parse(it.endDate) < today
         }
     }
@@ -342,15 +340,15 @@ class LotteryRepository {
                 return@addSnapshotListener
             }
 
-            _allLotteries.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val lottery = document.toObject(Lottery::class.java) // pass from firestore to kotlin object
-
-                if (lottery != null) {
-                    _allLotteries.add(lottery)
-                }
+            if (snapshot == null) {
+                return@addSnapshotListener
             }
+
+            val updatedLotteries = snapshot.documents.mapNotNull { document ->
+                document.toObject(Lottery::class.java)
+            }
+
+            _allLotteries.value = updatedLotteries
 
             _isLotteriesLoaded.value = true
         }

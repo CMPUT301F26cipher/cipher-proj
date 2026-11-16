@@ -18,6 +18,7 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia       1.06     added exceptions and error handling
 2026-11-08  Sofia       1.07     added queries using the list
 2026-11-12  Sofia       1.08     added state boolean for list local queries.
+2026-11-15  Sofia      1.09     added states to the local list and changes init too
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -27,6 +28,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import com.example.cipherappproject.database.models.LotteryEntry
+import com.example.cipherappproject.database.models.Notification
+import com.example.cipherappproject.database.models.Profile
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -35,7 +38,7 @@ import java.time.LocalDate
 /**
  * Manages Lottery Entry data stored in the Firebase Firestore database.
  *
- * Provides methods to add, retrieve, and update Lottery Entry documents directly from Firestore, as well as methods to search and filter from the local Lottery Entry list.
+ * Provides methods to add, retrieve, and update Lottery Entry documents directly from Firestore, as well as methods to search and filter from the local Lottery Entry list. This local list is inside a state.
  *
  * The local list is synchronized with Firestore using a snapshot listener.
  */
@@ -44,10 +47,10 @@ import java.time.LocalDate
 class LotteryEntryRepository {
     private val db = Firebase.firestore
     private val lotteriesEntryRef = db.collectionGroup("entries")
-    private val _allLotteriesEntries = mutableStateListOf<LotteryEntry>()
+    private val _allLotteriesEntries = mutableStateOf<List<LotteryEntry>>(emptyList())
 
 
-    val lotteries: List<LotteryEntry>
+    val lotteries: State<List<LotteryEntry>>
         get() = _allLotteriesEntries
 
 
@@ -332,7 +335,7 @@ class LotteryEntryRepository {
 
     fun getLotteryEntryFromListById(lotteryId: String, lotteryEntryId: String): LotteryEntry? {
 
-        return _allLotteriesEntries.find {
+        return _allLotteriesEntries.value.find {
 
             it.lotteryId == lotteryId && it.lotteryEntryId == lotteryEntryId
         }
@@ -346,7 +349,7 @@ class LotteryEntryRepository {
      */
     fun getLotteryEntriesFromListByLotteryId(lotteryId: String): List<LotteryEntry> {
 
-        return _allLotteriesEntries.filter {
+        return _allLotteriesEntries.value.filter {
             it.lotteryId == lotteryId
         }
     }
@@ -360,7 +363,7 @@ class LotteryEntryRepository {
      */
     fun getLotteryEntriesFromListByUserId(userId: String): List<LotteryEntry> {
 
-        return _allLotteriesEntries.filter {
+        return _allLotteriesEntries.value.filter {
             it.userId == userId
         }
     }
@@ -374,7 +377,7 @@ class LotteryEntryRepository {
      */
     fun getLotteryEntriesFromListByStatus(status: String): List<LotteryEntry> {
 
-        return _allLotteriesEntries.filter {
+        return _allLotteriesEntries.value.filter {
             it.status == status
         }
     }
@@ -389,7 +392,7 @@ class LotteryEntryRepository {
      */
     fun getLotteryEntryFromListByLotteryIdAndUserId(lotteryId: String, userId: String): LotteryEntry? {
 
-        return _allLotteriesEntries.find {
+        return _allLotteriesEntries.value.find {
             it.lotteryId == lotteryId && it.userId == userId
         }
     }
@@ -402,7 +405,7 @@ class LotteryEntryRepository {
      * @return List<LotteryEntry> --> can be empty list if not match found
      */
     fun getLotteryEntriesFromListByLotteryIdAndStatus(lotteryId: String,status: String): List<LotteryEntry> {
-        return _allLotteriesEntries.filter {
+        return _allLotteriesEntries.value.filter {
 
             it.lotteryId == lotteryId && it.status == status
         }
@@ -417,7 +420,7 @@ class LotteryEntryRepository {
      * @return LotteryEntry? --> null if not match found
      */
     fun getLotteryEntryFromListByLotteryIdAndPosition(lotteryId: String, position: Int): LotteryEntry? {
-        return _allLotteriesEntries.find {
+        return _allLotteriesEntries.value.find {
             it.lotteryId == lotteryId && it.positionLottery == position
         }
     }
@@ -432,7 +435,7 @@ class LotteryEntryRepository {
 
     // https://www.baeldung.com/kotlin/sort
     fun getLotteryEntriesFromListByLotteryIdOrderedByPosition(lotteryId: String): List<LotteryEntry> {
-        return _allLotteriesEntries
+        return _allLotteriesEntries.value
             .filter { it.lotteryId == lotteryId }
 
             /*Taken and learn from OpenAI, ChatGPT on 2026-11-09 on "How can we handle null values in a list"*/
@@ -450,15 +453,14 @@ class LotteryEntryRepository {
                 return@addSnapshotListener
             }
 
-            _allLotteriesEntries.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val lotteryEntry = document.toObject(LotteryEntry::class.java) // pass from firestore to kotlin object
-
-                if (lotteryEntry != null) {
-                    _allLotteriesEntries.add(lotteryEntry)
-                }
+            if (snapshot == null) {
+                return@addSnapshotListener
             }
+
+            val updatedLotteriesEntries = snapshot.documents.mapNotNull { document ->
+                document.toObject(LotteryEntry::class.java)
+            }
+            _allLotteriesEntries.value = updatedLotteriesEntries
 
             _isLotteriesEntriesLoaded.value = true
         }

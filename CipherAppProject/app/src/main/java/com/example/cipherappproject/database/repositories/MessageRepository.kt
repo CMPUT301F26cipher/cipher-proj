@@ -5,6 +5,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import com.example.cipherappproject.database.models.Message
+import com.example.cipherappproject.database.models.Notification
+import com.example.cipherappproject.database.models.Profile
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 
@@ -20,6 +22,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-12  Sofia      1.01     added skeleton
+2026-11-15  Sofia      1.02     added states to the local list and changes init too
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -31,7 +34,7 @@ NA
  *
  * Provides methods to add, retrieve, and update Message documents
  * directly from Firestore, as well as methods to search and filter
- * from the local Message list.
+ * from the local Message list. This local list is inside a state.
  *
  * The local list is synchronized with Firestore using a snapshot listener.
  */
@@ -39,9 +42,9 @@ NA
 class MessageRepository {
     private val db = Firebase.firestore
     private val messagesRef = db.collection("messages")
-    private val _allMessages = mutableStateListOf<Message>()
+    private val _allMessages = mutableStateOf<List<Message>>(emptyList())
 
-    val messages: List<Message>
+    val messages: State<List<Message>>
         get() = _allMessages
 
     private val _isMessagesLoaded = mutableStateOf(false)
@@ -226,7 +229,7 @@ class MessageRepository {
      * @return Message? --> null if not match found
      */
     fun getMessageFromListById(messageId: String): Message? {
-        return _allMessages.find { it.messageId == messageId }
+        return _allMessages.value.find { it.messageId == messageId }
 
     }
 
@@ -239,7 +242,7 @@ class MessageRepository {
      */
 
     fun getMessagesFromListByReservationId(reservationId: String): List<Message> {
-        return _allMessages.filter { it.reservationId == reservationId }
+        return _allMessages.value.filter { it.reservationId == reservationId }
 
     }
 
@@ -253,7 +256,7 @@ class MessageRepository {
      */
 
     fun getMessagesFromListByStatus(status: String): List<Message> {
-        return _allMessages.filter { it.status == status }
+        return _allMessages.value.filter { it.status == status }
 
     }
 
@@ -266,7 +269,7 @@ class MessageRepository {
      *
      */
     fun getMessagesFromListBySenderId(userId: String): List<Message> {
-        return _allMessages.filter { it.fromUserId == userId }
+        return _allMessages.value.filter { it.fromUserId == userId }
     }
 
     /**
@@ -277,7 +280,7 @@ class MessageRepository {
      *
      */
     fun getMessagesFromListByReceiverId(userId: String): List<Message> {
-        return _allMessages.filter { it.toUserId == userId }
+        return _allMessages.value.filter { it.toUserId == userId }
     }
 
     /**
@@ -289,7 +292,7 @@ class MessageRepository {
      *
      */
     fun getMessagesFromListBetweenUsers(userId1: String, userId2: String): List<Message> {
-        return _allMessages.filter {
+        return _allMessages.value.filter {
             (it.fromUserId == userId1 && it.toUserId == userId2) ||
                     (it.fromUserId == userId2 && it.toUserId == userId1)
         }
@@ -301,15 +304,15 @@ class MessageRepository {
                 return@addSnapshotListener
             }
 
-            _allMessages.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val message = document.toObject(Message::class.java) // pass from firestore to kotlin object
-
-                if (message != null) {
-                    _allMessages.add(message)
-                }
+            if (snapshot == null) {
+                return@addSnapshotListener
             }
+
+            val updateMessages = snapshot.documents.mapNotNull { document ->
+                document.toObject(Message::class.java)
+            }
+
+            _allMessages.value = updateMessages
 
             _isMessagesLoaded.value = true
         }

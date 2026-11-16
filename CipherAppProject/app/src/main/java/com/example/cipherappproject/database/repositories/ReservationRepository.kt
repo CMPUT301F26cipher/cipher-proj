@@ -17,6 +17,7 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia      1.06     added exceptions and error handling
 2026-11-08  Sofia      1.07     added queries using the list
 2026-11-12  Sofia      1.08     added state boolean for list local queries.
+2026-11-15  Sofia      1.09     added states to the local list and changes init too
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -28,6 +29,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.Lottery
+import com.example.cipherappproject.database.models.Notification
 import com.example.cipherappproject.database.models.Profile
 import com.example.cipherappproject.database.models.Reservation
 import com.google.android.gms.tasks.Tasks
@@ -38,7 +40,7 @@ import java.time.LocalDate
 /**
  * Manages Reservation data stored in the Firebase Firestore database.
  *
- * Provides methods to add, retrieve, and update Reservation documents directly from Firestore, as well as methods to search and filter from the local Reservation list.
+ * Provides methods to add, retrieve, and update Reservation documents directly from Firestore, as well as methods to search and filter from the local Reservation list. This local list is inside a state.
  *
  * The local list is synchronized with Firestore using a snapshot listener.
  */
@@ -46,10 +48,10 @@ import java.time.LocalDate
 class ReservationRepository {
     private val db = Firebase.firestore
     private val reservationsRef = db.collection("reservations")
-    private val _allReservations = mutableStateListOf<Reservation>()
+    private val _allReservations = mutableStateOf<List<Reservation>>(emptyList())
 
 
-    val reservations: List<Reservation>
+    val reservations: State<List<Reservation>>
         get() = _allReservations
 
 
@@ -243,7 +245,7 @@ class ReservationRepository {
      * @return Reservation? --> null if not match found
      */
     fun getReservationFromListById(reservationId: String): Reservation? {
-        return _allReservations.find { it.reservationId == reservationId }
+        return _allReservations.value.find { it.reservationId == reservationId }
 
     }
 
@@ -255,7 +257,7 @@ class ReservationRepository {
      * @return List<Reservation> --> can be empty list if not match found
      */
     fun getReservationFromListByUserId(userId: String): List<Reservation>  {
-        return _allReservations.filter { it.userId == userId }
+        return _allReservations.value.filter { it.userId == userId }
 
     }
 
@@ -268,7 +270,7 @@ class ReservationRepository {
      */
     fun getReservationsFromListByUserIdAndCampsiteId(userId: String, campsiteId: String
     ): List<Reservation> {
-        return _allReservations.filter {
+        return _allReservations.value.filter {
             it.userId == userId && it.campsiteId == campsiteId
         }
     }
@@ -281,7 +283,7 @@ class ReservationRepository {
      * @return List<Reservation> --> can be empty list if not match found
      */
     fun getReservationsFromListByCampsiteId(campsiteId: String): List<Reservation>  {
-        return _allReservations.filter { it.campsiteId == campsiteId }
+        return _allReservations.value.filter { it.campsiteId == campsiteId }
 
     }
 
@@ -293,7 +295,7 @@ class ReservationRepository {
      * @return List<Reservation> --> can be empty list if not match found
      */
     fun getReservationsFromListByLotteryId(lotteryId: String): List<Reservation>  {
-        return _allReservations.filter { it.lotteryId == lotteryId }
+        return _allReservations.value.filter { it.lotteryId == lotteryId }
 
     }
 
@@ -304,7 +306,7 @@ class ReservationRepository {
      * @return List<Reservation> --> can be empty list if not match found
      */
     fun getReservationsFromListByStatus(status: String): List<Reservation>  {
-        return _allReservations.filter { it.status == status }
+        return _allReservations.value.filter { it.status == status }
 
     }
 
@@ -316,7 +318,7 @@ class ReservationRepository {
      * @return List<Reservation> --> can be empty list if not match found
      */
     fun getReservationsFromListActiveOnDate(date: LocalDate): List<Reservation> {
-        return _allReservations.filter { reservation ->
+        return _allReservations.value.filter { reservation ->
             val startDate = LocalDate.parse(reservation.bookStartDate)
             val endDate = LocalDate.parse(reservation.bookEndDate)
 
@@ -332,15 +334,15 @@ class ReservationRepository {
                 return@addSnapshotListener
             }
 
-            _allReservations.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val reservation = document.toObject(Reservation::class.java) // pass from firestore to kotlin object
-
-                if (reservation != null) {
-                    _allReservations.add(reservation)
-                }
+            if (snapshot == null) {
+                return@addSnapshotListener
             }
+
+            val updatedReservations = snapshot.documents.mapNotNull { document ->
+                document.toObject(Reservation::class.java)
+            }
+
+            _allReservations.value = updatedReservations
 
             _isReservationsLoaded.value = true
         }

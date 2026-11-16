@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 import com.example.cipherappproject.database.models.Campsite
+import com.example.cipherappproject.database.models.Notification
 import com.example.cipherappproject.database.models.Profile
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
@@ -38,7 +39,7 @@ import com.google.firebase.firestore.firestore
  *
  * Provides methods to add, retrieve, and update Campsite documents
  * directly from Firestore, as well as methods to search and filter
- * from the local Campsite list.
+ * from the local Campsite list. This local list is inside a state.
  *
  * The local list is synchronized with Firestore using a snapshot listener.
  */
@@ -46,9 +47,9 @@ import com.google.firebase.firestore.firestore
 class CampsiteRepository {
     private val db = Firebase.firestore
     private val campsitesRef = db.collection("campsites")
-    private val _allCampsites = mutableStateListOf<Campsite>()
+    private val _allCampsites = mutableStateOf<List<Campsite>>(emptyList())
 
-    val campsites: List<Campsite>
+    val campsites: State<List<Campsite>>
         get() = _allCampsites
 
     private val _isCampsitesLoaded = mutableStateOf(false)
@@ -266,7 +267,7 @@ class CampsiteRepository {
      */
     // https://kotlinlang.org/docs/collection-elements.html#retrieve-with-selector
     fun getCampsiteFromListById(campsiteId: String): Campsite? {
-        return _allCampsites.find { it.campsiteId == campsiteId }
+        return _allCampsites.value.find { it.campsiteId == campsiteId }
 
     }
 
@@ -280,7 +281,7 @@ class CampsiteRepository {
 
     // https://www.tutorialspoint.com/kotlin/kotlin_list_contains_function.htm
     fun getCampsiteFromListByName(name: String): List<Campsite> {
-        return _allCampsites.filter { it.campsiteName.contains(name, ignoreCase = true) }
+        return _allCampsites.value.filter { it.campsiteName.contains(name, ignoreCase = true) }
 
     }
 
@@ -293,7 +294,7 @@ class CampsiteRepository {
      */
 
     fun getCampsiteFromListByOwnerId(ownerId: String): List<Campsite> {
-        return _allCampsites.filter { it.ownerId == ownerId }
+        return _allCampsites.value.filter { it.ownerId == ownerId }
 
     }
 
@@ -308,7 +309,7 @@ class CampsiteRepository {
      */
 
     fun getCampsiteFromListByStatus(status: String): List<Campsite> {
-        return _allCampsites.filter { it.status == status }
+        return _allCampsites.value.filter { it.status == status }
 
     }
 
@@ -320,7 +321,7 @@ class CampsiteRepository {
      */
 
     fun getCampsiteFromListLessThanPrice(pricePerNight: Double): List<Campsite> {
-        return _allCampsites.filter { it.pricePerNight < pricePerNight }
+        return _allCampsites.value.filter { it.pricePerNight < pricePerNight }
 
     }
 
@@ -332,7 +333,7 @@ class CampsiteRepository {
      */
 
     fun getCampsiteFromListMoreThanPrice(pricePerNight: Double): List<Campsite> {
-        return _allCampsites.filter { it.pricePerNight > pricePerNight }
+        return _allCampsites.value.filter { it.pricePerNight > pricePerNight }
 
     }
 
@@ -352,7 +353,7 @@ class CampsiteRepository {
         val minPrice = minOf(startPrice, endPrice)
         val maxPrice = maxOf(startPrice, endPrice)
 
-        return _allCampsites.filter {
+        return _allCampsites.value.filter {
             it.pricePerNight in minPrice..maxPrice
         }
 
@@ -369,7 +370,7 @@ class CampsiteRepository {
     fun getCampsitesFromListByAmenities(amenities: List<String>): List<Campsite> {
 
         // filter goes for each campsite in _allCampsites
-        return _allCampsites.filter { campsite ->
+        return _allCampsites.value.filter { campsite ->
 
             // check each amenity for the current campsite
             campsite.amenities.any { campsiteAmenity  ->
@@ -395,19 +396,17 @@ class CampsiteRepository {
                 return@addSnapshotListener
             }
 
-            _allCampsites.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val campsite = document.toObject(Campsite::class.java) // pass from firestore to kotlin object
-
-                if (campsite != null) {
-                    _allCampsites.add(campsite)
-                }
+            if (snapshot == null) {
+                return@addSnapshotListener
             }
+
+            val updatedCampsites = snapshot.documents.mapNotNull { document ->
+                document.toObject(Campsite::class.java)
+            }
+
+            _allCampsites.value = updatedCampsites
 
             _isCampsitesLoaded.value = true
         }
     }
-
-
 }

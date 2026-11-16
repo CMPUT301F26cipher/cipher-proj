@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import com.example.cipherappproject.database.models.Notification
+import com.example.cipherappproject.database.models.Profile
 import com.example.cipherappproject.database.models.Rating
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -19,6 +21,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-12  Sofia      1.01     added skeleton
+2026-11-15  Sofia      1.02     added states to the local list and changes init too
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -30,7 +33,7 @@ NA
  *
  * Provides methods to add, retrieve, and update Rating documents
  * directly from Firestore, as well as methods to search and filter
- * from the local Rating list.
+ * from the local Rating list. This local list is inside a state.
  *
  * The local list is synchronized with Firestore using a snapshot listener.
  */
@@ -38,9 +41,9 @@ NA
 class RatingRepository {
     private val db = Firebase.firestore
     private val ratingsRef = db.collection("ratings")
-    private val _allRatings = mutableStateListOf<Rating>()
+    private val _allRatings = mutableStateOf<List<Rating>>(emptyList())
 
-    val ratings: List<Rating>
+    val ratings: State<List<Rating>>
         get() = _allRatings
 
     private val _isRatingsLoaded = mutableStateOf(false)
@@ -224,7 +227,7 @@ class RatingRepository {
      */
     // https://kotlinlang.org/docs/collection-elements.html#retrieve-with-selector
     fun getRatingFromListById(ratingId: String): Rating? {
-        return _allRatings.find { it.ratingId == ratingId }
+        return _allRatings.value.find { it.ratingId == ratingId }
 
     }
 
@@ -235,7 +238,7 @@ class RatingRepository {
      * @return List<Rating> --> can be empty list if not match found
      */
     fun getRatingsFromListByCampsiteId(campsiteId: String): List<Rating> {
-        return _allRatings.filter { it.campsiteId == campsiteId }
+        return _allRatings.value.filter { it.campsiteId == campsiteId }
     }
 
     /**
@@ -245,7 +248,7 @@ class RatingRepository {
      * @return List<Rating> --> can be empty list if not match found
      */
     fun getRatingsFromListByUserId(userId: String): List<Rating> {
-        return _allRatings.filter { it.userId == userId }
+        return _allRatings.value.filter { it.userId == userId }
     }
 
     /**
@@ -255,7 +258,7 @@ class RatingRepository {
      * @return List<Rating> --> can be empty list if not match found
      */
     fun getRatingsFromListByStatus(status: String): List<Rating> {
-        return _allRatings.filter { it.status == status }
+        return _allRatings.value.filter { it.status == status }
     }
 
     /**
@@ -265,7 +268,7 @@ class RatingRepository {
      * @return List<Rating> --> can be empty list if not match found
      */
     fun getRatingsFromListByCampsiteIdSorted(campsiteId: String): List<Rating> {
-        return _allRatings
+        return _allRatings.value
             .filter { it.campsiteId == campsiteId }
             .sortedByDescending { it.createdAt }
     }
@@ -277,15 +280,15 @@ class RatingRepository {
                 return@addSnapshotListener
             }
 
-            _allRatings.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val rating = document.toObject(Rating::class.java) // pass from firestore to kotlin object
-
-                if (rating != null) {
-                    _allRatings.add(rating)
-                }
+            if (snapshot == null) {
+                return@addSnapshotListener
             }
+
+            val updatedRatings = snapshot.documents.mapNotNull { document ->
+                document.toObject(Rating::class.java)
+            }
+
+            _allRatings.value = updatedRatings
 
             _isRatingsLoaded.value = true
         }

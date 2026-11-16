@@ -17,6 +17,7 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia      1.05     added exceptions and error handling. Commented deviceId for now.
 2026-11-08  Sofia      1.07     added queries using the list
 2026-11-12  Sofia      1.08     added phone number, state boolean for list local queries.
+2026-11-15  Sofia      1.09     added states to the local list and changes init too
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -26,7 +27,6 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.Profile
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
@@ -40,7 +40,7 @@ import androidx.compose.runtime.State
  *
  * Provides methods to add, retrieve, and update profile documents
  * directly from Firestore, as well as methods to search and filter
- * from the local profile list.
+ * from the local profile list. This local list is inside a state.
  *
  * The local list is synchronized with Firestore using a snapshot listener.
  */
@@ -48,9 +48,13 @@ class ProfileRepository {
 
     private val db = Firebase.firestore
     private val profilesRef = db.collection("profiles")
-    private val _allProfiles = mutableStateListOf<Profile>()
 
-    val profiles: List<Profile>
+
+    /*Taken and learn from OpenAI, ChatGPT on 2026-11-15
+    on "How to avoid empty in between list? using states? "*/
+    private val _allProfiles = mutableStateOf<List<Profile>>(emptyList())
+
+    val profiles: State<List<Profile>>
         get() = _allProfiles
 
     /*Taken and learn from OpenAI, ChatGPT on 2026-11-10
@@ -255,8 +259,9 @@ class ProfileRepository {
      */
     // https://kotlinlang.org/docs/collection-elements.html#retrieve-with-selector
     fun getProfileFromListById(profileId: String): Profile? {
-        return _allProfiles.find { it.profileId == profileId }
-
+        return _allProfiles.value.find {
+            it.profileId == profileId
+        }
     }
 
     /**
@@ -266,7 +271,7 @@ class ProfileRepository {
      * @return Profile? --> null if not match found
      */
     fun getProfileFromListByDeviceId(deviceId: String): Profile? {
-        return _allProfiles.find { it.deviceId == deviceId }
+        return _allProfiles.value.find { it.deviceId == deviceId }
 
     }
 
@@ -281,7 +286,7 @@ class ProfileRepository {
     // https://www.baeldung.com/kotlin/list-filtering
     // https://softwarebits.substack.com/p/case-insensitive-equality-checking
     fun getProfilesFromListByName(profileName: String): List<Profile> {
-        return _allProfiles.filter { it.name.contains(profileName, ignoreCase = true) }
+        return _allProfiles.value.filter { it.name.contains(profileName, ignoreCase = true) }
 
     }
 
@@ -294,7 +299,7 @@ class ProfileRepository {
      */
 
     fun getProfileFromListByEmail(profileEmail: String): Profile? {
-        return _allProfiles.find { it.email == profileEmail}
+        return _allProfiles.value.find { it.email == profileEmail}
 
     }
 
@@ -307,7 +312,7 @@ class ProfileRepository {
 
     // Taken and learn from OpenAI, ChatPGT on 09-11-2026 with the question of "How to check and return an element in list in kotlin? can we use filter on it too?"
     fun getProfilesFromListByRole(profileRole: String): List<Profile> {
-        return _allProfiles.filter { profile ->
+        return _allProfiles.value.filter { profile ->
             // filter add an item that is true
             profile.role.any { role ->
                 // any check if the current profile has the role in the role list and then if it does filter add it
@@ -325,7 +330,7 @@ class ProfileRepository {
      */
 
     fun getProfilesFromListByStatus(profileStatus: String): List<Profile> {
-        return _allProfiles.filter { it.status == profileStatus}
+        return _allProfiles.value.filter { it.status == profileStatus}
 
     }
 
@@ -336,19 +341,18 @@ class ProfileRepository {
                 return@addSnapshotListener
             }
 
-            _allProfiles.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val profile = document.toObject(Profile::class.java) // pass from firestore to kotlin object
-
-                if (profile != null) {
-                    _allProfiles.add(profile)
-                }
+            if (snapshot == null) {
+                return@addSnapshotListener
             }
+
+            val updatedProfiles = snapshot.documents.mapNotNull { document ->
+                document.toObject(Profile::class.java)
+            }
+
+            _allProfiles.value = updatedProfiles
 
             _isProfilesLoaded.value = true
         }
     }
-
 
 }
