@@ -9,7 +9,7 @@ import com.example.cipherappproject.database.repositories.NotificationRepository
 import com.example.cipherappproject.database.repositories.ProfileRepository
 import com.example.cipherappproject.database.repositories.RatingRepository
 import com.example.cipherappproject.database.repositories.ReservationRepository
-import com.example.cipherappproject.database.services.ProfileDeletionService
+import com.example.cipherappproject.database.services.ProfileDeletion
 
 /*
 --------------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ object RepositoryDatabase {
     val notificationRepository = NotificationRepository()
     val messageRepository = MessageRepository()
 
-    val profileDeletionService = ProfileDeletionService(
+    val profileDeletion = ProfileDeletion(
         profileRepository,
         reservationRepository,
         lotteryRepository,
