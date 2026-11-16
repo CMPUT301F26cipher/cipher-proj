@@ -18,6 +18,7 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia      1.07     added queries using the list
 2026-11-12  Sofia      1.08     added phone number, state boolean for list local queries.
 2026-11-15  Sofia      1.09     added states to the local list and changes init too
+2026-11-15  Sofia      1.10     added custom exceptions
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -32,7 +33,9 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import androidx.compose.runtime.State
-
+import com.example.cipherappproject.database.exceptions.DataConversionException
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
 
 
 /**
@@ -148,7 +151,7 @@ class ProfileRepository {
         //https://medium.com/@niranjanky14/4-kotlin-advanced-exception-17daf07ea51a
         if (profile.profileId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("profile ID cannot be empty.")
+                ValidationException("profile ID cannot be empty.")
             ))
             return
         }
@@ -163,7 +166,7 @@ class ProfileRepository {
 
             // if object do not exist
             if (!snapshot.exists()) {
-                throw NoSuchElementException("Profile does not exist.")
+                throw NotFoundException("Profile does not exist.")
             }
 
             transaction.set(profileRef, profile)
@@ -204,6 +207,12 @@ class ProfileRepository {
         result: (Result<Profile>) -> Unit
 
     ){
+        if (profileId.isBlank()) {
+            result(Result.failure(
+                ValidationException("profile ID cannot be empty.")
+            ))
+            return
+        }
 
         profilesRef
             .document(profileId)
@@ -213,7 +222,7 @@ class ProfileRepository {
                 // if the document do not exist --> Profile do not exist
                 if (!document.exists()) {
                     result(Result.failure(
-                        NoSuchElementException("Profile does not exist.")
+                        NotFoundException("Profile does not exist.")
                     ))
                     return@addOnSuccessListener // we return the object so that it do not continue the next lines
                 }
@@ -230,7 +239,7 @@ class ProfileRepository {
                 // if conversion was successful
                 if (profile == null) {
                     result(Result.failure(
-                        IllegalStateException("Failed to convert document to Profile.")
+                        DataConversionException("Failed to convert document to Profile.")
                     ))
                     return@addOnSuccessListener
                 }

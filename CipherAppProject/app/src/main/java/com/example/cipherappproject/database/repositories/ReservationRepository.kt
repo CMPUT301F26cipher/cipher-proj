@@ -18,6 +18,7 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia      1.07     added queries using the list
 2026-11-12  Sofia      1.08     added state boolean for list local queries.
 2026-11-15  Sofia      1.09     added states to the local list and changes init too
+2026-11-15  Sofia      1.10     added custom exceptions
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -27,6 +28,9 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import com.example.cipherappproject.database.exceptions.DataConversionException
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.Notification
@@ -139,7 +143,7 @@ class ReservationRepository {
 
         if (reservation.reservationId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Reservation ID cannot be empty.")
+                ValidationException("Reservation ID cannot be empty.")
             ))
             return
         }
@@ -151,7 +155,7 @@ class ReservationRepository {
 
             // if object do not exist
             if (!snapshot.exists()) {
-                throw NoSuchElementException("reservation does not exist.")
+                throw NotFoundException("reservation does not exist.")
             }
 
             transaction.set(reservationRef, reservation)
@@ -194,7 +198,7 @@ class ReservationRepository {
     ){
         if (reservationId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Reservation ID cannot be empty.")
+                ValidationException("Reservation ID cannot be empty.")
             ))
             return
         }
@@ -207,7 +211,7 @@ class ReservationRepository {
                 // if the document do not exist --> Reservation do not exist
                 if (!document.exists()) {
                     result(Result.failure(
-                        NoSuchElementException("Reservation does not exist.")
+                        NotFoundException("Reservation does not exist.")
                     ))
                     return@addOnSuccessListener // we return the object so that it do not continue the next lines
                 }
@@ -222,7 +226,7 @@ class ReservationRepository {
                 // if conversion was successful
                 if (reservation == null) {
                     result(Result.failure(
-                        IllegalStateException("Failed to convert document to Reservation.")
+                        DataConversionException("Failed to convert document to Reservation.")
                     ))
                     return@addOnSuccessListener
                 }

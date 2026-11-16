@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import com.example.cipherappproject.database.exceptions.DataConversionException
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Message
 import com.example.cipherappproject.database.models.Notification
 import com.example.cipherappproject.database.models.Profile
@@ -23,6 +26,7 @@ Modification History:
 Date        Person     CSR#     Description
 2026-11-12  Sofia      1.01     added skeleton
 2026-11-15  Sofia      1.02     added states to the local list and changes init too
+2026-11-15  Sofia      1.03     added custom exceptions
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -123,7 +127,7 @@ class MessageRepository {
 
         if (messageId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Message ID cannot be empty.")
+                ValidationException("Message ID cannot be empty.")
             ))
             return
         }
@@ -137,7 +141,7 @@ class MessageRepository {
                 // if the document do not exist --> Message do not exist
                 if (!document.exists()) {
                     result(Result.failure(
-                        NoSuchElementException("Message does not exist.")
+                        NotFoundException("Message does not exist.")
                     ))
                     return@addOnSuccessListener // we return the object so that it do not continue the next lines
                 }
@@ -153,7 +157,7 @@ class MessageRepository {
                 // if conversion was successful
                 if (message == null) {
                     result(Result.failure(
-                        IllegalStateException("Failed to convert document to Message.")
+                        DataConversionException("Failed to convert document to Message.")
                     ))
                     return@addOnSuccessListener
                 }
@@ -187,7 +191,7 @@ class MessageRepository {
 
         if (message.messageId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Message ID cannot be empty.")
+                ValidationException("Message ID cannot be empty.")
             ))
             return
         }
@@ -200,7 +204,7 @@ class MessageRepository {
 
             // if object do not exist
             if (!snapshot.exists()) {
-                throw NoSuchElementException("Message does not exist.")
+                throw NotFoundException("Message does not exist.")
             }
 
             transaction.set(messageRef, message)

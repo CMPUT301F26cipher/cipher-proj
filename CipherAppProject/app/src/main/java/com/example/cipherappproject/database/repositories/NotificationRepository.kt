@@ -4,6 +4,9 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import com.example.cipherappproject.database.exceptions.DataConversionException
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Notification
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -20,6 +23,7 @@ Modification History:
 Date        Person     CSR#     Description
 2026-11-12  Sofia      1.01     added skeleton
 2026-11-15  Sofia      1.02     added states to the local list and changes init too
+2026-11-15  Sofia      1.03     added custom exceptions
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -122,7 +126,7 @@ class NotificationRepository {
 
         if (notificationId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Notification ID cannot be empty.")
+                ValidationException("Notification ID cannot be empty.")
             ))
             return
         }
@@ -136,7 +140,7 @@ class NotificationRepository {
                 // if the document do not exist --> Notification do not exist
                 if (!document.exists()) {
                     result(Result.failure(
-                        NoSuchElementException("Notification does not exist.")
+                        NotFoundException("Notification does not exist.")
                     ))
                     return@addOnSuccessListener // we return the object so that it do not continue the next lines
                 }
@@ -153,7 +157,7 @@ class NotificationRepository {
                 // if conversion was successful
                 if (notification == null) {
                     result(Result.failure(
-                        IllegalStateException("Failed to convert document to Notification.")
+                        DataConversionException("Failed to convert document to Notification.")
                     ))
                     return@addOnSuccessListener
                 }
@@ -186,7 +190,7 @@ class NotificationRepository {
         //https://medium.com/@niranjanky14/4-kotlin-advanced-exception-17daf07ea51a
         if (notification.notificationId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Notification ID cannot be empty.")
+                ValidationException("Notification ID cannot be empty.")
             ))
             return
         }
@@ -199,7 +203,7 @@ class NotificationRepository {
 
             // if object do not exist
             if (!snapshot.exists()) {
-                throw NoSuchElementException("Notification does not exist.")
+                throw NotFoundException("Notification does not exist.")
             }
 
             transaction.set(notificationRef, notification)

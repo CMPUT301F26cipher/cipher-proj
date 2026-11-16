@@ -18,6 +18,7 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia       1.06     added exceptions and error handling
 2026-11-08  Sofia       1.07     added queries using the list
 2026-11-12  Sofia       1.08     added rules, policies and comments. Also added state boolean for list local queries.
+2026-11-15  Sofia       1.10     added custom exceptions
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -27,6 +28,9 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
+import com.example.cipherappproject.database.exceptions.DataConversionException
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.Notification
 import com.example.cipherappproject.database.models.Profile
@@ -161,7 +165,7 @@ class CampsiteRepository {
 
         if (campsiteId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Campsite ID cannot be empty.")
+                ValidationException("Campsite ID cannot be empty.")
             ))
             return
         }
@@ -175,7 +179,7 @@ class CampsiteRepository {
                 // if the document do not exist --> campsite do not exist
                 if (!document.exists()) {
                     result(Result.failure(
-                        NoSuchElementException("Campsite does not exist.")
+                        NotFoundException("Campsite does not exist.")
                     ))
                     return@addOnSuccessListener // we return the object so that it do not continue the next lines
                 }
@@ -192,7 +196,7 @@ class CampsiteRepository {
                 // if conversion was successful
                 if (campsite == null) {
                     result(Result.failure(
-                        IllegalStateException("Failed to convert document to Campsite.")
+                        DataConversionException("Failed to convert document to Campsite.")
                     ))
                     return@addOnSuccessListener
                 }
@@ -225,7 +229,7 @@ class CampsiteRepository {
         //https://medium.com/@niranjanky14/4-kotlin-advanced-exception-17daf07ea51a
         if (campsite.campsiteId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Campsite ID cannot be empty.")
+                ValidationException("Campsite ID cannot be empty.")
             ))
             return
         }
@@ -238,7 +242,7 @@ class CampsiteRepository {
 
             // if object do not exist
             if (!snapshot.exists()) {
-                throw NoSuchElementException("Campsite does not exist.")
+                throw NotFoundException("Campsite does not exist.")
             }
 
             transaction.set(campsiteRef, campsite)

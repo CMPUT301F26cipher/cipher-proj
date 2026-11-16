@@ -18,7 +18,8 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia       1.06     added exceptions and error handling
 2026-11-08  Sofia       1.07     added queries using the list
 2026-11-12  Sofia       1.08     added state boolean for list local queries.
-2026-11-15  Sofia      1.09     added states to the local list and changes init too
+2026-11-15  Sofia       1.09     added states to the local list and changes init too
+2026-11-15  Sofia       1.10     added custom exceptions and get by single lottery entry id
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -27,6 +28,9 @@ NA
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import com.example.cipherappproject.database.exceptions.DataConversionException
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.LotteryEntry
 import com.example.cipherappproject.database.models.Notification
 import com.example.cipherappproject.database.models.Profile
@@ -38,7 +42,9 @@ import java.time.LocalDate
 /**
  * Manages Lottery Entry data stored in the Firebase Firestore database.
  *
- * Provides methods to add, retrieve, and update Lottery Entry documents directly from Firestore, as well as methods to search and filter from the local Lottery Entry list. This local list is inside a state.
+ * Provides methods to add, retrieve, and update Lottery Entry documents
+ * directly from Firestore, as well as methods to search and filter
+ * from the local Lottery Entry list. This local list is inside a state.
  *
  * The local list is synchronized with Firestore using a snapshot listener.
  */
@@ -91,7 +97,7 @@ class LotteryEntryRepository {
 
             // Check if the parent lottery exists
             if (!lotterySnapshot.exists()) {
-                throw NoSuchElementException("Lottery does not exist.")
+                throw NotFoundException("Lottery does not exist.")
             }
 
             val lotteryEntryRef = lotteryRef
@@ -141,7 +147,7 @@ class LotteryEntryRepository {
         // Check IDs
         if (lotteryEntryId.isBlank() || lotteryId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Lottery or lottery entry ID cannot be empty.")
+                ValidationException("Lottery or lottery entry ID cannot be empty.")
             ))
             return
         }
@@ -159,21 +165,21 @@ class LotteryEntryRepository {
 
             // Check whether lottery exists
             if (!lotterySnapshot.exists()) {
-                throw NoSuchElementException("Lottery does not exist.")
+                throw NotFoundException("Lottery does not exist.")
             }
 
             val entrySnapshot = transaction.get(lotteryEntryRef)
 
             // Check whether lottery entry exists
             if (!entrySnapshot.exists()) {
-                throw NoSuchElementException("Lottery entry does not exist.")
+                throw NotFoundException("Lottery entry does not exist.")
             }
 
             // Check whether entry belongs to the specified lottery
             val storedLotteryId = entrySnapshot.getString("lotteryId")
 
             if (storedLotteryId != lotteryId) {
-                throw IllegalArgumentException(
+                throw ValidationException(
                     "The lottery entry does not belong to this lottery."
                 )
             }
@@ -201,7 +207,69 @@ class LotteryEntryRepository {
     */
 
     /**
-     * retrieves LotteryEntry
+     * Retrieves a LotteryEntry object.
+     *
+     * @param lotteryEntryId unique identifier of the lottery entry
+     * @param lotteryId unique identifier of the parent lottery
+     * @param result callback providing:
+     *      - Result.success(LotteryEntry) if successful
+     *      - Result.failure(exception) if unsuccessful
+     */
+    fun getLotteryEntryById(
+        lotteryEntryId: String,
+        lotteryId: String,
+        result: (Result<LotteryEntry>) -> Unit
+    ) {
+        // Check IDs
+        if (lotteryEntryId.isBlank() || lotteryId.isBlank()) {
+            result(Result.failure(
+                ValidationException(
+                    "Lottery ID and lottery entry ID cannot be empty."
+                )
+            ))
+            return
+        }
+
+        val lotteryEntryRef = db
+            .collection("lotteries")
+            .document(lotteryId)
+            .collection("entries")
+            .document(lotteryEntryId)
+
+        lotteryEntryRef
+            .get()
+            .addOnSuccessListener { document ->
+
+                // Check whether entry exists
+                if (!document.exists()) {
+                    result(Result.failure(
+                        NotFoundException("Lottery entry does not exist.")
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                // Convert document into LotteryEntry object
+                val lotteryEntry = document.toObject(LotteryEntry::class.java)
+
+                // Check whether conversion was successful
+                if (lotteryEntry == null) {
+                    result(Result.failure(
+                        DataConversionException(
+                            "Failed to convert document to lotteryEntry."
+                        )
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                result(Result.success(lotteryEntry))
+            }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
+            }
+    }
+
+    /**
+     * retrieves LotteryEntries
      *
      * @param lotteryId
      * @param result lamba function that has Result and if:

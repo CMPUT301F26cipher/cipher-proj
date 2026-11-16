@@ -18,8 +18,8 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia       1.06     added exceptions and error handling
 2026-11-08  Sofia       1.07     added queries using the list. Modified added as a transaction query.
 2026-11-12  Sofia       1.08     added state boolean for list local queries.
-2026-11-15  Sofia      1.09     added states to the local list and changes init too
-
+2026-11-15  Sofia       1.09     added states to the local list and changes init too
+2026-11-15  Sofia       1.10     added custom exceptions
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -30,6 +30,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import com.example.cipherappproject.database.enums.CampsiteAvailabilityStatus
 import com.example.cipherappproject.database.enums.ReservationStatus
+import com.example.cipherappproject.database.exceptions.DataConversionException
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.CampsiteAvailability
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
@@ -96,7 +99,7 @@ class CampsiteAvailabilityRepository (
 
             // check if the parent campsite exists
             if (!campsiteSnapshot.exists()) {
-                throw NoSuchElementException("Campsite does not exist.")
+                throw NotFoundException("Campsite does not exist.")
             }
 
             val campsiteAvailabilityRef = campsiteRef
@@ -149,7 +152,7 @@ class CampsiteAvailabilityRepository (
         //https://medium.com/@niranjanky14/4-kotlin-advanced-exception-17daf07ea51a
         if (campsiteAvailabilityId.isBlank() || campsiteId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Campsite or campsiteAvailability ID cannot be empty.")
+                ValidationException("Campsite or campsiteAvailability ID cannot be empty.")
             ))
             return
         }
@@ -166,16 +169,14 @@ class CampsiteAvailabilityRepository (
 
             // if object do not exist
             if (!campsiteSnapshot.exists()) {
-                throw NoSuchElementException("Campsite does not exist.")
+                throw NotFoundException("Campsite does not exist.")
             }
 
 
             val availabilitySnapshot = transaction.get(campsiteAvailabilityRef)
 
             if (!availabilitySnapshot.exists()) {
-                throw NoSuchElementException(
-                    "The availability for this campsite does not exist."
-                )
+                throw NotFoundException("The availability for this campsite does not exist.")
             }
 
             // Check whether availability belongs to the specified campsite
@@ -183,9 +184,7 @@ class CampsiteAvailabilityRepository (
 
             // https://medium.com/@niranjanky14/4-kotlin-advanced-exception-17daf07ea51a
             if (storedCampsiteId != campsiteId) {
-                throw IllegalArgumentException(
-                    "The availability does not belong to this campsite."
-                )
+                throw ValidationException("The availability does not belong to this campsite.")
             }
 
             // Update availability
@@ -223,7 +222,7 @@ class CampsiteAvailabilityRepository (
         // Check IDs
         if (campsiteAvailabilityId.isBlank() || campsiteId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException(
+                ValidationException(
                     "Campsite or campsiteAvailability ID cannot be empty."
                 )
             ))
@@ -243,20 +242,19 @@ class CampsiteAvailabilityRepository (
                 // Check whether availability exists
                 if (!document.exists()) {
                     result(Result.failure(
-                        NoSuchElementException(
+                        NotFoundException(
                             "Campsite availability does not exist."
                         )
                     ))
                     return@addOnSuccessListener
                 }
 
-                val campsiteAvailability =
-                    document.toObject(CampsiteAvailability::class.java)
+                val campsiteAvailability = document.toObject(CampsiteAvailability::class.java)
 
                 // Check whether conversion was successful
                 if (campsiteAvailability == null) {
                     result(Result.failure(
-                        IllegalStateException(
+                        DataConversionException(
                             "Failed to convert document to CampsiteAvailability."
                         )
                     ))
@@ -288,7 +286,7 @@ class CampsiteAvailabilityRepository (
         // Check campsite ID
         if (campsiteId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Campsite ID cannot be empty.")
+                ValidationException("Campsite ID cannot be empty.")
             ))
             return
         }
@@ -303,7 +301,7 @@ class CampsiteAvailabilityRepository (
 
                 if (!campsiteDocument.exists()) {
                     result(Result.failure(
-                        NoSuchElementException("Campsite does not exist.")
+                        NotFoundException("Campsite does not exist.")
                     ))
                     return@addOnSuccessListener
                 }

@@ -18,6 +18,7 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia      1.06     added exceptions and error handling
 2026-11-08  Sofia      1.07     added queries using the list
 2026-11-12  Sofia      1.08     deleted created at and added state boolean for list local queries.
+2026-11-15  Sofia      1.09     added custom exceptions
 --------------------------------------------------------------------------------------
 Future Enhancements
 More secure measures/validation if needed????
@@ -27,6 +28,9 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import com.example.cipherappproject.database.exceptions.DataConversionException
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Lottery
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
@@ -132,7 +136,7 @@ class LotteryRepository {
         //https://medium.com/@niranjanky14/4-kotlin-advanced-exception-17daf07ea51a
         if (lottery.lotteryId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Lottery ID cannot be empty.")
+                ValidationException("Lottery ID cannot be empty.")
             ))
             return
         }
@@ -146,7 +150,7 @@ class LotteryRepository {
 
             // if object do not exist
             if (!snapshot.exists()) {
-                throw NoSuchElementException("Lottery does not exist.")
+                throw NotFoundException("Lottery does not exist.")
             }
 
             transaction.set(lotteryRef, lottery)
@@ -194,7 +198,7 @@ class LotteryRepository {
 
         if (lotteryId.isBlank()) {
             result(Result.failure(
-                IllegalArgumentException("Lottery ID cannot be empty.")
+                ValidationException("Lottery ID cannot be empty.")
             ))
             return
         }
@@ -207,7 +211,7 @@ class LotteryRepository {
                 // if the document do not exist --> Lottery do not exist
                 if (!document.exists()) {
                     result(Result.failure(
-                        NoSuchElementException("Lottery does not exist.")
+                        NotFoundException("Lottery does not exist.")
                     ))
                     return@addOnSuccessListener // we return the object so that it do not continue the next lines
                 }
@@ -224,7 +228,7 @@ class LotteryRepository {
                 // if conversion was successful
                 if (lottery == null) {
                     result(Result.failure(
-                        IllegalStateException("Failed to convert document to Lottery.")
+                        DataConversionException("Failed to convert document to Lottery.")
                     ))
                     return@addOnSuccessListener
                 }
