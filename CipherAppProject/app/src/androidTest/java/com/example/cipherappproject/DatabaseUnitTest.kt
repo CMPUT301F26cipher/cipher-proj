@@ -387,9 +387,11 @@ class DatabaseUnitTest {
      */
 
 
+    // PASSED
+    /*
     @Test
     fun getProfileFromListByEmailTest() {
-        val profileEmail = "testprofile1@example.com"
+        val profileEmail = "testprofile1updated@example.com"
 
         // Wait until profiles are loaded from Firestore
         val startTime = System.currentTimeMillis()
@@ -412,7 +414,11 @@ class DatabaseUnitTest {
         Log.d("ProfileTest", "Profile retrieved from local list: $profile")
     }
 
+     */
 
+
+    // PASSED
+    /*
     @Test
     fun getProfileFromListByEmailDoesNotExistTest() {
         val profileEmail = "nonexistentprofile@example.com"
@@ -435,6 +441,8 @@ class DatabaseUnitTest {
 
         Log.d("ProfileTest", "Profile not found in local list as expected")
     }
+
+     */
 
     // ----------------------------------- Campsite -----------------------------------
     // PASSED

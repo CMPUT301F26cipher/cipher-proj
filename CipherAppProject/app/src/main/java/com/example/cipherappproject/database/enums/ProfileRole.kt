@@ -26,7 +26,7 @@ NA
 
 
 enum class ProfileRole {
-    USER,
+    ENTRANT,
     OWNER,
     ADMIN
 }
