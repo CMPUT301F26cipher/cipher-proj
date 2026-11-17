@@ -1,3 +1,4 @@
+/*
 package com.example.cipherappproject.ui.lottery
 
 import androidx.compose.runtime.Composable
@@ -44,3 +45,5 @@ fun CreateLotteryView(
         }
     )
 }
+
+ */

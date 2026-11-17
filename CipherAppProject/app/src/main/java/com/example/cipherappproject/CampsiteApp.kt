@@ -1,3 +1,4 @@
+/*
 package com.example.cipherappproject
 
 import androidx.compose.foundation.layout.padding
@@ -213,3 +214,5 @@ private fun navigateToTab(navController: NavController, route: String) {
         restoreState = true
     }
 }
+
+ */

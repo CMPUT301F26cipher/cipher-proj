@@ -1,3 +1,4 @@
+/*
 package com.example.cipherappproject
 
 import androidx.compose.foundation.layout.Arrangement
@@ -64,3 +65,5 @@ fun CampsiteSearch(
         }
     }
 }
+
+ */

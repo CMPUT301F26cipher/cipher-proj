@@ -1,12 +1,17 @@
 package com.example.cipherappproject
 
 import android.util.Log
+import com.example.cipherappproject.database.enums.ProfileRole
+import com.example.cipherappproject.database.enums.ProfileStatus
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.CampsiteAvailability
 import com.example.cipherappproject.database.models.Profile
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
 import com.example.cipherappproject.database.models.Reservation
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 import com.example.cipherappproject.database.repositories.CampsiteRepository
 import com.example.cipherappproject.database.repositories.CampsiteAvailabilityRepository
 import com.example.cipherappproject.database.repositories.ProfileRepository
@@ -16,6 +21,8 @@ import com.example.cipherappproject.database.repositories.LotteryEntryRepository
 
 import junit.framework.TestCase
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
 import junit.framework.TestCase.fail
 import org.junit.Assert
@@ -30,29 +37,35 @@ class DatabaseUnitTest {
 
     // https://developer.android.com/reference/android/util/Log?_gl=1*1sppqts*_up*MQ..*_ga*MTI0MDY1MDM0Ny4xNzk0MDA4OTMy*_ga_6HH9YJMN9M*czE3OTQwMDg5MzIkbzEkZzAkdDE3OTQwMDg5MzIkajYwJGwwJGg1MTA0NzgzNjY.#d(java.lang.String,%20java.lang.String)
     // ----------------------------------- Profile -----------------------------------
+    //private val profileRepo = ProfileRepository()
+    private val profileRepo = RepositoryDatabase.profileRepository
+
     // PASSED
     /*
     @Test
-    fun addProfileTest(){
-        val repository = ProfileRepository()
+    fun addProfileTest() {
 
         // Dummy profile data
-        val name = "Test Profile 4"
-        val email = "testprofile4@example.com"
-        val role = listOf("owner")
-        val imageProfilePath = "test/profile4.jpg"
-        val deviceId = "TEST_DEVICE_004"
-        val status = "active"
+        val name = "Test Profile 2"
+        val email = "testprofile2@example.com"
+        val role = listOf(ProfileRole.USER.name)
+        val imageProfilePath = "test/profile1.jpg"
+        val deviceId = "TEST_DEVICE_001"
+        val status = ProfileStatus.ACTIVE.name
+        val phoneNumber = "7801234567"
+        val notificationsEnabled = true
 
         // Add profile to Firestore
         val addResult = awaitCallback<Result<String>> { callback ->
-            repository.addProfile(
+            profileRepo.addProfile(
                 name = name,
                 email = email,
                 role = role,
                 imageProfilePath = imageProfilePath,
                 deviceId = deviceId,
                 status = status,
+                phoneNumber = phoneNumber,
+                notificationsEnabled = notificationsEnabled,
                 result = callback
             )
         }
@@ -60,46 +73,38 @@ class DatabaseUnitTest {
         // Check whether the operation succeeded
         assertTrue("Profile should be added successfully", addResult.isSuccess)
 
-        // get campsite ID or throw the Firebase exception
+        // Get profile ID
         val profileId = addResult.getOrThrow()
 
         assertTrue("Profile ID should not be empty", profileId.isNotBlank())
 
         Log.d("ProfileTest", "Profile added successfully: $profileId")
     }
+
      */
+
 
     // PASSED
     /*
     @Test
     fun getProfileByIdExistsTest() {
-        val repository = ProfileRepository()
+        val profileRepo = RepositoryDatabase.profileRepository
 
-        // Dummy profile data
-        val profileId = "k2UN9ELUfggZ1GLCfYFH"
+        val profileId = "gaNX38oDMm5b3XbCnsKh"
 
-
-        // Dummy profile data
-        val name = "Test Profile"
-        val email = "testprofile@example.com"
-        val role = listOf("admin", "user", "owner")
-        val imageProfilePath = "test/profile.jpg"
+        // Expected profile data
+        val name = "Test Profile 1"
+        val email = "testprofile1@example.com"
+        val role = listOf("owner")
+        val imageProfilePath = "test/profile1.jpg"
         val deviceId = "TEST_DEVICE_001"
         val status = "active"
-
-        val expectedProfile = Profile(
-            profileId = profileId,
-            name = name,
-            email = email,
-            role = role,
-            imageProfilePath = imageProfilePath,
-            deviceId = deviceId,
-            status = status
-        )
+        val phoneNumber = "7801234567"
+        val notificationsEnabled = true
 
         // Retrieve profile
         val getResult = awaitCallback<Result<Profile>> { callback ->
-            repository.getProfileById(profileId, callback)
+            profileRepo.getProfileById(profileId, callback)
         }
 
         assertTrue("Profile retrieval should succeed", getResult.isSuccess)
@@ -107,172 +112,276 @@ class DatabaseUnitTest {
         val actualProfile = getResult.getOrThrow()
 
         // Compare both objects
-        assertEquals(expectedProfile, actualProfile)
+        assertEquals(profileId, actualProfile.profileId)
+        assertEquals(name, actualProfile.name)
+        assertEquals(email, actualProfile.email)
+        assertEquals(role, actualProfile.role)
+        assertEquals(imageProfilePath, actualProfile.imageProfilePath)
+        assertEquals(deviceId, actualProfile.deviceId)
+        assertEquals(status, actualProfile.status)
+        assertEquals(phoneNumber, actualProfile.phoneNumber)
+        assertEquals(notificationsEnabled, actualProfile.notificationsEnabled)
 
-        Log.d("ProfileTest", "Profile retrieved, name: ${actualProfile.name}")
-        Log.d("ProfileTest", "Profile retrieved successfully")
+        Log.d("ProfileTest", "Profile retrieved successfully: ${actualProfile.name}")
     }
      */
+
 
     // PASSED
     /*
     @Test
     fun getProfileByIdDoesNotExistTest() {
-        val repository = ProfileRepository()
+        val profileRepo = RepositoryDatabase.profileRepository
 
-        // Use an ID that does not exist in Firestore
         val profileId = "NON_EXISTENT_PROFILE_123"
 
-        // Retrieve profile
         val getResult = awaitCallback<Result<Profile>> { callback ->
-            repository.getProfileById(profileId, callback)
+            profileRepo.getProfileById(profileId, callback)
         }
 
-        // Check that retrieval failed
         assertTrue("Profile retrieval should fail", getResult.isFailure)
 
-        // Check the exception
         val exception = getResult.exceptionOrNull()
 
         assertTrue(
-            "Expected NoSuchElementException",
-            exception is NoSuchElementException
+            "Exception should be NotFoundException",
+            exception is NotFoundException
         )
 
-        Log.d("ProfileTest", "Profile does not exist, failure handled successfully")
+        Log.d("ProfileTest", "Profile not found as expected")
     }
      */
+
 
     // PASSED
     /*
     @Test
-    fun getProfileByIdDoesNotExistFoldTest() {
-        val repository = ProfileRepository()
+    fun getProfileByIdFoldFailureTest() {
+        val profileRepo = RepositoryDatabase.profileRepository
 
-        val profileId = "NON_EXISTENT_PROFILE_456"
+        val profileId = "NON_EXISTENT_PROFILE_123"
 
         val getResult = awaitCallback<Result<Profile>> { callback ->
-            repository.getProfileById(profileId, callback)
+            profileRepo.getProfileById(profileId, callback)
         }
 
         getResult.fold(
-            onSuccess = { profile ->
-                //fail --> makes the test case fail in purpose
-                fail("Expected failure, but retrieved: $profile")
+            onSuccess = {
+                fail("Expected profile retrieval to fail")
             },
             onFailure = { exception ->
-                assertTrue(exception is NoSuchElementException)
+                assertTrue(
+                    "Exception should be NotFoundException",
+                    exception is NotFoundException
+                )
 
-                Log.d("ProfileTest", "Failure handled using fold()")
+                Log.d("ProfileTest", "Fold: Profile not found as expected")
             }
         )
     }
+
      */
+
 
     // PASSED
     /*
     @Test
     fun updateProfileExistsTest() {
-        val repository = ProfileRepository()
+        val profileRepo = RepositoryDatabase.profileRepository
 
-        // Dummy profile data
-        val profileId = "k2UN9ELUfggZ1GLCfYFH"
+        val profileId = "gaNX38oDMm5b3XbCnsKh"
 
-        val name = "UPDATED Test Profile1"
-        val email = "testprofile1@example.com"
-        val role = listOf("admin", "user", "owner")
-        val imageProfilePath = "test/updated_profile1.jpg"
+        // Updated profile data
+        val name = "Test Profile 1 Updated"
+        val email = "testprofile1updated@example.com"
+        val role = listOf(ProfileRole.ADMIN.name, ProfileRole.OWNER.name, ProfileRole.USER.name)
+        val imageProfilePath = "test/profile1_updated.jpg"
         val deviceId = "TEST_DEVICE_001"
-        val status = "active"
+        val status = ProfileStatus.ACTIVE.name
+        val phoneNumber = "7809876543"
+        val notificationsEnabled = false
 
-        val expectedProfile = Profile(
+        val updatedProfile = Profile(
             profileId = profileId,
             name = name,
             email = email,
             role = role,
             imageProfilePath = imageProfilePath,
             deviceId = deviceId,
-            status = status
+            status = status,
+            phoneNumber = phoneNumber,
+            notificationsEnabled = notificationsEnabled
         )
 
         // Update profile
         val updateResult = awaitCallback<Result<Unit>> { callback ->
-            repository.updateProfile(expectedProfile, callback)
+            profileRepo.updateProfile(updatedProfile, callback)
         }
 
         assertTrue("Profile update should succeed", updateResult.isSuccess)
 
         // Retrieve updated profile
         val getResult = awaitCallback<Result<Profile>> { callback ->
-            repository.getProfileById(profileId, callback)
+            profileRepo.getProfileById(profileId, callback)
         }
 
-        assertTrue("Updated profile should be retrieved", getResult.isSuccess)
+        assertTrue("Profile retrieval should succeed", getResult.isSuccess)
 
         val actualProfile = getResult.getOrThrow()
 
-        // Compare both objects
-        assertEquals(expectedProfile, actualProfile)
+        // Compare updated profile data
+        assertEquals(profileId, actualProfile.profileId)
+        assertEquals(name, actualProfile.name)
+        assertEquals(email, actualProfile.email)
+        assertEquals(role, actualProfile.role)
+        assertEquals(imageProfilePath, actualProfile.imageProfilePath)
+        assertEquals(deviceId, actualProfile.deviceId)
+        assertEquals(status, actualProfile.status)
+        assertEquals(phoneNumber, actualProfile.phoneNumber)
+        assertEquals(notificationsEnabled, actualProfile.notificationsEnabled)
 
-        Log.d("ProfileTest", "Profile updated, name: ${actualProfile.name}")
-        Log.d("ProfileTest", "Profile updated successfully")
+        Log.d("ProfileTest", "Profile updated successfully: ${actualProfile.name}")
     }
+
      */
+
 
     // PASSED
     /*
     @Test
     fun updateProfileDoesNotExistTest() {
-        val repository = ProfileRepository()
+        val profileRepo = RepositoryDatabase.profileRepository
 
-        val profile = Profile(
-            profileId = "NON_EXISTENT_PROFILE_123",
+        val profileId = "NON_EXISTENT_PROFILE_123"
+
+        val updatedProfile = Profile(
+            profileId = profileId,
             name = "Test Profile",
             email = "testprofile@example.com",
-            role = listOf("user"),
+            role = listOf(ProfileRole.OWNER.name),
             imageProfilePath = "test/profile.jpg",
             deviceId = "TEST_DEVICE_001",
-            status = "active"
+            status = ProfileStatus.ACTIVE.name,
+            phoneNumber = "7801234567",
+            notificationsEnabled = true
         )
 
         val updateResult = awaitCallback<Result<Unit>> { callback ->
-            repository.updateProfile(profile, callback)
+            profileRepo.updateProfile(updatedProfile, callback)
         }
 
         assertTrue("Profile update should fail", updateResult.isFailure)
 
         val exception = updateResult.exceptionOrNull()
 
-        assertTrue("Expected NoSuchElementException",exception is NoSuchElementException)
+        assertTrue(
+            "Exception should be NotFoundException",
+            exception is NotFoundException
+        )
 
-        Log.d("ProfileTest", "Non-existent profile update handled successfully")
+        Log.d("ProfileTest", "Profile not found as expected")
     }
+
      */
 
     // PASSED
     /*
-    val profileRepo = ProfileRepository()
+    @Test
+    fun updateProfileDoesNotExistOnFailureTest() {
+        val profileRepo = RepositoryDatabase.profileRepository
 
+        val profileId = "NON_EXISTENT_PROFILE_123"
+
+        val updatedProfile = Profile(
+            profileId = profileId,
+            name = "Test Profile",
+            email = "testprofile@example.com",
+            role = listOf(ProfileRole.OWNER.name),
+            imageProfilePath = "test/profile.jpg",
+            deviceId = "TEST_DEVICE_001",
+            status = ProfileStatus.ACTIVE.name,
+            phoneNumber = "7801234567",
+            notificationsEnabled = true
+        )
+
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            profileRepo.updateProfile(updatedProfile, callback)
+        }
+
+        assertTrue("Profile update should fail", updateResult.isFailure)
+
+        updateResult.onFailure { exception ->
+            when (exception) {
+                is ValidationException -> {
+                    fail("Unexpected ValidationException: ${exception.message}")
+                }
+
+                is NotFoundException -> {
+                    Log.d("ProfileTest", "Profile does not exist as expected")
+                }
+
+                else -> {
+                    fail("Unexpected exception: ${exception.message}")
+                }
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
     @Test
     fun getProfileFromListByIdTest() {
+        val profileId = "gaNX38oDMm5b3XbCnsKh"
 
-        val id = "V6msdUQoc0eJ0nGrglf5"
-
+        // Wait until profiles are loaded from Firestore
         val startTime = System.currentTimeMillis()
 
         while (!profileRepo.isProfilesLoaded.value) {
             check(System.currentTimeMillis() - startTime < 15000) {
                 "Profiles failed to load from Firestore."
             }
+
             Thread.sleep(100)
         }
 
-        val profile = profileRepo.getProfileFromListById(id)
+        // Retrieve profile from local list
+        val profile = profileRepo.getProfileFromListById(profileId)
 
-        assertTrue("Profile should exist and be type Profile",profile is Profile)
+        assertNotNull("Profile should exist in the local list", profile)
+
+        assertEquals(profileId, profile?.profileId)
+
+        Log.d("ProfileTest", "Profile retrieved from local list: $profile")
+    }
+
+     */
 
 
-        Log.d("ProfileTest", "profile object: $profile")
+    // PASSED
+    /*
+    @Test
+    fun getProfileFromListByIdDoesNotExistTest() {
+        val profileId = "NON_EXISTENT_PROFILE_123"
+
+        // Wait until profiles are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!profileRepo.isProfilesLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Profiles failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve profile from local list
+        val profile = profileRepo.getProfileFromListById(profileId)
+
+        assertNull("Profile should not exist in the local list", profile)
+
+        Log.d("ProfileTest", "Profile not found in local list as expected")
     }
 
      */

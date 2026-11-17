@@ -1,4 +1,5 @@
-package com.example.cipherappproject
+
+/*package com.example.cipherappproject
 
 import com.example.cipherappproject.database.models.Profile
 import com.example.cipherappproject.database.repositories.ProfileRepository
@@ -80,3 +81,5 @@ class AccountController(
     }
 
 }
+
+ */

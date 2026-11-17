@@ -1,3 +1,4 @@
+/*
 package com.example.cipherappproject.ui.campsite
 
 import androidx.compose.foundation.layout.Arrangement
@@ -91,3 +92,5 @@ fun EntrantCampsiteView(campsiteId: String) {
 //        }
     }
 }
+
+ */

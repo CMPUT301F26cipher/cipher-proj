@@ -1,4 +1,5 @@
-package com.example.cipherappproject.ui.lottery
+/*
+ com.example.cipherappproject.ui.lottery
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,3 +68,5 @@ fun EditLotteryView(
         )
     }
 }
+
+ */

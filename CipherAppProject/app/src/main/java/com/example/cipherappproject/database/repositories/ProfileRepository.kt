@@ -95,6 +95,7 @@ class ProfileRepository {
         deviceId: String,
         status: String,
         phoneNumber: String,
+        notificationsEnabled: Boolean,
         result: (Result<String>) -> Unit
 
 
@@ -111,7 +112,8 @@ class ProfileRepository {
             imageProfilePath = imageProfilePath,
             deviceId = deviceId,
             status = status,
-            phoneNumber = phoneNumber
+            phoneNumber = phoneNumber,
+            notificationsEnabled = notificationsEnabled
         )
 
         // save the object in the firebase

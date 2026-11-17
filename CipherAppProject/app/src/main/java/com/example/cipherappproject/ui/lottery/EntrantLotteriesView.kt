@@ -1,3 +1,4 @@
+/*
 package com.example.cipherappproject.ui.lottery
 
 import androidx.compose.foundation.layout.Arrangement
@@ -101,3 +102,5 @@ private fun entryStatusText(status: String): String {
         else -> status
     }
 }
+
+ */

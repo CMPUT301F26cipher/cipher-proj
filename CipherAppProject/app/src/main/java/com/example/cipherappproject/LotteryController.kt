@@ -1,3 +1,4 @@
+/*
 package com.example.cipherappproject
 
 import com.example.cipherappproject.database.models.Lottery
@@ -217,3 +218,4 @@ data class LotteryFormInput(
     val numWinners: String = "",
     val capacity: String = ""
 )
+*/
