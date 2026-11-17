@@ -26,9 +26,7 @@ NA
  * and user.
  *
  * @property messageId use to uniquely identify each message within the database
- * @property reservationId use to identify from which reservation comes from
  * @property fromUserId use to identify from which user is the message
- * @property toUserId use to identify to which user is the message
  * @property message the text of the message
  * @property createdAt when message was made IT IS AUTOMATIC DO NOT ADD IT!
  * @property status the status of the message removed, sent, etc --> check enum class
@@ -36,11 +34,9 @@ NA
  *
  */
 
-data class Message (
+data class Message(
     val messageId: String = "",
-    val reservationId: String = "",
     val fromUserId: String = "",
-    val toUserId: String = "",
     val message: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     var status: String = ""

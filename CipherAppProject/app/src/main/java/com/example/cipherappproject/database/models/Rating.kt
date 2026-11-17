@@ -13,6 +13,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-11  Sofia      1.01     added skeleton
+2026-11-16  Sofia      1.02     added reservation id
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -26,6 +27,7 @@ NA
  * @property ratingId use to uniquely identify each reservation within the database
  * @property userId use to identify to which user comes from
  * @property campsiteId use to identify to which campsite comes from
+ * @property reservationId use to identify to which reservation comes from
  * @property review the user review
  * @property status determine if the reservation is removed, active, hidden, etc --> check enum class
  * @property rating the rating from the usr
@@ -38,6 +40,7 @@ data class Rating (
     val ratingId: String = "",
     val userId: String = "",
     val campsiteId: String = "",
+    val reservationId: String = "",
     val review: String = "",
     val rating: Double = 0.0,
     var status: String = "",

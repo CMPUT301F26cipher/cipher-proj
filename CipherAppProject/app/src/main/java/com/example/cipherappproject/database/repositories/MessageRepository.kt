@@ -43,6 +43,7 @@ NA
  * The local list is synchronized with Firestore using a snapshot listener.
  */
 
+/*
 class MessageRepository {
     private val db = Firebase.firestore
     private val messagesRef = db.collection("messages")
@@ -322,3 +323,5 @@ class MessageRepository {
         }
     }
 }
+
+ */

@@ -26,6 +26,7 @@ Date        Person     CSR#     Description
 2026-11-12  Sofia      1.01     added skeleton
 2026-11-15  Sofia      1.02     added states to the local list and changes init too
 2026-11-15  Sofia      1.03     added custom exceptions
+2026-11-16  Sofia      1.04     added reservation id
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -75,6 +76,7 @@ class RatingRepository {
     fun addRating(
         userId: String,
         campsiteId: String,
+        reservationId: String,
         review: String,
         rating: Double,
         status: String,
@@ -89,6 +91,7 @@ class RatingRepository {
             ratingId = ratingRef.id,
             userId = userId,
             campsiteId = campsiteId,
+            reservationId = reservationId,
             review = review,
             rating = rating,
             status = status
@@ -243,6 +246,16 @@ class RatingRepository {
      */
     fun getRatingsFromListByCampsiteId(campsiteId: String): List<Rating> {
         return _allRatings.value.filter { it.campsiteId == campsiteId }
+    }
+
+    /**
+     * Get a list of Rating objects
+     *
+     * @param reservationId String
+     * @return List<Rating> --> can be empty list if not match found
+     */
+    fun getRatingsFromListByReservationId(reservationId: String): List<Rating> {
+        return _allRatings.value.filter { it.reservationId == reservationId }
     }
 
     /**

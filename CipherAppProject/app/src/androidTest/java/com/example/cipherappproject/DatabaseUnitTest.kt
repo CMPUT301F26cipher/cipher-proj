@@ -386,6 +386,56 @@ class DatabaseUnitTest {
 
      */
 
+
+    @Test
+    fun getProfileFromListByEmailTest() {
+        val profileEmail = "testprofile1@example.com"
+
+        // Wait until profiles are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!profileRepo.isProfilesLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Profiles failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve profile from local list
+        val profile = profileRepo.getProfileFromListByEmail(profileEmail)
+
+        assertNotNull("Profile should exist in the local list", profile)
+
+        assertEquals(profileEmail, profile?.email)
+
+        Log.d("ProfileTest", "Profile retrieved from local list: $profile")
+    }
+
+
+    @Test
+    fun getProfileFromListByEmailDoesNotExistTest() {
+        val profileEmail = "nonexistentprofile@example.com"
+
+        // Wait until profiles are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!profileRepo.isProfilesLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Profiles failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve profile from local list
+        val profile = profileRepo.getProfileFromListByEmail(profileEmail)
+
+        assertNull("Profile should not exist in the local list", profile)
+
+        Log.d("ProfileTest", "Profile not found in local list as expected")
+    }
+
     // ----------------------------------- Campsite -----------------------------------
     // PASSED
     /*
