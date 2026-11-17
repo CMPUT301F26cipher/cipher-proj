@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject.ui.lottery
 
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +22,7 @@ import androidx.navigation.NavController
 import com.example.cipherappproject.LotteryConstants
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.repositories.LotteryEntryRepository
 import com.example.cipherappproject.database.repositories.LotteryRepository
 
 /**
@@ -38,6 +38,7 @@ fun OwnerLotteriesView(
 ) {
     val lotteryRepository = remember { LotteryRepository() }
     val campsiteRepository = remember { CampsiteRepository() }
+    val entryRepository = remember { LotteryEntryRepository() }
     val myLotteries = lotteryRepository.lotteries.filter { it.ownerId == ownerId }
 
     Column(
@@ -70,7 +71,20 @@ fun OwnerLotteriesView(
                     lottery = lottery,
                     campsiteNames = campsiteNames,
                     onEdit = { navController.navigate(LotteryRoutes.edit(lottery.lotteryId)) },
-                    onViewAsEntrant = { navController.navigate(LotteryRoutes.result(lottery.lotteryId)) }
+                    onViewAsEntrant = { navController.navigate(LotteryRoutes.result(lottery.lotteryId)) },
+                    onMakeWinner = {
+                        entryRepository.getEntryForUser(lottery.lotteryId, ownerId) { existing ->
+                            if (existing == null) {
+                                entryRepository.addLotteryEntry(
+                                    lottery.lotteryId, ownerId, LotteryConstants.ENTRY_WINNER, 1
+                                ) {}
+                            } else {
+                                entryRepository.updateEntryStatus(
+                                    lottery.lotteryId, existing.lotteryEntryId, LotteryConstants.ENTRY_WINNER
+                                ) {}
+                            }
+                        }
+                    }
                 )
             }
         }
@@ -83,7 +97,8 @@ private fun LotteryRow(
     lottery: Lottery,
     campsiteNames: List<String>,
     onEdit: () -> Unit,
-    onViewAsEntrant: () -> Unit
+    onViewAsEntrant: () -> Unit,
+    onMakeWinner: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -101,8 +116,7 @@ private fun LotteryRow(
                 // TEMPORARY: for testing the entrant screens, see the file comment
                 TextButton(onClick = onViewAsEntrant) { Text("View result as entrant") }
             }
+            TextButton(onClick = onMakeWinner) { Text("Make me a winner (demo)") }
         }
     }
 }
-
- */

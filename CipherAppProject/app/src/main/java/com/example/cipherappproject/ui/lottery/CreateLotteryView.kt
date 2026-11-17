@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject.ui.lottery
 
 import androidx.compose.runtime.Composable
@@ -37,13 +36,10 @@ fun CreateLotteryView(
         errorMessage = errorMessage,
         saveLabel = "Publish Lottery",
         onSave = {
-            val error = controller.createFromForm(ownerId, input)
-            errorMessage = error
-            if (error == null) {
-                navController.popBackStack()
+            errorMessage = controller.createFromForm(ownerId, input) { saved ->
+                if (saved) navController.popBackStack()
+                else errorMessage = "Could not save lottery. Please try again."
             }
         }
     )
 }
-
- */

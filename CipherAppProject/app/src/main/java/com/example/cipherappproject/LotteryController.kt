@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject
 
 import com.example.cipherappproject.database.models.Lottery
@@ -55,8 +54,8 @@ class LotteryController {
         onFailure: (String) -> Unit
     ) {
         if (ownerId.isBlank()) {
-        onFailure("An owner is required.")
-        return
+            onFailure("An owner is required.")
+            return
         }
 
         val error = validate(input)
@@ -177,7 +176,7 @@ class LotteryController {
         )
     }
 
-    fun createFromForm(ownerId: String, input: LotteryFormInput): String? {
+    fun createFromForm(ownerId: String, input: LotteryFormInput, onSaved: (Boolean) -> Unit = {}): String? {
         val error = validate(input)
         if (error != null) return error
 
@@ -189,18 +188,18 @@ class LotteryController {
             numberOfWinners = input.numWinners.trim().toInt(),
             capacity = parseCapacity(input.capacity)
         )
-        saveNewLottery(lottery)
+        saveNewLottery(lottery) { onSaved(it != null) }
         return null
     }
 
-    fun updateLottery(original: Lottery, input: LotteryFormInput): String? {
+    fun updateLottery(original: Lottery, input: LotteryFormInput, onSaved: (Boolean) -> Unit = {}): String? {
         if (!canEdit(original)) {
             return "This lottery has already been drawn and can no longer be edited"
         }
         val error = validate(input)
         if (error != null) return error
 
-        repository.updateLottery(applyChanges(original, input)) {}
+        repository.updateLottery(applyChanges(original, input), onSaved)
         return null
     }
 }
@@ -218,4 +217,3 @@ data class LotteryFormInput(
     val numWinners: String = "",
     val capacity: String = ""
 )
-*/

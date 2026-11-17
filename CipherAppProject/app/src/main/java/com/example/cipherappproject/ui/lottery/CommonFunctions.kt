@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+const val PLACEHOLDER_USER_ID = "test-user-1"
+
 /** A single message centred on the screen, for empty, error and info states. */
 @Composable
 fun CenteredMessage(text: String) {
