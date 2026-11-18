@@ -86,13 +86,16 @@ class LotteryRepository {
         numWinners: Int,
         startDate: String,
         endDate: String,
-        maxParticipants: Int,
+        maxParticipants: Int?,
         status: String,
         result: (Result<String>) -> Unit
 
     ) {
+        Log.d("LotteryTest", "enter function")
         // create a reference and id to the new profile
         val lotteryRef = lotteriesRef.document()
+
+        Log.d("LotteryTest", "created document and id ${lotteryRef.id}")
 
         // create lottery object
         val lottery = Lottery(
@@ -110,10 +113,12 @@ class LotteryRepository {
         lotteryRef
             .set(lottery)
             .addOnSuccessListener {
+                Log.d("LotteryTest", "add succeeded")
                 result(Result.success(lotteryRef.id))
 
             }
             .addOnFailureListener { exception ->
+                Log.d("LotteryTest", "add failed")
                 result(Result.failure(exception))
             }
 
