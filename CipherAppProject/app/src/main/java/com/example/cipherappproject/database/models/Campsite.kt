@@ -1,5 +1,7 @@
 package com.example.cipherappproject.database.models
 
+import com.google.firebase.Timestamp
+
 /*
 --------------------------------------------------------------------------------------
 Program Name: Campsite.kt
@@ -14,6 +16,7 @@ Date        Person     CSR#     Description
 2026-11-03  Sofia      1.02     fixed getters and setters
 2026-11-05  Sofia      1.03     fixed getters and setters x2, added status for campsite, changed float to double
 2026-11-06   Sofia     1.04     delete getters and setters. Set the attributes to public. Left methods.
+2026-11-11   Sofia     1.05     added rules and policies and methods for them
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -37,6 +40,9 @@ NA
  * @property maxGuests how many guest the campsite can hold
  * @property qrCodeImagePath the campsite qr code path
  * @property status meant to be if the owner deletes their profile the campsites related to it just become all unavailable --> available, notAvailable
+ * @property rules the campsite rules
+ * @property policies the campsite polices --> check enum
+ * @property createdAt when it was created --> changed to timestamp IT IS AUTOMATIC DO NOT ADD IT!
  *
  *
  */
@@ -53,8 +59,26 @@ data class Campsite (
     var imagePath: String = "",
     var tags: MutableList<String> = mutableListOf(),
     var qrCodeImagePath: String = "",
-    var status: String = ""
+    var status: String = "",
+    val rules: MutableList<String> = mutableListOf(),
+    val policies: MutableList<String> = mutableListOf(),
+    val createdAt: Timestamp = Timestamp.now()
 ){
+    fun addCampsiteRule(rule: String) {
+        rules.add(rule)
+    }
+
+    fun removeCampsiteRule(rule: String) {
+        rules.remove(rule)
+    }
+
+    fun addCampsitePolicy(policy: String) {
+        policies.add(policy)
+    }
+
+    fun removeCampsitePolicy(policy: String) {
+        policies.remove(policy)
+    }
 
     fun addCampsiteAmenity(amenity: String) {
         amenities.add(amenity)

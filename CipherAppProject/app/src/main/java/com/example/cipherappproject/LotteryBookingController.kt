@@ -1,3 +1,4 @@
+/*
 package com.example.cipherappproject
 
 import com.example.cipherappproject.database.models.CampsiteAvailability
@@ -229,3 +230,5 @@ class LotteryBookingController {
         )
     }
 }
+
+ */

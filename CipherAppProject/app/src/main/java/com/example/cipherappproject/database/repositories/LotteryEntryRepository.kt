@@ -15,26 +15,57 @@ Date        Person     CSR#     Description
 2026-11-05  Sofia       1.03     added queries retrieve list and set by group of collection
 2026-11-05  Sofia       1.04     added exception handle in lamba for all queries
 2026-11-06  Sofia       1.05     fixed the get and set methods for the objects
+2026-11-08  Sofia       1.06     added exceptions and error handling
+2026-11-08  Sofia       1.07     added queries using the list
+2026-11-12  Sofia       1.08     added state boolean for list local queries.
+2026-11-15  Sofia       1.09     added states to the local list and changes init too
+2026-11-15  Sofia       1.10     added custom exceptions and get by single lottery entry id
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
 */
 
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import com.example.cipherappproject.database.exceptions.DataConversionException
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.LotteryEntry
+import com.example.cipherappproject.database.models.Notification
+import com.example.cipherappproject.database.models.Profile
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import java.time.LocalDate
+
+/**
+ * Manages Lottery Entry data stored in the Firebase Firestore database.
+ *
+ * Provides methods to add, retrieve, and update Lottery Entry documents
+ * directly from Firestore, as well as methods to search and filter
+ * from the local Lottery Entry list. This local list is inside a state.
+ *
+ * The local list is synchronized with Firestore using a snapshot listener.
+ */
 
 
 class LotteryEntryRepository {
     private val db = Firebase.firestore
     private val lotteriesEntryRef = db.collectionGroup("entries")
-    private val _allLotteriesEntries = mutableStateListOf<LotteryEntry>()
+    private val _allLotteriesEntries = mutableStateOf<List<LotteryEntry>>(emptyList())
 
 
-    val lotteries: List<LotteryEntry>
+    val lotteries: State<List<LotteryEntry>>
         get() = _allLotteriesEntries
+
+
+    private val _isLotteriesEntriesLoaded = mutableStateOf(false)
+
+    val isLotteriesEntriesLoaded: State<Boolean>
+        get() = _isLotteriesEntriesLoaded
+
+    // ----------------------------------- Queries -----------------------------------
 
 
     /**
@@ -46,68 +77,125 @@ class LotteryEntryRepository {
      * @param status store the lottery status
      * @param positionLottery user entry in the list after randomization
      * @param result lamba function that provide if:
-     *      - The object was added successfully then it returns the id of that object
-     *      - The object was not added not successfully so it returns null
-     * @return nullable string
+     *      - Result.success(id) if successful
+     *      - Result.failure(exception) if not successful
+     * @return Result<String>
      */
     fun addLotteryEntry(
         lotteryId: String,
         userId: String,
         status: String,
         positionLottery: Int,
-        result: (String?) -> Unit
+        result: (Result<String>) -> Unit
+    ) {
+        // Create a reference to the parent lottery
+        val lotteryRef = db.collection("lotteries").document(lotteryId)
 
-    ){
-        // create a reference and id to the new profile
-        val lotteryEntryRef = db.collection("lotteries/$lotteryId/entries").document()
 
-        // create lottery object
-        val lotteryEntry = LotteryEntry(
-            lotteryEntryId = lotteryEntryRef.id,
-            lotteryId = lotteryId,
-            userId = userId,
-            status = status,
-            positionLottery = positionLottery,
-        )
+        db.runTransaction { transaction ->
+            val lotterySnapshot = transaction.get(lotteryRef)
 
-        // save the object in the firebase
-        //Tasks.await(lotteryEntryRef.set(lotteryEntry))
-        lotteryEntryRef
-            .set(lotteryEntry)
-            .addOnSuccessListener {
-                result(lotteryEntryRef.id)
+            // Check if the parent lottery exists
+            if (!lotterySnapshot.exists()) {
+                throw NotFoundException("Lottery does not exist.")
             }
 
-            .addOnFailureListener {
-                result(null)
-            }
+            val lotteryEntryRef = lotteryRef
+                .collection("entries")
+                .document()
+
+            // Create object
+            val lotteryEntry = LotteryEntry(
+                lotteryEntryId = lotteryEntryRef.id,
+                lotteryId = lotteryId,
+                userId = userId,
+                status = status,
+                positionLottery = positionLottery
+            )
+
+            // set entry
+            transaction.set(lotteryEntryRef, lotteryEntry)
+
+            // return id
+            lotteryEntryRef.id
+
+        }
+            .addOnSuccessListener { lotteryEntryId -> // since is success return id
+                result(Result.success(lotteryEntryId))
+        }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
+        }
     }
 
     /**
      * Updates behinds a LotteryEntry object into the firebase database .
      *
      * @param lotteryEntry lotteryEntry object
-     * @param result lamba function that provide if:
-     *      - successfully then it returns a boolean as true
-     *      - not successfully so it returns a boolean as false
-     * @return nullable string
+     * @param result lamba function as callback that provide if:
+     *      - Result.success(Unit) if successfully
+     *      - Result.failure(exception) if not successful
+     * @return Result<Unit>
      */
     fun updateLotteryEntry(
         lotteryEntry: LotteryEntry,
-        result: (Boolean) -> Unit
-    ){
-        val lotteryId = lotteryEntry.lotteryId
+        result: (Result<Unit>) -> Unit
+    ) {
         val lotteryEntryId = lotteryEntry.lotteryEntryId
+        val lotteryId = lotteryEntry.lotteryId
 
-        val lotteryEntryRef = db.collection("lotteries/$lotteryId/entries")
+        // Check IDs
+        if (lotteryEntryId.isBlank() || lotteryId.isBlank()) {
+            result(Result.failure(
+                ValidationException("Lottery or lottery entry ID cannot be empty.")
+            ))
+            return
+        }
 
-        lotteryEntryRef.document(lotteryEntryId)
-            .set(lotteryEntry)
-            .addOnSuccessListener {
-                result(true)
+        val lotteryRef = db.collection("lotteries").document(lotteryId)
+
+        val lotteryEntryRef = lotteryRef
+            .collection("entries")
+            .document(lotteryEntryId)
+
+        // Check lottery and entry before updating
+        db.runTransaction { transaction ->
+
+            val lotterySnapshot = transaction.get(lotteryRef)
+
+            // Check whether lottery exists
+            if (!lotterySnapshot.exists()) {
+                throw NotFoundException("Lottery does not exist.")
             }
-            .addOnFailureListener {
-                result(false)
+
+            val entrySnapshot = transaction.get(lotteryEntryRef)
+
+            // Check whether lottery entry exists
+            if (!entrySnapshot.exists()) {
+                throw NotFoundException("Lottery entry does not exist.")
+            }
+
+            // Check whether entry belongs to the specified lottery
+            val storedLotteryId = entrySnapshot.getString("lotteryId")
+
+            if (storedLotteryId != lotteryId) {
+                throw ValidationException(
+                    "The lottery entry does not belong to this lottery."
+                )
+            }
+
+            // Update lottery entry
+            transaction.set(lotteryEntryRef, lotteryEntry)
+
+            // We only care whether the operation succeeded
+            Unit
+
+        }
+            .addOnSuccessListener {
+                result(Result.success(Unit))
+            }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
             }
     }
 
@@ -119,39 +207,132 @@ class LotteryEntryRepository {
     */
 
     /**
-     * retrieves LotteryEntry
+     * Retrieves a LotteryEntry object.
+     *
+     * @param lotteryEntryId unique identifier of the lottery entry
+     * @param lotteryId unique identifier of the parent lottery
+     * @param result callback providing:
+     *      - Result.success(LotteryEntry) if successful
+     *      - Result.failure(exception) if unsuccessful
+     */
+    fun getLotteryEntryById(
+        lotteryEntryId: String,
+        lotteryId: String,
+        result: (Result<LotteryEntry>) -> Unit
+    ) {
+        // Check IDs
+        if (lotteryEntryId.isBlank() || lotteryId.isBlank()) {
+            result(Result.failure(
+                ValidationException(
+                    "Lottery ID and lottery entry ID cannot be empty."
+                )
+            ))
+            return
+        }
+
+        val lotteryEntryRef = db
+            .collection("lotteries")
+            .document(lotteryId)
+            .collection("entries")
+            .document(lotteryEntryId)
+
+        lotteryEntryRef
+            .get()
+            .addOnSuccessListener { document ->
+
+                // Check whether entry exists
+                if (!document.exists()) {
+                    result(Result.failure(
+                        NotFoundException("Lottery entry does not exist.")
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                // Convert document into LotteryEntry object
+                val lotteryEntry = document.toObject(LotteryEntry::class.java)
+
+                // Check whether conversion was successful
+                if (lotteryEntry == null) {
+                    result(Result.failure(
+                        DataConversionException(
+                            "Failed to convert document to lotteryEntry."
+                        )
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                result(Result.success(lotteryEntry))
+            }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
+            }
+    }
+
+    /**
+     * retrieves LotteryEntries
      *
      * @param lotteryId
-     * @param result lamba function that provide if:
-     *      - successfully then it returns the Campsite object
-     *      - not successfully so it returns null
-     * @return nullable LotteryEntry object
+     * @param result lamba function that has Result and if:
+     *      - Result.success(<List<LotteryEntry>) if successful
+     *      - Result.failure(exception) if not successful
+     * @return Result<List<LotteryEntry>>
      */
     fun getLotteryEntriesByLotteryId(
         lotteryId: String,
-        result: (List<LotteryEntry>?) -> Unit
-    ){
-        val campsiteAvailabilityRef = db.collection("lotteries")
+        result: (Result<List<LotteryEntry>>) -> Unit
+    ) {
+        // Check id
+        if (lotteryId.isBlank()) {
+            result(Result.failure(
+                IllegalArgumentException("Lottery ID cannot be empty.")
+            ))
+            return
+        }
+
+        val lotteryRef = db
+            .collection("lotteries")
             .document(lotteryId)
-            .collection("entries")
-            .get()
-            .addOnSuccessListener { documents ->
 
-                val entries : MutableList<LotteryEntry> = mutableListOf()
+        // Check whether lottery exists
+        lotteryRef.get()
+            .addOnSuccessListener { lotteryDocument ->
 
-                for (document in documents) {
-                    val entry = document.toObject(LotteryEntry::class.java)
-
-                    entries.add(entry)
+                if (!lotteryDocument.exists()) {
+                    result(Result.failure(
+                        NoSuchElementException("Lottery does not exist.")
+                    ))
+                    return@addOnSuccessListener
                 }
 
-                result(entries)
+                // Retrieve all lottery entries
+                lotteryRef
+                    .collection("entries")
+                    .get()
+                    .addOnSuccessListener { documents ->
+
+                        val lotteryEntries: MutableList<LotteryEntry> =
+                            mutableListOf()
+
+                        for (document in documents) {
+
+                            val lotteryEntry =
+                                document.toObject(LotteryEntry::class.java)
+
+                            lotteryEntries.add(lotteryEntry)
+                        }
+
+                        result(Result.success(lotteryEntries))
+                    }
+                    .addOnFailureListener { exception ->
+                        result(Result.failure(exception))
+                    }
             }
             .addOnFailureListener { exception ->
-                result(null)
+                result(Result.failure(exception))
             }
-
     }
+
+    /*
 
     /**
      * retrieves LotteryEntry object by UserId
@@ -208,6 +389,130 @@ class LotteryEntryRepository {
             .addOnFailureListener { result(false) }
     }
 
+     */
+
+
+    // ----------------------------------- From list -----------------------------------
+    /**
+     * Get a LotteryEntry object
+     *
+     * @param lotteryId String
+     * @param lotteryEntryId String
+     * @return LotteryEntry? --> null if not match found
+     */
+
+    fun getLotteryEntryFromListById(lotteryId: String, lotteryEntryId: String): LotteryEntry? {
+
+        return _allLotteriesEntries.value.find {
+
+            it.lotteryId == lotteryId && it.lotteryEntryId == lotteryEntryId
+        }
+    }
+
+    /**
+     * Get a list of LotteryEntry objects
+     *
+     * @param lotteryId String
+     * @return List<LotteryEntry> --> can be empty list if not match found
+     */
+    fun getLotteryEntriesFromListByLotteryId(lotteryId: String): List<LotteryEntry> {
+
+        return _allLotteriesEntries.value.filter {
+            it.lotteryId == lotteryId
+        }
+    }
+
+
+    /**
+     * Get a list of LotteryEntry objects
+     *
+     * @param userId String
+     * @return List<LotteryEntry> --> can be empty list if not match found
+     */
+    fun getLotteryEntriesFromListByUserId(userId: String): List<LotteryEntry> {
+
+        return _allLotteriesEntries.value.filter {
+            it.userId == userId
+        }
+    }
+
+
+    /**
+     * Get a list of LotteryEntry objects
+     *
+     * @param status String
+     * @return List<LotteryEntry> --> can be empty list if not match found
+     */
+    fun getLotteryEntriesFromListByStatus(status: String): List<LotteryEntry> {
+
+        return _allLotteriesEntries.value.filter {
+            it.status == status
+        }
+    }
+
+
+    /**
+     * Get a LotteryEntry object
+     *
+     * @param lotteryId String
+     * @param userId String
+     * @return LotteryEntry? --> null if not match found
+     */
+    fun getLotteryEntryFromListByLotteryIdAndUserId(lotteryId: String, userId: String): LotteryEntry? {
+
+        return _allLotteriesEntries.value.find {
+            it.lotteryId == lotteryId && it.userId == userId
+        }
+    }
+
+    /**
+     * Get a list of LotteryEntry objects
+     *
+     * @param lotteryId String
+     * @param status String
+     * @return List<LotteryEntry> --> can be empty list if not match found
+     */
+    fun getLotteryEntriesFromListByLotteryIdAndStatus(lotteryId: String,status: String): List<LotteryEntry> {
+        return _allLotteriesEntries.value.filter {
+
+            it.lotteryId == lotteryId && it.status == status
+        }
+    }
+
+
+    /**
+     * Get a LotteryEntry object
+     *
+     * @param lotteryId String
+     * @param position Int
+     * @return LotteryEntry? --> null if not match found
+     */
+    fun getLotteryEntryFromListByLotteryIdAndPosition(lotteryId: String, position: Int): LotteryEntry? {
+        return _allLotteriesEntries.value.find {
+            it.lotteryId == lotteryId && it.positionLottery == position
+        }
+    }
+
+
+    /**
+     * Get a LotteryEntry object
+     *
+     * @param lotteryId String
+     * @return LotteryEntry? --> null if not match found
+     */
+
+    // https://www.baeldung.com/kotlin/sort
+    fun getLotteryEntriesFromListByLotteryIdOrderedByPosition(lotteryId: String): List<LotteryEntry> {
+        return _allLotteriesEntries.value
+            .filter { it.lotteryId == lotteryId }
+
+            /*Taken and learn from OpenAI, ChatGPT on 2026-11-09 on "How can we handle null values in a list"*/
+            // if us not null use that positionLottery, else if it null use the Int.MAX_VALUE instead
+            .sortedBy { it.positionLottery ?: Int.MAX_VALUE }
+            //.sortedBy { it.positionLottery }
+    }
+
+
 
 
     init {
@@ -216,25 +521,17 @@ class LotteryEntryRepository {
                 return@addSnapshotListener
             }
 
-            _allLotteriesEntries.clear()
-
-            snapshot?.documents?.forEach { document ->
-                val lotteryEntry = document.toObject(LotteryEntry::class.java) // pass from firestore to kotlin object
-
-                if (lotteryEntry != null) {
-                    _allLotteriesEntries.add(lotteryEntry)
-                }
+            if (snapshot == null) {
+                return@addSnapshotListener
             }
+
+            val updatedLotteriesEntries = snapshot.documents.mapNotNull { document ->
+                document.toObject(LotteryEntry::class.java)
+            }
+            _allLotteriesEntries.value = updatedLotteriesEntries
+
+            _isLotteriesEntriesLoaded.value = true
         }
     }
-
-    fun addLotteryEntry(){ // needs to make sure is only once and add 1 only
-        // lotteries/lotteryId/entries/userId
-
-
-
-    }
-
-
 
 }

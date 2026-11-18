@@ -1,3 +1,4 @@
+/*
 package com.example.cipherappproject.reservations
 
 /*
@@ -141,3 +142,5 @@ class ReservationListHelpers(
     fun getCampsiteImg() = ""
 
 }
+
+ */

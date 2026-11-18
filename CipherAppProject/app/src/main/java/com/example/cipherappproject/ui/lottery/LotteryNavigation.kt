@@ -1,3 +1,4 @@
+/*
 package com.example.cipherappproject.ui.lottery
 
 import androidx.navigation.NavController
@@ -42,3 +43,5 @@ fun NavGraphBuilder.lotteryScreens(
         LotteryResultScreen(navController, lotteryId, currentUserId)
     }
 }
+
+ */

@@ -13,7 +13,7 @@ Date        Person     CSR#     Description
 2026-10-27  Sofia      1.01     added skeleton
 2026-11-03  Sofia      1.02     fixed getters and setters
 2026-11-05  Sofia      1.03     fixed getters and setters x2 and added more comments for clarification
-2026-11-06   Sofia     1.04     delete getters and setters. Set the attributes to public.
+2026-11-06  Sofia      1.04     delete getters and setters. Set the attributes to public.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA

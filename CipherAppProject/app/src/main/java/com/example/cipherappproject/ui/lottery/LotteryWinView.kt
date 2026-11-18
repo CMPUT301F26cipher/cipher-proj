@@ -1,3 +1,4 @@
+/*
 package com.example.cipherappproject.ui.lottery
 
 import androidx.compose.foundation.clickable
@@ -297,3 +298,5 @@ fun LotteryCampsiteTabs(
         }
     }
 }
+
+ */

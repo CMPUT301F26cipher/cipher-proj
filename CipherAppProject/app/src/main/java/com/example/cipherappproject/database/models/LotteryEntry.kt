@@ -32,7 +32,7 @@ NA
  *
  * @property lotteryId use to uniquely identify each lottery within the database
  * @property userId use to identify to which user/participant details from the lottery results
- * @property status to help determine if the user is registered, winner, offerPending, notSelected, accepted, declined, expired, withdrawn
+ * @property status to help determine if the user is registered, winner, offerPending, notSelected, accepted, declined, expired, withdrawn --> check enum class
  * @property positionLottery defined after the randomization so that we can pick the next person in the list if needed
  *
  *
