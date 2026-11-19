@@ -1,40 +1,38 @@
-/*
 package com.example.cipherappproject
 
-import com.example.cipherappproject.database.models.CampsiteAvailability
+import com.example.cipherappproject.database.enums.LotteryEntryStatus
+import com.example.cipherappproject.database.enums.ReservationStatus
+import com.example.cipherappproject.database.exceptions.OperationException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
-import com.example.cipherappproject.database.models.Reservation
-import com.example.cipherappproject.database.repositories.CampsiteAvailabilityRepository
-import com.example.cipherappproject.database.repositories.LotteryEntryRepository
-import com.example.cipherappproject.database.repositories.LotteryRepository
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 import java.time.LocalDate
 
 /**
- * Handles winning entrant campsite and night selection for US 01.04.01
- * and 01.04.02.
- * Outstanding issues: implement logic and connect shared eligibility and
- * availability interfaces; agree on date format and consecutive-night rules.
+ * Handles a winning entrant's campsite and date selection for US 01.04.01,
+ * 01.04.02 and 01.04.03.
+ *
+ * Reads availability from the shared repositories' local lists (no Firestore
+ * queries here) and writes through the repositories' public methods.
+ *
+ * Date convention (same as CampsiteAvailabilityRepository.getAvailableBookingDates):
+ * start and end dates are both inclusive, so a stay is "first selected date" to
+ * "last selected date", and the dates must be consecutive.
  */
 class LotteryBookingController {
-    /** Checks the entrant's active winning offer through the shared component. */
-
-    private val lotteryRepository by lazy { LotteryRepository() }
-    private val entryRepository by lazy { LotteryEntryRepository() }
-    private val availabilityRepository by lazy { CampsiteAvailabilityRepository() }
+    // Shared instances (see Database_Documentation.md): never create new repositories here
+    private val availabilityRepository get() = RepositoryDatabase.campsiteAvailabilityRepository
+    private val reservationRepository get() = RepositoryDatabase.reservationRepository
+    private val campsiteRepository get() = RepositoryDatabase.campsiteRepository
+    private val entryRepository get() = RepositoryDatabase.lotteryEntryRepository
 
     private var selectedCampsiteId: String? = null
-    private var availableNights: Set<String> = emptySet()
-    private val selectedNights = sortedSetOf<String>()
+    private val selectedDates = sortedSetOf<String>()
 
-//    fun canBook(lotteryId: String, entrantId: String): Boolean {
-//        // TODO: Check winner eligibility
-//    }
-
+    /** Only an entrant whose entry is a winner can book. */
     fun canBook(entry: LotteryEntry?): Boolean {
-        return entry?.status == LotteryConstants.ENTRY_WINNER
+        return entry?.status == LotteryEntryStatus.WINNER.name
     }
 
     /** Returns campsite choices belonging to the lottery. */
@@ -42,41 +40,60 @@ class LotteryBookingController {
         return lottery.campsiteIds
     }
 
-    /** Selects a valid campsite and clears the previous night selection. */
+    /** Selects a valid campsite and clears the previous date selection. */
     fun selectCampsite(lottery: Lottery, campsiteId: String) {
         if (campsiteId !in lottery.campsiteIds) return
         if (campsiteId != selectedCampsiteId) {
             selectedCampsiteId = campsiteId
-            availableNights = emptySet()
-            clearSelectedNights()
+            clearSelectedDates()
         }
     }
 
-    /*
-        Check that chosen campsite belongs to Lottery and that selected nights are nonempty,
-        available, valid and consecutive. 
+    /** True once the availability and reservation lists have both finished loading. */
+    fun isAvailabilityLoaded(): Boolean {
+        return availabilityRepository.isCampsiteAvailabilitiesLoaded.value &&
+                reservationRepository.isReservationsLoaded.value
+    }
 
-        Return an error message, or null when the selection is valid. 
-        Checks loaded availablility, and doesn't reserve the rights. 
+    /**
+     * Dates ("yyyy-MM-dd", earliest first) the campsite can still be booked on, or null
+     * while the data is loading. Past dates are dropped.
      */
-    fun validateSelection(lottery: Lottery): String? { 
-         val campsiteId = selectedCampsiteId
-        ?: return "Choose a campsite."
+    fun getAvailableDates(campsiteId: String, today: LocalDate = LocalDate.now()): List<String>? {
+        if (!isAvailabilityLoaded()) return null
+        return availabilityRepository.getAvailableBookingDates(campsiteId)
+            .filter { !it.isBefore(today) }
+            .map { it.toString() }
+    }
+
+    /*
+        Check that chosen campsite belongs to the lottery and that selected dates are
+        nonempty, available, valid and consecutive.
+
+        Returns an error message, or null when the selection is valid.
+        Does not reserve anything.
+     */
+    fun validateSelection(lottery: Lottery): String? {
+        val campsiteId = selectedCampsiteId
+            ?: return "Choose a campsite."
 
         if (campsiteId !in lottery.campsiteIds) {
             return "Choose a campsite from this lottery."
         }
 
-        if (selectedNights.isEmpty()) {
-            return "Select at least one night."
+        if (selectedDates.isEmpty()) {
+            return "Select at least one date."
         }
 
-        if (!availableNights.containsAll(selectedNights)) {
-            return "Some selected nights are unavailable."
+        val available = getAvailableDates(campsiteId)
+            ?: return "Wait for available dates to load."
+
+        if (!available.containsAll(selectedDates)) {
+            return "Some selected dates are unavailable."
         }
 
-        val dates = selectedNights.map { night ->
-            DateUtils.parse(night)
+        val dates = selectedDates.map { date ->
+            DateUtils.parse(date)
                 ?: return "A selected date is invalid."
         }.sorted()
 
@@ -84,31 +101,28 @@ class LotteryBookingController {
                 second == first.plusDays(1)
             }
         ) {
-            return "Choose consecutive nights."
+            return "Choose consecutive dates."
         }
 
         return null
     }
 
-//    /** Requests available nights from the team's availability component. */
-//    fun getAvailableNights(lotteryId: String, campsiteId: String): Set<String> {
-//        TODO("Load available nights")
-//    }
+    /** Adds an available date, only if it extends the current consecutive selection. */
+    fun selectDate(date: String) {
+        val campsiteId = selectedCampsiteId ?: return
+        val available = getAvailableDates(campsiteId) ?: return
+        if (date !in available || date in selectedDates) return
 
-    /** Adds an available night according to the agreed stay rules. */
-    fun selectNight(night: String) {
-        if (night !in availableNights || night in selectedNights) return
-
-        if (selectedNights.isEmpty() || isNextToSelection(night)) {
-            selectedNights.add(night)
+        if (selectedDates.isEmpty() || isNextToSelection(date)) {
+            selectedDates.add(date)
         }
     }
 
-    /** Removes a selected night. */
-    fun deselectNight(night: String) {
-        if (selectedNights.isEmpty()) return
-        if (night == selectedNights.first() || night == selectedNights.last()) {
-            selectedNights.remove(night)
+    /** Removes a selected date (only from either end, so the selection stays consecutive). */
+    fun deselectDate(date: String) {
+        if (selectedDates.isEmpty()) return
+        if (date == selectedDates.first() || date == selectedDates.last()) {
+            selectedDates.remove(date)
         }
     }
 
@@ -117,118 +131,91 @@ class LotteryBookingController {
         return selectedCampsiteId
     }
 
-    /** Returns the selected nights. */
-    fun getSelectedNights(): Set<String> {
-        return selectedNights.toSortedSet()
+    /** Returns the selected dates. */
+    fun getSelectedDates(): Set<String> {
+        return selectedDates.toSortedSet()
     }
 
-    /** Clears selected nights. */
-    fun clearSelectedNights() {
-        selectedNights.clear()
+    /** Clears selected dates. */
+    fun clearSelectedDates() {
+        selectedDates.clear()
     }
 
-    fun setAvailableNights(nights: Set<String>) {
-        availableNights = nights
+    private fun isNextToSelection(date: String): Boolean {
+        val parsed = DateUtils.parse(date) ?: return false
+        val first = DateUtils.parse(selectedDates.first()) ?: return false
+        val last = DateUtils.parse(selectedDates.last()) ?: return false
+        return parsed == first.minusDays(1) || parsed == last.plusDays(1)
     }
 
-    private fun isNextToSelection(night: String): Boolean {
-        val date = DateUtils.parse(night) ?: return false
-        val first = DateUtils.parse(selectedNights.first()) ?: return false
-        val last = DateUtils.parse(selectedNights.last()) ?: return false
-        return date == first.minusDays(1) || date == last.plusDays(1)
-    }
-
-    fun calculateAvailableNights(
-        availabilities: List<CampsiteAvailability>,
-        reservations: List<Reservation>,
-        today: LocalDate = LocalDate.now()
-    ): Set<String> {
-        // 1. Every night the owner opened
-        val openNights = mutableSetOf<LocalDate>()
-        for (availability in availabilities) {
-            if (availability.status != LotteryConstants.AVAILABILITY_OPEN) continue
-            val start = DateUtils.parse(availability.startDate) ?: continue
-            val end = DateUtils.parse(availability.endDate) ?: continue
-            openNights.addAll(DateUtils.nightsBetween(start, end))
-        }
-
-        // 2. Remove nights someone has already booked
-        for (reservation in reservations) {
-            if (reservation.status.lowercase() in LotteryConstants.FREED_RESERVATION_STATUSES) continue
-            val start = DateUtils.parse(reservation.bookStartDate) ?: continue
-            val end = DateUtils.parse(reservation.bookEndDate) ?: continue
-            openNights.removeAll(DateUtils.nightsBetween(start, end).toSet())
-        }
-
-        // 3. Drop nights that have already passed
-        return openNights
-            .filter { night -> !night.isBefore(today) }
-            .map { night -> night.toString() }
-            .toSortedSet()
-    }
-
+    /** The selected stay as (first date, last date), both inclusive, or null if nothing selected. */
     fun getStay(): Pair<String, String>? {
-        if (selectedNights.isEmpty()) return null
-        val lastNight = DateUtils.parse(selectedNights.last()) ?: return null
-        return Pair(selectedNights.first(), lastNight.plusDays(1).toString())
+        if (selectedDates.isEmpty()) return null
+        return Pair(selectedDates.first(), selectedDates.last())
     }
 
-    fun loadLottery(lotteryId: String, onResult: (Lottery?) -> Unit) {
-        lotteryRepository.getLotteryById(lotteryId, onResult)
+    /** Local lookups (the repositories' lists), so screens stay in sync with Firestore. */
+    fun getLottery(lotteryId: String): Lottery? {
+        return RepositoryDatabase.lotteryRepository.getLotteryFromListById(lotteryId)
     }
 
-    fun loadEntry(lotteryId: String, entrantId: String, onResult: (LotteryEntry?) -> Unit) {
-        entryRepository.getEntryForUser(lotteryId, entrantId, onResult)
+    fun getEntry(lotteryId: String, entrantId: String): LotteryEntry? {
+        return entryRepository.getLotteryEntryFromListByLotteryIdAndUserId(lotteryId, entrantId)
     }
 
-    fun loadAvailableNights(campsiteId: String, onResult: (Set<String>?) -> Unit) {
-        availabilityRepository.getAvailabilitiesByCampsiteId(campsiteId) { availabilities ->
-            if (availabilities == null) {
-                onResult(null)
-                return@getAvailabilitiesByCampsiteId
-            }
-            loadReservationsForCampsite(campsiteId) { reservations ->
-                if (reservations == null) {
-                    onResult(null)
-                } else {
-                    val nights = calculateAvailableNights(availabilities, reservations)
-                    // Ignore a late answer if the entrant has switched campsite since
-                    if (campsiteId == selectedCampsiteId) {
-                        setAvailableNights(nights)
-                    }
-                    onResult(nights)
-                }
-            }
-        }
-    }
-
-    private fun loadReservationsForCampsite(
-        campsiteId: String,
-        onResult: (List<Reservation>?) -> Unit
-    ) {
-        Firebase.firestore.collection("reservations")
-            .whereEqualTo("campsiteId", campsiteId)
-            .get()
-            .addOnSuccessListener { documents ->
-                onResult(documents.toObjects(Reservation::class.java))
-            }
-            .addOnFailureListener {
-                onResult(null)
-            }
-    }
-
-    fun declineOffer(entry: LotteryEntry, onResult: (Boolean) -> Unit) {
+    /** Declines the winning offer (US 01.04.03) by setting the entry to DECLINED. */
+    fun declineOffer(entry: LotteryEntry, onResult: (Result<Unit>) -> Unit) {
         if (!canBook(entry)) {
-            onResult(false)
+            onResult(Result.failure(OperationException("You do not have an active winning offer.")))
             return
         }
-        entryRepository.updateEntryStatus(
-            lotteryId = entry.lotteryId,
-            lotteryEntryId = entry.lotteryEntryId,
-            newStatus = LotteryConstants.ENTRY_DECLINED,
-            result = onResult
+        entryRepository.updateLotteryEntry(
+            entry.copy(status = LotteryEntryStatus.DECLINED.name),
+            onResult
         )
     }
-}
 
- */
+    /**
+     * Reserves the current selection: re-validates it, creates the reservation, then marks
+     * the entry ACCEPTED.
+     *
+     * NOTE: these are two separate writes (no cross-collection transaction exists yet), so a
+     * failure in the second one can leave a reservation whose entry is still WINNER.
+     */
+    fun reserve(lottery: Lottery, entry: LotteryEntry, onResult: (Result<Unit>) -> Unit) {
+        if (!canBook(entry)) {
+            onResult(Result.failure(OperationException("You do not have an active winning offer.")))
+            return
+        }
+
+        val error = validateSelection(lottery)
+        val campsiteId = selectedCampsiteId
+        val stay = getStay()
+        if (error != null || campsiteId == null || stay == null) {
+            onResult(Result.failure(ValidationException(error ?: "Select dates first.")))
+            return
+        }
+
+        val pricePerNight = campsiteRepository.getCampsiteFromListById(campsiteId)?.pricePerNight ?: 0.0
+
+        reservationRepository.createReservation(
+            userId = entry.userId,
+            campsiteId = campsiteId,
+            lotteryId = lottery.lotteryId,
+            status = ReservationStatus.ACTIVE.name,
+            bookStartDate = stay.first,
+            bookEndDate = stay.second,
+            pricePerNight = pricePerNight,
+            totalPrice = pricePerNight * selectedDates.size
+        ) { createResult ->
+            createResult
+                .onSuccess {
+                    entryRepository.updateLotteryEntry(
+                        entry.copy(status = LotteryEntryStatus.ACCEPTED.name),
+                        onResult
+                    )
+                }
+                .onFailure { exception -> onResult(Result.failure(exception)) }
+        }
+    }
+}

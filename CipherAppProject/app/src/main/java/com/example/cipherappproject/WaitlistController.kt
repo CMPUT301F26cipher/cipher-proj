@@ -1,8 +1,9 @@
 package com.example.cipherappproject
+import com.example.cipherappproject.database.enums.LotteryEntryStatus
+import com.example.cipherappproject.database.enums.LotteryStatus
 import com.example.cipherappproject.database.models.Lottery
-import com.example.cipherappproject.database.repositories.LotteryRepository
-import com.example.cipherappproject.database.repositories.LotteryEntryRepository
 import com.example.cipherappproject.database.models.LotteryEntry
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 import java.time.LocalDate
 /*
 --------------------------------------------------------------------------------------
@@ -22,11 +23,10 @@ NA
  */
 
 
-class WaitlistController(
-    private val lotteryRepository: LotteryRepository = LotteryRepository(),
-    private val entryRepository: LotteryEntryRepository =
-        LotteryEntryRepository()
-) {
+class WaitlistController {
+    // Shared instances (see Database_Documentation.md): never create new repositories here
+    private val lotteryRepository get() = RepositoryDatabase.lotteryRepository
+    private val entryRepository get() = RepositoryDatabase.lotteryEntryRepository
 
     fun getWaitlist(
         lotteryId: String,
@@ -42,9 +42,9 @@ class WaitlistController(
             }
 
             // Before the lottery draw, entrants have
-            // the status "registered".
+            // the status REGISTERED.
             val waitlist = entries.filter {
-                it.status == "registered"
+                it.status == LotteryEntryStatus.REGISTERED.name
             }
 
             result(waitlist)
@@ -53,7 +53,7 @@ class WaitlistController(
 
     /**
      * Find an open lottery for the campsite whose period covers the requested dates.
-     * Uses the repository's locally cached list of lotteries.
+     * Uses the repository's locally cached list of lotteries (null if it has not loaded yet).
      */
     fun findAvailableLottery(
         campsiteId: String,
@@ -66,12 +66,17 @@ class WaitlistController(
             return
         }
 
+        if (!lotteryRepository.isLotteriesLoaded.value) {
+            result(null)
+            return
+        }
+
         val match = lotteryRepository.lotteries.value.firstOrNull { lottery ->
             val lotteryStart = runCatching { LocalDate.parse(lottery.startDate) }.getOrNull()
             val lotteryEnd = runCatching { LocalDate.parse(lottery.endDate) }.getOrNull()
 
             campsiteId in lottery.campsiteIds &&
-                    lottery.status.equals("open", ignoreCase = true) &&
+                    lottery.status == LotteryStatus.OPEN.name &&
                     lotteryStart != null &&
                     lotteryEnd != null &&
                     !startDate.isBefore(lotteryStart) &&
@@ -95,6 +100,11 @@ class WaitlistController(
             return
         }
 
+        if (!entryRepository.isLotteriesEntriesLoaded.value) {
+            result(false)
+            return
+        }
+
         // Already joined? (uses the repository's locally cached entries)
         val existingEntry = entryRepository
             .getLotteryEntryFromListByLotteryIdAndUserId(lotteryId, userId)
@@ -107,7 +117,7 @@ class WaitlistController(
         entryRepository.addLotteryEntry(
             lotteryId = lotteryId,
             userId = userId,
-            status = "registered",
+            status = LotteryEntryStatus.REGISTERED.name,
             positionLottery = -1
         ) { addResult ->
             result(addResult.isSuccess)

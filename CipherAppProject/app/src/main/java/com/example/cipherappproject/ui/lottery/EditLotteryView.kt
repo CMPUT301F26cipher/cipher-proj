@@ -10,7 +10,7 @@ import androidx.navigation.NavController
 import com.example.cipherappproject.LotteryController
 import com.example.cipherappproject.LotteryFormInput
 import com.example.cipherappproject.database.models.Lottery
-import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
  * Owner screen for updating an existing lottery listing (US 02.04.06).
@@ -24,8 +24,7 @@ fun EditLotteryView(
     lotteryId: String
 ) {
     val controller = remember { LotteryController() }
-    val campsiteRepository = remember { CampsiteRepository() }
-    val ownerCampsites = campsiteRepository.campsites.filter { it.ownerId == ownerId }
+    val ownerCampsites = RepositoryDatabase.campsiteRepository.getCampsiteFromListByOwnerId(ownerId)
 
     var original by remember { mutableStateOf<Lottery?>(null) }
     var input by remember { mutableStateOf(LotteryFormInput()) }
@@ -33,13 +32,13 @@ fun EditLotteryView(
     var loadFailed by remember { mutableStateOf(false) }
 
     LaunchedEffect(lotteryId) {
-        controller.loadLottery(lotteryId) { lottery ->
-            if (lottery == null) {
-                loadFailed = true
-            } else {
-                original = lottery
-                input = controller.toFormInput(lottery)
-            }
+        controller.loadLottery(lotteryId) { loadResult ->
+            loadResult
+                .onSuccess { lottery ->
+                    original = lottery
+                    input = controller.toFormInput(lottery)
+                }
+                .onFailure { loadFailed = true }
         }
     }
 
@@ -58,9 +57,12 @@ fun EditLotteryView(
             errorMessage = errorMessage,
             saveLabel = "Save Changes",
             onSave = {
-                errorMessage = controller.updateLottery(lottery, input) { saved ->
-                    if (saved) navController.popBackStack()
-                    else errorMessage = "Could not save changes. Please try again."
+                errorMessage = controller.updateLottery(lottery, input) { updateResult ->
+                    updateResult
+                        .onSuccess { navController.popBackStack() }
+                        .onFailure {
+                            errorMessage = it.message ?: "Could not save changes. Please try again."
+                        }
                 }
             }
         )

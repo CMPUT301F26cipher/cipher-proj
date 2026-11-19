@@ -14,16 +14,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.cipherappproject.LotteryConstants
+import com.example.cipherappproject.database.enums.LotteryEntryStatus
+import com.example.cipherappproject.database.enums.LotteryStatus
 import com.example.cipherappproject.database.models.Lottery
-import com.example.cipherappproject.database.repositories.CampsiteRepository
-import com.example.cipherappproject.database.repositories.LotteryEntryRepository
-import com.example.cipherappproject.database.repositories.LotteryRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
  * Owner screen listing their lotteries.
@@ -36,10 +34,16 @@ fun OwnerLotteriesView(
     navController: NavController,
     ownerId: String
 ) {
-    val lotteryRepository = remember { LotteryRepository() }
-    val campsiteRepository = remember { CampsiteRepository() }
-    val entryRepository = remember { LotteryEntryRepository() }
-    val myLotteries = lotteryRepository.lotteries.filter { it.ownerId == ownerId }
+    // Shared repository instances; the lists below are Compose State, so this recomposes on change
+    val lotteryRepository = RepositoryDatabase.lotteryRepository
+    val campsiteRepository = RepositoryDatabase.campsiteRepository
+    val entryRepository = RepositoryDatabase.lotteryEntryRepository
+
+    if (!lotteryRepository.isLotteriesLoaded.value) {
+        LoadingIndicator()
+        return
+    }
+    val myLotteries = lotteryRepository.getLotteriesFromListByOwnerId(ownerId)
 
     Column(
         modifier = Modifier
@@ -64,7 +68,7 @@ fun OwnerLotteriesView(
             }
             items(myLotteries, key = { it.lotteryId }) { lottery ->
                 val campsiteNames = lottery.campsiteIds.map { id ->
-                    campsiteRepository.campsites.find { it.campsiteId == id }?.campsiteName
+                    campsiteRepository.getCampsiteFromListById(id)?.campsiteName
                         ?: "Unknown campsite"
                 }
                 LotteryRow(
@@ -73,16 +77,16 @@ fun OwnerLotteriesView(
                     onEdit = { navController.navigate(LotteryRoutes.edit(lottery.lotteryId)) },
                     onViewAsEntrant = { navController.navigate(LotteryRoutes.result(lottery.lotteryId)) },
                     onMakeWinner = {
-                        entryRepository.getEntryForUser(lottery.lotteryId, ownerId) { existing ->
-                            if (existing == null) {
-                                entryRepository.addLotteryEntry(
-                                    lottery.lotteryId, ownerId, LotteryConstants.ENTRY_WINNER, 1
-                                ) {}
-                            } else {
-                                entryRepository.updateEntryStatus(
-                                    lottery.lotteryId, existing.lotteryEntryId, LotteryConstants.ENTRY_WINNER
-                                ) {}
-                            }
+                        val existing = entryRepository
+                            .getLotteryEntryFromListByLotteryIdAndUserId(lottery.lotteryId, ownerId)
+                        if (existing == null) {
+                            entryRepository.addLotteryEntry(
+                                lottery.lotteryId, ownerId, LotteryEntryStatus.WINNER.name, 1
+                            ) {}
+                        } else {
+                            entryRepository.updateLotteryEntry(
+                                existing.copy(status = LotteryEntryStatus.WINNER.name)
+                            ) {}
                         }
                     }
                 )
@@ -110,7 +114,7 @@ private fun LotteryRow(
             Text("Winners: ${lottery.numWinners}    Status: ${lottery.status}")
 
             Row {
-                if (lottery.status == LotteryConstants.LOTTERY_OPEN) {
+                if (lottery.status == LotteryStatus.OPEN.name) {
                     TextButton(onClick = onEdit) { Text("Edit") }
                 }
                 // TEMPORARY: for testing the entrant screens, see the file comment

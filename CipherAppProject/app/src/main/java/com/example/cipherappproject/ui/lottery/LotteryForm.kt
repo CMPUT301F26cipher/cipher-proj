@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject.ui.lottery
 
 import androidx.compose.foundation.clickable
@@ -149,5 +148,3 @@ private fun LotteryTextField(
             .testTag(tag)
     )
 }
-
- */

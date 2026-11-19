@@ -8,7 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import com.example.cipherappproject.LotteryController
 import com.example.cipherappproject.LotteryFormInput
-import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
  * Owner screen for creating a lottery over one or more of their campsites
@@ -21,9 +21,8 @@ fun CreateLotteryView(
     ownerId: String
 ) {
     val controller = remember { LotteryController() }
-    val campsiteRepository = remember { CampsiteRepository() }
-    // Live list, so this recomposes once Firestore has loaded the campsites
-    val ownerCampsites = campsiteRepository.campsites.filter { it.ownerId == ownerId }
+    // Shared repository; its list is Compose State, so this recomposes once Firestore has loaded
+    val ownerCampsites = RepositoryDatabase.campsiteRepository.getCampsiteFromListByOwnerId(ownerId)
 
     var input by remember { mutableStateOf(LotteryFormInput()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -36,9 +35,12 @@ fun CreateLotteryView(
         errorMessage = errorMessage,
         saveLabel = "Publish Lottery",
         onSave = {
-            errorMessage = controller.createFromForm(ownerId, input) { saved ->
-                if (saved) navController.popBackStack()
-                else errorMessage = "Could not save lottery. Please try again."
+            errorMessage = controller.createFromForm(ownerId, input) { saveResult ->
+                saveResult
+                    .onSuccess { navController.popBackStack() }
+                    .onFailure {
+                        errorMessage = it.message ?: "Could not save lottery. Please try again."
+                    }
             }
         }
     )

@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject.ui.lottery
 
 import androidx.compose.foundation.clickable
@@ -34,7 +33,7 @@ import com.example.cipherappproject.DateUtils
 import com.example.cipherappproject.LotteryBookingController
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
-import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.FilterChip
@@ -43,109 +42,74 @@ import androidx.compose.material3.FilterChip
 /**
  * Screens for an entrant who won a lottery
  *
- * NOTE: the Reserve button calls [onReserve]; creating the reservation
- * belongs to the reservation components.
+ * Available dates come from the shared availability + reservation lists (Compose State),
+ * so this redraws by itself once they have loaded or changed.
  */
 @Composable
 fun LotteryWinScreen(
     controller: LotteryBookingController,
     lottery: Lottery,
-    entry: LotteryEntry,
-    onDeclined: () -> Unit,
-    onReserve: (campsiteId: String, checkIn: String, checkOut: String) -> Unit
+    entry: LotteryEntry
 ) {
-    val campsiteRepository = remember { CampsiteRepository() }
     val choices = controller.getCampsiteChoices(lottery)
 
     // Copies of the controller's state, so Compose redraws when they change
     var selectedCampsiteId by remember { mutableStateOf(choices.firstOrNull()) }
-    var availableNights by remember { mutableStateOf<List<String>?>(null) }
-    var selectedNights by remember { mutableStateOf(setOf<String>()) }
-    var loadFailed by remember { mutableStateOf(false) }
+    var selectedDates by remember { mutableStateOf(setOf<String>()) }
     var message by remember { mutableStateOf<String?>(null) }
 
-    // Reload the nights whenever a different campsite is chosen
+    // Make sure the controller knows about the initially shown campsite
     LaunchedEffect(selectedCampsiteId) {
-        val campsiteId = selectedCampsiteId ?: return@LaunchedEffect
-        
-        controller.selectCampsite(lottery, campsiteId)
-        availableNights = null
-        selectedNights = controller.getSelectedNights()
-        loadFailed = false
-        
-        controller.loadAvailableNights(campsiteId) { nights ->
-            if (selectedCampsiteId == campsiteId) {
-            loadFailed = nights == null
-            availableNights = nights?.sorted()
-            }
-        }
+        selectedCampsiteId?.let { controller.selectCampsite(lottery, it) }
     }
+
+    // null while availability is loading; read here so Compose tracks the repositories' State
+    val availableDates = selectedCampsiteId?.let { controller.getAvailableDates(it) }
 
     // (id, display name) pairs; names fill in once the campsites have loaded
     val campsiteChoices = choices.map { id ->
-        val name = campsiteRepository.campsites.find { it.campsiteId == id }?.campsiteName
+        val name = RepositoryDatabase.campsiteRepository.getCampsiteFromListById(id)?.campsiteName
         Pair(id, name ?: "Campsite")
     }
 
     LotteryWinView(
         campsiteChoices = campsiteChoices,
         selectedCampsiteId = selectedCampsiteId,
-        onCampsiteSelected = { 
-            campsiteId ->
+        onCampsiteSelected = { campsiteId ->
             if (campsiteId != selectedCampsiteId) {
                 controller.selectCampsite(lottery, campsiteId)
-
-                selectedNights = emptySet()
-                availableNights = null
-                loadFailed = false
+                selectedDates = emptySet()
                 message = null
                 selectedCampsiteId = campsiteId
             }
-         },
-        availableNights = availableNights,
-        loadFailed = loadFailed,
-        selectedNights = selectedNights,
-        onNightClicked = { night ->
-            if (night in controller.getSelectedNights()) {
-                controller.deselectNight(night)
+        },
+        availableDates = availableDates,
+        selectedDates = selectedDates,
+        onDateClicked = { date ->
+            if (date in controller.getSelectedDates()) {
+                controller.deselectDate(date)
             } else {
-                controller.selectNight(night)
+                controller.selectDate(date)
             }
-            selectedNights = controller.getSelectedNights()
+            selectedDates = controller.getSelectedDates()
         },
         message = message,
         onReserve = {
-            val error = when {
-                !controller.canBook(entry) -> 
-                    "You do not have an active winning offer."  // Validate the winner's selection and pass the campsite,
-                                                                // check-in, and check-out to the reservation component.
-                availableNights == null || loadFailed ->
-                    "Wait for available nights to load."
-
-                else -> controller.validateSelection(lottery)
-            }
-
-            if (error != null) {
-                message = error
-            } else {
-                val stay = controller.getStay()
-                val campsiteId = controller.getSelectedCampsiteId()
-
-                if (stay != null && campsiteId != null) {
-                    onReserve(campsiteId, stay.first, stay.second)
+            controller.reserve(lottery, entry) { reserveResult ->
+                // On success the entry becomes ACCEPTED and LotteryResultScreen switches screens
+                reserveResult.onFailure {
+                    message = it.message ?: "Could not reserve. Check your connection and try again."
                 }
             }
         },
         onDecline = {
-            controller.declineOffer(entry) { success ->
-                if (success) {
-                    onDeclined()
-                } else {
+            controller.declineOffer(entry) { declineResult ->
+                // On success the entry becomes DECLINED and LotteryResultScreen switches screens
+                declineResult.onFailure {
                     message = "Could not decline. Check your connection and try again."
                 }
             }
         }
-    
     )
 }
 
@@ -154,18 +118,17 @@ fun LotteryWinScreen(
  * Draws the winner screen.
  *
  * @param campsiteChoices (campsite ID, campsite name) pairs
- * @param availableNights "yyyy-MM-dd" nights, earliest first; null while loading
- * @param selectedNights "yyyy-MM-dd" nights the entrant has ticked
+ * @param availableDates "yyyy-MM-dd" dates, earliest first; null while loading
+ * @param selectedDates "yyyy-MM-dd" dates the entrant has ticked
  */
 @Composable
 fun LotteryWinView(
     campsiteChoices: List<Pair<String, String>>,
     selectedCampsiteId: String?,
     onCampsiteSelected: (String) -> Unit,
-    availableNights: List<String>?,
-    loadFailed: Boolean,
-    selectedNights: Set<String>,
-    onNightClicked: (String) -> Unit,
+    availableDates: List<String>?,
+    selectedDates: Set<String>,
+    onDateClicked: (String) -> Unit,
     message: String?,
     onReserve: () -> Unit,
     onDecline: () -> Unit
@@ -179,7 +142,7 @@ fun LotteryWinView(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(text = "You won the lottery!", style = MaterialTheme.typography.headlineMedium)
-        Text("Pick the nights you want, or decline if none of them work for you.")
+        Text("Pick the dates you want, or decline if none of them work for you.")
 
         // Only shown when the lottery covers more than one campsite (US 01.04.02)
         if (campsiteChoices.size > 1) {
@@ -190,26 +153,25 @@ fun LotteryWinView(
             )
         }
 
-        Text(text = "Available nights", style = MaterialTheme.typography.titleMedium)
+        Text(text = "Available dates", style = MaterialTheme.typography.titleMedium)
 
         // Takes the leftover space so the buttons stay at the bottom
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             when {
-                loadFailed -> Text("Could not load the available dates.")
-                availableNights == null -> CircularProgressIndicator()
-                availableNights.isEmpty() -> Text("There are no nights left to book for this campsite.")
-                else -> LazyColumn(modifier = Modifier.testTag("availableNightsList")) {
-                    items(availableNights) { night ->
+                availableDates == null -> CircularProgressIndicator()
+                availableDates.isEmpty() -> Text("There are no dates left to book for this campsite.")
+                else -> LazyColumn(modifier = Modifier.testTag("availableDatesList")) {
+                    items(availableDates) { date ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onNightClicked(night) }
-                                .testTag("night_$night")
+                                .clickable { onDateClicked(date) }
+                                .testTag("date_$date")
                         ) {
-                            Checkbox(checked = night in selectedNights, onCheckedChange = null)
+                            Checkbox(checked = date in selectedDates, onCheckedChange = null)
                             Text(
-                                text = DateUtils.parse(night)?.let { DateUtils.display(it) } ?: night,
+                                text = DateUtils.parse(date)?.let { DateUtils.display(it) } ?: date,
                                 modifier = Modifier.padding(start = 8.dp)
                             )
                         }
@@ -218,8 +180,8 @@ fun LotteryWinView(
             }
         }
 
-        if (selectedNights.isNotEmpty()) {
-            Text("${selectedNights.size} night(s) selected")
+        if (selectedDates.isNotEmpty()) {
+            Text("${selectedDates.size} date(s) selected")
         }
         if (message != null) {
             Text(text = message, color = MaterialTheme.colorScheme.error)
@@ -227,7 +189,7 @@ fun LotteryWinView(
 
         Button(
             onClick = onReserve,
-            enabled = selectedNights.isNotEmpty(),
+            enabled = selectedDates.isNotEmpty(),
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("reserveButton")
@@ -298,5 +260,3 @@ fun LotteryCampsiteTabs(
         }
     }
 }
-
- */
