@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject
 
 import androidx.compose.foundation.layout.Arrangement
@@ -15,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.navigation.NavController
 import com.example.cipherappproject.database.models.Campsite
-import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
  * Home screen for entrants, allows searching from user input, and displays a list of campsites
@@ -31,9 +30,10 @@ import com.example.cipherappproject.database.repositories.CampsiteRepository
 fun CampsiteSearch(
     onNavigateToCampsite: (Campsite) -> Unit,
 ){
-    val fullCampsiteList = CampsiteRepository().campsites
+    // Shared repository (Compose State): recomposes when the campsites load or change
+    val fullCampsiteList = RepositoryDatabase.campsiteRepository.campsites.value
     var searchFilter by remember { mutableStateOf(SearchFilter()) }
-    val filteredCampsiteList = remember { CampsiteListFromFilters(fullCampsiteList,searchFilter) }
+    val filteredCampsiteList = remember(fullCampsiteList) { CampsiteListFromFilters(fullCampsiteList,searchFilter) }
     var searchStatus by remember { mutableStateOf(SearchException()) }
 
     Column(
@@ -65,5 +65,3 @@ fun CampsiteSearch(
         }
     }
 }
-
- */

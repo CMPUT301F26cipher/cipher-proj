@@ -1,7 +1,7 @@
-/*
 package com.example.cipherappproject
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -25,7 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +36,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.cipherappproject.database.repositories.ProfileRepository
+import com.example.cipherappproject.database.enums.ProfileRole
 import com.example.cipherappproject.reservations.OwnerOverview
 import com.example.cipherappproject.ui.campsite.EntrantCampsiteView
 import com.example.cipherappproject.ui.lottery.EntrantLotteriesView
@@ -65,83 +65,68 @@ import com.example.cipherappproject.ui.registration.Registration
 @Composable
 fun CampsiteApp(){
 
-    val profileRepository = remember { ProfileRepository() }
-    val accountController = remember { AccountController(profileRepository) }
+    val accountController = remember { AccountController() }
 
-    var currentUserId by remember { mutableStateOf("") }
     var deviceId by remember { mutableStateOf<String?>(null) }
-
-    var needsRegistration by remember { mutableStateOf(false) }
     var deviceError by remember { mutableStateOf(false) }
-
-    var role by rememberSaveable { mutableStateOf(UserRole.ENTRANT) }
+    var registrationError by remember { mutableStateOf<String?>(null) }
+    var loadTimedOut by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-
         accountController.getAccountId { id ->
-
-            if (id != null) {
-                deviceId = id
-
-                accountController.checkAccount(id) { profile ->
-
-                    if (profile != null) {
-                        currentUserId = profile.profileId
-
-                        role = if (profile.role.contains("Owner")) {
-                            UserRole.OWNER
-                        } else {
-                            UserRole.ENTRANT
-                        }
-
-                    } else {
-                        needsRegistration = true
-                    }
-                }
-
-            } else {
-                deviceError = true
-            }
+            if (id != null) deviceId = id else deviceError = true
         }
     }
+
+    // If the device id or the profiles never arrive (no network, Firestore rules, ...)
+    // show a message instead of spinning forever.
+    LaunchedEffect(Unit) {
+        delay(10_000)
+        loadTimedOut = true
+    }
+
+    // profileRepository.profiles is Compose State: once a profile is created below, the
+    // snapshot listener adds it to the list and this recomposes into the main app.
+    val profilesLoaded = accountController.isProfilesLoaded()
+    val profile = deviceId?.takeIf { profilesLoaded }?.let { accountController.findProfile(it) }
+    val currentUserId = profile?.profileId ?: ""
+    val role = if (profile?.role?.contains(ProfileRole.OWNER.name) == true) UserRole.OWNER else UserRole.ENTRANT
+    val needsRegistration = deviceId != null && profilesLoaded && profile == null
+
     when {
 
         deviceError -> {
             AccountErrorView()
         }
 
-        needsRegistration && deviceId != null -> {
+        needsRegistration -> {
+          Column {
+            registrationError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             Registration(
 
                 onEntrantRegistration = { entrantDetails ->
-
                     accountController.createEntrantAccount(
                         entrantDetails = entrantDetails,
                         deviceId = deviceId!!
-                    ) { profileId ->
-
-                        if (profileId != null) {
-                            currentUserId = profileId
-                            needsRegistration = false
+                    ) { createResult ->
+                        createResult.onFailure {
+                            registrationError = it.message ?: "Could not create your account."
                         }
                     }
                 },
 
                 onOwnerRegistration = { ownerDetails ->
-
                     accountController.createOwnerAccount(
                         ownerDetails = ownerDetails,
                         deviceId = deviceId!!
-                    ) { profileId ->
-
-                        if (profileId != null) {
-                            currentUserId = profileId
-                            role = UserRole.OWNER
-                            needsRegistration = false
+                    ) { createResult ->
+                        createResult.onFailure {
+                            registrationError = it.message ?: "Could not create your account."
                         }
                     }
                 }
             )
+          }
         }
 
         currentUserId.isNotBlank() -> {
@@ -231,7 +216,7 @@ fun CampsiteApp(){
                         }
                         composable(AppRoutes.CAMPSITE) { backStackEntry ->
                             val campsiteId = backStackEntry.arguments?.getString("campsiteId") ?: ""
-                            EntrantCampsiteView(campsiteId)
+                            EntrantCampsiteView(campsiteId, currentUserId)
                         }
                         composable(AppRoutes.ENTRANT_RESERVATIONS) {
                             ReservationScreen(userID = currentUserId, isOwner = false)
@@ -293,7 +278,13 @@ fun CampsiteApp(){
         // Still looking up the device's profile
         else -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                if (loadTimedOut) {
+                    Text(
+                        "Could not load your account. Check your internet connection and the database permissions, then restart the app."
+                    )
+                } else {
+                    CircularProgressIndicator()
+                }
             }
         }
     }
@@ -308,5 +299,3 @@ private fun navigateToTab(navController: NavController, route: String) {
         restoreState = true
     }
 }
-
- */

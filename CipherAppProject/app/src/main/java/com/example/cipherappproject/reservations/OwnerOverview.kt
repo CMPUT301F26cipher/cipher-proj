@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject.reservations
 
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import com.example.cipherappproject.database.models.Campsite
-import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /*
 --------------------------------------------------------------------------------------
@@ -46,11 +45,8 @@ fun OwnerOverview(
     onCampsiteClick: (Campsite) -> Unit = {}
 ) {
 
-    val repository = remember { CampsiteRepository() }
-
-    val campsites = repository.campsites.filter {
-        it.ownerId == ownerId
-    }
+    // Shared repository; its list is Compose State so this updates when campsites change
+    val campsites = RepositoryDatabase.campsiteRepository.getCampsiteFromListByOwnerId(ownerId)
 
     Column(
         modifier = Modifier
@@ -103,6 +99,3 @@ fun OwnerOverview(
         }
 
  }
-
- */
-
