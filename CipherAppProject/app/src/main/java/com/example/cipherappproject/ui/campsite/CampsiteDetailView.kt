@@ -26,18 +26,18 @@ fun CampsiteDetailView(
         modifier = Modifier.padding(20.dp)
     ) {
         Text(
-            text = campsite.getCampsiteName(),
+            text = campsite.campsiteName,
             style = MaterialTheme.typography.headlineMedium
         )
 
-        Text(campsite.getCampsiteDescription())
+        Text(campsite.description)
 
         Text(
-            "Maximum Guests: ${campsite.getCampsiteMaxGuests()}"
+            "Maximum Guests: ${campsite.maxGuests}"
         )
 
         Text(
-            "Price per Night: $${campsite.getCampsitePricePerNight()}"
+            "Price per Night: $${campsite.pricePerNight}"
         )
 
         if (isOwner) {

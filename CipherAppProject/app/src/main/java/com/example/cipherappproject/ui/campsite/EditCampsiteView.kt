@@ -223,11 +223,11 @@ fun EditCampsiteView(
 
                             repository.updateCampsite(
                                 updatedCampsite
-                            ) { success ->
+                            ) { saveResult ->
 
                                 isSaving = false
 
-                                if (success) {
+                                if (saveResult.isSuccess) {
                                     onSaveSuccess()
                                 } else {
                                     errorMessage =
