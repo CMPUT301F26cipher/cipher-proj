@@ -134,7 +134,8 @@ fun CampsiteApp(){
             key(role) {
                 val navController = rememberNavController()
                 val tabs = BottomBarDestinations.tabsFor(role)
-                val startDestination = BottomBarDestinations.SEARCH
+                // First tab of the role, so owners do not start on the entrant-only Search screen
+                val startDestination = tabs.first()
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = backStackEntry?.destination?.route
                 val showBackArrow = currentRoute != null && tabs.none { it.route == currentRoute }
