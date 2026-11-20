@@ -1,5 +1,22 @@
 package com.example.cipherappproject
-
+/*
+--------------------------------------------------------------------------------------
+Program Name: CampsiteSummary.kt
+Date Written: Nov 2 2026
+Author: Bailey Parrish
+Purpose: Campsite summary is clickable and shows up in the search results, showing a campsite's name, price,
+location and max guests. Clicking it opens that campsite's details.
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-02  Bailey      1.01     Built
+2026-11-18  Madison     1.02     Safe location lookup, removed stale remember, price format
+--------------------------------------------------------------------------------------
+Future Enhancements
+Show campsite image (campsite.imagePath)
+is price necessary to include here?
+ */
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,66 +28,50 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.example.cipherappproject.database.models.Campsite
+import java.util.Locale
 
 /**
- * Displays summary of a given campsite. Is clickable, which allows navigation to the details on
- * the campsite
+ * Displays a summary of a campsite. Clicking it opens the campsite's details.
  *
- * @param navController For navigability
- * @param campsite gives details of the campsite to be summarized
- *
- */
-/*
- * Built by Bailey
- * Nov 2 2026
- * Updates:
- *
+ * @param onClick called when the card is tapped
+ * @param campsite the campsite to summarize
  */
 @Composable
 fun CampsiteSummary(
     onClick: () -> Unit,
     campsite: Campsite,
 ){
-    val campsite = remember { campsite }
-    val campsiteID = campsite.campsiteId
-    val campsiteName = campsite.campsiteName
-    val campsiteLocation = campsite.mapLocation
-    val campsiteImagePath = campsite.imagePath //TODO: implement getting picture
-    val campsitePrice = campsite.pricePerNight
-    val campsitePriceStr = "$$campsitePrice" //TODO: must reformat once campsite price type is finalized
+    // mapLocation is [latitude, longitude, name] (see Campsite.kt).
+    val locationName = campsite.mapLocation.getOrNull(2).orEmpty()
+    val priceText = String.format(Locale.CANADA, "$%.2f / night", campsite.pricePerNight)
 
     Box(
-        modifier =
-            Modifier
-                .padding(
-                    horizontal = 10.dp,
-                    vertical = 5.dp
-                )
-                .clickable(enabled = true){
-                    onClick()
-                }
-                .background(color = MaterialTheme.colorScheme.primaryContainer)
+        modifier = Modifier
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+            .clickable { onClick() }
+            .background(color = MaterialTheme.colorScheme.primaryContainer)
+            .testTag("campsiteSummary")
     ) {
-        Column() {
-            // TODO: add image here
+        Column {
+            // TODO: add image here (campsite.imagePath)
             Text(
-                text = campsiteName,
+                text = campsite.campsiteName,
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(12.dp)
             )
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text( text = campsitePriceStr )
-                Text( text = campsiteLocation[2] )
-                Text( text = "Max Guests: " + campsite.maxGuests.toString() )
+                Text(text = priceText)
+                Text(text = locationName)
+                Text(text = "Max Guests: ${campsite.maxGuests}")
             }
         }
     }

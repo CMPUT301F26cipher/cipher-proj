@@ -1,70 +1,83 @@
 package com.example.cipherappproject.ui.campsite
 
+/*
+--------------------------------------------------------------------------------------
+Program Name: EntrantCampsiteView.kt
+Date Written: Unknown
+Author: Unknown
+Purpose: Details page for a campsite, opened by tapping a campsite in the entrant
+search results.
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-18  Madison     1.02    Replaced placeholder
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+*/
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.example.cipherappproject.WaitlistController
 import com.example.cipherappproject.database.provider.RepositoryDatabase
-import com.example.cipherappproject.ui.lottery.CenteredMessage
-import com.example.cipherappproject.ui.lottery.LoadingIndicator
+import java.util.Locale
 
 /**
- * Campsite details screen for entrants (opened from search), with the lottery
- * join section (US 01.01.06 / 01.02.01).
+ * Shows details of a campsite.
  *
- * The campsite comes from the shared CampsiteRepository's local list (Compose State), so
- * it appears once the campsites have loaded.
+ * @param campsiteId id of the campsite to show
  */
+
 @Composable
-fun EntrantCampsiteView(campsiteId: String, entrantId: String) {
-    val campsiteRepository = RepositoryDatabase.campsiteRepository
+fun EntrantCampsiteView(campsiteId: String) {
+    val repository = RepositoryDatabase.campsiteRepository
+    val campsite = repository.campsites.value.find { it.campsiteId == campsiteId }
 
-    if (!campsiteRepository.isCampsitesLoaded.value) {
-        LoadingIndicator()
-        return
-    }
-
-    val campsite = campsiteRepository.getCampsiteFromListById(campsiteId)
     if (campsite == null) {
-        CenteredMessage("This campsite could not be found.")
-        return
-    }
-
-    val waitlistController = remember { WaitlistController() }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-            .testTag("entrantCampsiteView"),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        CampsiteDetailView(campsite = campsite, isOwner = false, onEditClick = {})
-
-        if (campsite.amenities.isNotEmpty()) {
-            Text("Amenities: ${campsite.amenities.joinToString(", ")}")
-        }
-        if (campsite.mapLocation.size >= 2) {
-            Text("Location: ${campsite.mapLocation[0]}, ${campsite.mapLocation[1]}")
-        }
-        if (campsite.tags.isNotEmpty()) {
-            Text("Tags: ${campsite.tags.joinToString(", ")}")
-        }
-
-        CampsiteLotterySection(
-            campsiteId = campsiteId,
-            entrantId = entrantId,
-            controller = waitlistController
+        Text(
+            text = if (repository.isCampsitesLoaded.value) "Campsite not found." else "Loading…",
+            modifier = Modifier
+                .padding(16.dp)
+                .testTag("entrantCampsiteView")
         )
+    } else {
+        val latitude = campsite.mapLocation.getOrNull(0) ?: "?"
+        val longitude = campsite.mapLocation.getOrNull(1) ?: "?"
+        val locationName = campsite.mapLocation.getOrNull(2).orEmpty()
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+                .testTag("entrantCampsiteView"),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = campsite.campsiteName,
+                style = MaterialTheme.typography.headlineMedium
+            )
+            Text(String.format(Locale.CANADA, "$%.2f / night", campsite.pricePerNight))
+            Text("Location: $locationName ($latitude, $longitude)")
+            Text("Maximum Occupancy: ${campsite.maxGuests}")
+            Text("Description: ${campsite.description}")
+            Text("Amenities: ${campsite.amenities.joinToString(", ")}")
+            Text("Tags: ${campsite.tags.joinToString(", ")}")
+            if (campsite.rules.isNotEmpty()) {
+                Text("Rules: ${campsite.rules.joinToString(", ")}")
+            }
+            if (campsite.policies.isNotEmpty()) {
+                Text("Policies: ${campsite.policies.joinToString(", ")}")
+            }
+        }
     }
 }

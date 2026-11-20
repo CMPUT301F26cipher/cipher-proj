@@ -1,44 +1,44 @@
 package com.example.cipherappproject
+/*
+--------------------------------------------------------------------------------------
+Program Name: CampsiteListFromFilters.kt
+Date Written: Nov 4 2026
+Author: Bailey Parrish
+Purpose: Class that takes a SearchFilter that can retrieve a subset of campsites that match those filters
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-02  Bailey      1.01     Built
+2026-11-17  Madison     1.02      getList returns filtered results, case-insensitive, blank shows all
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
 
 import com.example.cipherappproject.database.models.Campsite
-import com.example.cipherappproject.database.repositories.CampsiteRepository
 
 /**
- * Class that takes a SearchFilter that can retrieve a subset of campsites that match those filters
+ * Takes the full campsite list and a SearchFilter, and returns the campsites that match.
  *
- * @param searchFilter For navigability
- *
- * @property fullCampsiteList contains all the campsites from the repository
- * @property filteredCampsiteList contains all the campsites that match the previous search. By default, contains all campsites
- */
-/*
- * Built by Bailey
- * Nov 4 2026
- * Updates:
- *
+ * @param fullCampsiteList every campsite currently loaded from the database
+ * @param searchFilter the filters the entrant chose
  */
 class CampsiteListFromFilters(
-    val fullCampsiteList: List<Campsite>,
-    var searchFilter: SearchFilter
+    private val fullCampsiteList: List<Campsite>,
+    private val searchFilter: SearchFilter
 ) {
-    private var filteredCampsiteList = fullCampsiteList.toMutableList()
-
-    fun filterCampsites(){
-        filteredCampsiteList = fullCampsiteList.toMutableList()
-        if (searchFilter.getName().length <= 3) {
-            throw SearchException("SearchStringTooShort")
+    /**
+     * @return campsites whose name contains the searched name, ignoring case.
+     * A blank search returns every campsite.
+     */
+    fun getList(): List<Campsite> {
+        val name = searchFilter.getName().trim()
+        if (name.isEmpty()) {
+            return fullCampsiteList
         }
-        else {
-            for (campsite in fullCampsiteList){
-                if (!campsite.campsiteName.contains(searchFilter.getName())){
-                    filteredCampsiteList.remove(campsite)
-                }
-            }
+        return fullCampsiteList.filter { campsite ->
+            campsite.campsiteName.contains(name, ignoreCase = true)
         }
-    }
-
-    // TODO: Fix this method, it should return the filteredCampsiteList but that breaks everything
-    fun getList(): List<Campsite>{
-        return fullCampsiteList
     }
 }

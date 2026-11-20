@@ -87,7 +87,7 @@ fun CampsiteApp(){
     }
 
 
-    // It should draw any lottery whose registration period has ended, and also 
+    // It should draw any lottery whose registration period has ended, and also
     // once lotteries and entries have loaded from Firestore
 
     val drawController = remember { LotteryDrawController() }
