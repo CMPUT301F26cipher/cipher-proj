@@ -10,12 +10,12 @@ import androidx.navigation.NavController
 import com.example.cipherappproject.LotteryController
 import com.example.cipherappproject.LotteryFormInput
 import com.example.cipherappproject.database.models.Lottery
-import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
  * Owner screen for updating an existing lottery listing (US 02.04.06).
  *
- * NOTE: ownerId is PLACEHOLDER_USER_ID (LotteryNavigation.kt) until US 01.09.01 is done.
+ * ownerId is the signed-in user's profile id (looked up by device in CampsiteApp).
  */
 @Composable
 fun EditLotteryView(
@@ -24,22 +24,22 @@ fun EditLotteryView(
     lotteryId: String
 ) {
     val controller = remember { LotteryController() }
-    val campsiteRepository = remember { CampsiteRepository() }
-    val ownerCampsites = campsiteRepository.campsites.filter { it.ownerId == ownerId }
+    val ownerCampsites = RepositoryDatabase.campsiteRepository.getCampsiteFromListByOwnerId(ownerId)
 
     var original by remember { mutableStateOf<Lottery?>(null) }
     var input by remember { mutableStateOf(LotteryFormInput()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var loadFailed by remember { mutableStateOf(false) }
+    var isSaving by remember { mutableStateOf(false) }
 
     LaunchedEffect(lotteryId) {
-        controller.loadLottery(lotteryId) { lottery ->
-            if (lottery == null) {
-                loadFailed = true
-            } else {
-                original = lottery
-                input = controller.toFormInput(lottery)
-            }
+        controller.loadLottery(lotteryId) { loadResult ->
+            loadResult
+                .onSuccess { lottery ->
+                    original = lottery
+                    input = controller.toFormInput(lottery)
+                }
+                .onFailure { loadFailed = true }
         }
     }
 
@@ -57,10 +57,23 @@ fun EditLotteryView(
             onInputChange = { input = it },
             errorMessage = errorMessage,
             saveLabel = "Save Changes",
+            isSaving = isSaving,
             onSave = {
-                errorMessage = controller.updateLottery(lottery, input) { saved ->
-                    if (saved) navController.popBackStack()
-                    else errorMessage = "Could not save changes. Please try again."
+                if (isSaving) return@LotteryForm
+                isSaving = true
+                errorMessage = null
+                val validationError = controller.updateLottery(lottery, input) { updateResult ->
+                    updateResult
+                        .onSuccess { navController.popBackStack() }
+                        .onFailure {
+                            isSaving = false
+                            errorMessage = it.message ?: "Could not save changes. Please try again."
+                        }
+                }
+                // A validation error means nothing was sent, so allow another try
+                if (validationError != null) {
+                    errorMessage = validationError
+                    isSaving = false
                 }
             }
         )

@@ -1,29 +1,13 @@
 package com.example.cipherappproject
 
 /**
- * Status values the lottery screens read and write, kept in one place.
+ * Lottery-screen constants that are not already covered by the database enums.
  *
- * NOTE: WaitlistController.kt has its own LotteryStatus enum;
+ * Statuses are NOT defined here any more: use the enums in database/enums
+ * (LotteryStatus, LotteryEntryStatus, CampsiteAvailabilityStatus, ReservationStatus)
+ * and store them with `.name`, as described in Database_Documentation.md.
  */
 object LotteryConstants {
-    // Lottery.status
-    const val LOTTERY_OPEN = "open"
-    const val LOTTERY_DRAWN = "drawn"
-    const val LOTTERY_FINISHED = "finished"
-
     /** Lottery.maxParticipants value meaning "no waitlist limit". */
     const val UNLIMITED_PARTICIPANTS = 0
-
-    // LotteryEntry status
-    const val ENTRY_REGISTERED = "registered"
-    const val ENTRY_WINNER = "winner"
-    const val ENTRY_NOT_SELECTED = "notSelected"
-    const val ENTRY_ACCEPTED = "accepted"
-    const val ENTRY_DECLINED = "declined"
-
-    // CampsiteAvailability.status meaning the owner opened those dates
-    const val AVAILABILITY_OPEN = "available"
-
-    /** Reservation statuses whose nights become free again. */
-    val FREED_RESERVATION_STATUSES = setOf("cancelled", "canceled", "rejected")
 }

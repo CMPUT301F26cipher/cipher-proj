@@ -8,12 +8,12 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import com.example.cipherappproject.LotteryController
 import com.example.cipherappproject.LotteryFormInput
-import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
  * Owner screen for creating a lottery over one or more of their campsites
  *
- * NOTE: ownerId is PLACEHOLDER_USER_ID (LotteryNavigation.kt) until US 01.09.01 is done.
+ * ownerId is the signed-in user's profile id (looked up by device in CampsiteApp).
  */
 @Composable
 fun CreateLotteryView(
@@ -21,12 +21,13 @@ fun CreateLotteryView(
     ownerId: String
 ) {
     val controller = remember { LotteryController() }
-    val campsiteRepository = remember { CampsiteRepository() }
-    // Live list, so this recomposes once Firestore has loaded the campsites
-    val ownerCampsites = campsiteRepository.campsites.filter { it.ownerId == ownerId }
+    // Shared repository; its list is Compose State, so this recomposes once Firestore has loaded
+    val ownerCampsites = RepositoryDatabase.campsiteRepository.getCampsiteFromListByOwnerId(ownerId)
 
     var input by remember { mutableStateOf(LotteryFormInput()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    // Blocks repeat taps while a save is in flight, so one tap = one lottery
+    var isSaving by remember { mutableStateOf(false) }
 
     LotteryForm(
         title = "Create Lottery",
@@ -35,10 +36,25 @@ fun CreateLotteryView(
         onInputChange = { input = it },
         errorMessage = errorMessage,
         saveLabel = "Publish Lottery",
+        isSaving = isSaving,
         onSave = {
-            errorMessage = controller.createFromForm(ownerId, input) { saved ->
-                if (saved) navController.popBackStack()
-                else errorMessage = "Could not save lottery. Please try again."
+            if (isSaving) return@LotteryForm
+            isSaving = true
+            errorMessage = null
+            // The callback can run before this returns (e.g. ownership check), so only
+            // overwrite errorMessage when there is a validation error
+            val validationError = controller.createFromForm(ownerId, input) { saveResult ->
+                saveResult
+                    .onSuccess { navController.popBackStack() }
+                    .onFailure {
+                        isSaving = false
+                        errorMessage = it.message ?: "Could not save lottery. Please try again."
+                    }
+            }
+            // A validation error means nothing was sent, so allow another try
+            if (validationError != null) {
+                errorMessage = validationError
+                isSaving = false
             }
         }
     )

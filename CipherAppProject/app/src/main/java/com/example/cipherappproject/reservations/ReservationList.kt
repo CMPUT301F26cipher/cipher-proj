@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject.reservations
 
 /*
@@ -26,10 +25,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.cipherappproject.DateUtils
+import com.example.cipherappproject.database.enums.ReservationStatus
 import com.example.cipherappproject.database.models.Reservation
-import com.example.cipherappproject.database.repositories.CampsiteRepository
-import com.example.cipherappproject.database.repositories.ProfileRepository
-import com.example.cipherappproject.database.repositories.ReservationRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 import java.time.LocalDate
 import java.util.Date
 
@@ -47,8 +45,9 @@ class ReservationList(
     userID: String = "",
     isOwner: Boolean = false
 ) {
-    private val reservationRepo: ReservationRepository = ReservationRepository()
-    private val campsiteRepo: CampsiteRepository = CampsiteRepository()
+    // Shared repository instances (see Database_Documentation.md)
+    private val reservationRepo = RepositoryDatabase.reservationRepository
+    private val campsiteRepo = RepositoryDatabase.campsiteRepository
 
     ////////////////////////////////////// UI STATE //////////////////////////////////////////
     enum class Status {ACTIVE, CANCELLED, PAST}
@@ -73,20 +72,20 @@ class ReservationList(
     private val reservations by derivedStateOf {
         lastTimeChecked
         if (isOwner) {
-            val campsiteIds = campsiteRepo.campsites.filter { it.ownerId == userID }.map { it.campsiteId }
-            reservationRepo.reservations.filter { it.campsiteId in campsiteIds }
+            val campsiteIds = campsiteRepo.getCampsiteFromListByOwnerId(userID).map { it.campsiteId }
+            reservationRepo.reservations.value.filter { it.campsiteId in campsiteIds }
         } else {
-            reservationRepo.reservations.filter { it.userId in userID }
+            reservationRepo.getReservationFromListByUserId(userID)
         }
 
     }
     private val _activeReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.status == "active" && !DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked) }
+        reservations.filter { it.status == ReservationStatus.ACTIVE.name && !DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked) }
     }
     private val _pastReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.status == "past" || (it.status != "cancelled" && DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked)) }
+        reservations.filter { it.status == ReservationStatus.PAST.name || (it.status != ReservationStatus.CANCELED.name && DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked)) }
     }
 
     private val _nextExpiry by derivedStateOf { _activeReservations.minOfOrNull { DateUtils.parse(it.bookEndDate)!! } }
@@ -112,8 +111,8 @@ class ReservationListHelpers(
     private val reservation: Reservation,
     private val isOwner: Boolean
 ) {
-    private val campsiteRepo: CampsiteRepository = CampsiteRepository()
-    private val profileRepo: ProfileRepository = ProfileRepository()
+    private val campsiteRepo = RepositoryDatabase.campsiteRepository
+    private val profileRepo = RepositoryDatabase.profileRepository
 
 
     ////////////////////////////////////// CAMPSITES RESERVATION HELPERS //////////////////////////////////////////
@@ -130,17 +129,15 @@ class ReservationListHelpers(
      */
     fun formattedUserName(): String {
         // first returns first campsite where conditions are true
-        val campsite = campsiteRepo.campsites.first { it.campsiteId == reservation.campsiteId }
-        val nameId = if ( isOwner) reservation.userId else campsite.ownerId
-        return profileRepo.profiles.first { it.profileId == nameId }.name
+        val campsite = campsiteRepo.getCampsiteFromListById(reservation.campsiteId)
+        val nameId = if (isOwner) reservation.userId else campsite?.ownerId
+        return nameId?.let { profileRepo.getProfileFromListById(it)?.name } ?: "Unknown"
     }
 
     fun formattedCampsiteName(): String {
-        return campsiteRepo.campsites.first { it.campsiteId == reservation.campsiteId }.campsiteName
+        return campsiteRepo.getCampsiteFromListById(reservation.campsiteId)?.campsiteName ?: "Unknown campsite"
     }
 
     fun getCampsiteImg() = ""
 
 }
-
- */

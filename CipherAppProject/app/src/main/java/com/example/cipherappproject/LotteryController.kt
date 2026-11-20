@@ -1,9 +1,12 @@
 package com.example.cipherappproject
 
+import com.example.cipherappproject.database.enums.LotteryEntryStatus
+import com.example.cipherappproject.database.enums.LotteryStatus
+import com.example.cipherappproject.database.exceptions.PermissionException
+import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Lottery
-import com.example.cipherappproject.database.repositories.LotteryRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 /**
  * Handles owner lottery creation and validation for US 02.04.01, 02.04.05,
@@ -13,7 +16,10 @@ import java.time.LocalDateTime
  */
 
 class LotteryController {
-    private val repository by lazy { LotteryRepository() }
+    // Shared instances (see Database_Documentation.md): never create new repositories here
+    private val repository get() = RepositoryDatabase.lotteryRepository
+    private val campsiteRepository get() = RepositoryDatabase.campsiteRepository
+
     /** Validates settings and constructs a lottery; persistence is separate. */
     fun createLottery(
         ownerId: String,
@@ -36,8 +42,7 @@ class LotteryController {
             startDate = startDate.trim(),
             endDate = endDate.trim(),
             maxParticipants = capacity ?: LotteryConstants.UNLIMITED_PARTICIPANTS,
-            status = LotteryConstants.LOTTERY_OPEN,
-            createdAt = LocalDateTime.now().toString()
+            status = LotteryStatus.OPEN.name
         )
     }
 
@@ -79,11 +84,12 @@ class LotteryController {
             return
         }
 
-        // LotteryRepository.saveNewLottery (with campsite-ownership check) is currently
-        // commented out, so save through createLottery instead.
-        saveNewLottery(lottery) { lotteryId ->
-            if (lotteryId != null) onSuccess(lotteryId)
-            else onFailure("Could not save lottery. Please try again.")
+        saveNewLottery(lottery) { saveResult ->
+            saveResult
+                .onSuccess { lotteryId -> onSuccess(lotteryId) }
+                .onFailure { exception ->
+                    onFailure(exception.message ?: "Could not save lottery. Please try again.")
+                }
         }
     }
 
@@ -132,7 +138,7 @@ class LotteryController {
 
     fun parseCapacity(capacityText: String): Int? = capacityText.trim().toIntOrNull()
 
-    fun canEdit(lottery: Lottery): Boolean = lottery.status == LotteryConstants.LOTTERY_OPEN
+    fun canEdit(lottery: Lottery): Boolean = lottery.status == LotteryStatus.OPEN.name
 
     fun toFormInput(lottery: Lottery): LotteryFormInput {
         val capacityText =
@@ -158,11 +164,37 @@ class LotteryController {
         )
     }
 
-    fun loadLottery(lotteryId: String, onResult: (Lottery?) -> Unit) {
+    /** Loads one lottery from Firestore. */
+    fun loadLottery(lotteryId: String, onResult: (Result<Lottery>) -> Unit) {
         repository.getLotteryById(lotteryId, onResult)
     }
 
-    fun saveNewLottery(lottery: Lottery, onResult: (String?) -> Unit = {}) {
+    /**
+     * Checks that every campsite exists and belongs to [ownerId].
+     *
+     * This replaces the check that used to live in LotteryRepository.saveNewLottery
+     * (now commented out): it uses the campsite repository's local list, so
+     * the campsites must have finished loading.
+     */
+    fun checkCampsiteOwnership(ownerId: String, campsiteIds: Collection<String>): Result<Unit> {
+        if (!campsiteRepository.isCampsitesLoaded.value) {
+            return Result.failure(ValidationException("Campsites are still loading. Please try again."))
+        }
+        val allOwned = campsiteIds.all { id ->
+            campsiteRepository.getCampsiteFromListById(id)?.ownerId == ownerId
+        }
+        return if (allOwned) Result.success(Unit)
+        else Result.failure(PermissionException("You can only list your own campsites."))
+    }
+
+    /** Saves a new lottery after checking campsite ownership. Result holds the new lottery id. */
+    fun saveNewLottery(lottery: Lottery, onResult: (Result<String>) -> Unit = {}) {
+        val ownership = checkCampsiteOwnership(lottery.ownerId, lottery.campsiteIds)
+        if (ownership.isFailure) {
+            onResult(Result.failure(ownership.exceptionOrNull()!!))
+            return
+        }
+
         repository.createLottery(
             ownerId = lottery.ownerId,
             campsiteIds = lottery.campsiteIds.toMutableList(),
@@ -171,12 +203,16 @@ class LotteryController {
             endDate = lottery.endDate,
             maxParticipants = lottery.maxParticipants ?: LotteryConstants.UNLIMITED_PARTICIPANTS,
             status = lottery.status,
-            createdAt = lottery.createdAt,
             result = onResult
         )
     }
 
-    fun createFromForm(ownerId: String, input: LotteryFormInput, onSaved: (Boolean) -> Unit = {}): String? {
+    /** Returns a validation message, or null if the form was valid and the save was requested. */
+    fun createFromForm(
+        ownerId: String,
+        input: LotteryFormInput,
+        onResult: (Result<String>) -> Unit = {}
+    ): String? {
         val error = validate(input)
         if (error != null) return error
 
@@ -188,19 +224,93 @@ class LotteryController {
             numberOfWinners = input.numWinners.trim().toInt(),
             capacity = parseCapacity(input.capacity)
         )
-        saveNewLottery(lottery) { onSaved(it != null) }
+        saveNewLottery(lottery, onResult)
         return null
     }
 
-    fun updateLottery(original: Lottery, input: LotteryFormInput, onSaved: (Boolean) -> Unit = {}): String? {
+    /** Returns a validation message, or null if the form was valid and the update was requested. */
+    fun updateLottery(
+        original: Lottery,
+        input: LotteryFormInput,
+        onResult: (Result<Unit>) -> Unit = {}
+    ): String? {
         if (!canEdit(original)) {
             return "This lottery has already been drawn and can no longer be edited"
         }
         val error = validate(input)
         if (error != null) return error
 
-        repository.updateLottery(applyChanges(original, input), onSaved)
+        val ownership = checkCampsiteOwnership(original.ownerId, input.campsiteIds)
+        if (ownership.isFailure) return ownership.exceptionOrNull()?.message
+
+        val capacityError = checkCapacityFitsWaitlist(original.lotteryId, parseCapacity(input.capacity))
+        if (capacityError != null) return capacityError
+
+        repository.updateLottery(applyChanges(original, input), onResult)
         return null
+    }
+
+    // ------------------------- Waitlist capacity (US 02.04.07) -------------------------
+
+    private val entryRepository get() = RepositoryDatabase.lotteryEntryRepository
+
+    /**
+     * Number of entrants currently on the lottery's waitlist (everyone who joined and has not
+     * left), or null while the entries are still loading.
+     */
+    fun getWaitlistSize(lotteryId: String): Int? {
+        if (!entryRepository.isLotteriesEntriesLoaded.value) return null
+        return entryRepository.getLotteryEntriesFromListByLotteryId(lotteryId)
+            .count { it.status != LotteryEntryStatus.WITHDRAWN.name }
+    }
+
+    /** True if [capacity] is a set limit that [waitlistSize] entrants have already reached. */
+    fun isFull(capacity: Int?, waitlistSize: Int): Boolean {
+        if (capacity == null || capacity == LotteryConstants.UNLIMITED_PARTICIPANTS) return false
+        return waitlistSize >= capacity
+    }
+
+    /**
+     * True if the lottery's waitlist has reached its capacity, so no one else can join.
+     * Treated as full while the entries are still loading, so the limit can't be skipped.
+     * For the join-waitlist flow to call before adding an entry.
+     */
+    fun isWaitlistFull(lottery: Lottery): Boolean {
+        val size = getWaitlistSize(lottery.lotteryId) ?: return true
+        return isFull(lottery.maxParticipants, size)
+    }
+
+    /** Error message if [capacity] is lower than the number already on the waitlist, else null. */
+    fun checkCapacityFitsWaitlist(lotteryId: String, capacity: Int?): String? {
+        if (capacity == null) return null
+        val size = getWaitlistSize(lotteryId)
+            ?: return "The waitlist is still loading. Please try again."
+        return capacityBelowWaitlistError(capacity, size)
+    }
+
+    /** Error message if [capacity] is below [waitlistSize], else null. */
+    fun capacityBelowWaitlistError(capacity: Int, waitlistSize: Int): String? {
+        return if (capacity < waitlistSize) {
+            "Waitlist capacity can't be lower than the $waitlistSize entrants already on it"
+        } else null
+    }
+
+    // ------------------------- Viewing / filtering (owner list) -------------------------
+
+    /** The owner's lotteries with [status] (a LotteryStatus name), or all of them when null. */
+    fun filterByStatus(lotteries: List<Lottery>, status: String?): List<Lottery> {
+        return if (status == null) lotteries else lotteries.filter { it.status == status }
+    }
+
+    /** Readable text for a lottery status. */
+    fun statusText(status: String): String {
+        return when (status) {
+            LotteryStatus.OPEN.name -> "Open"
+            LotteryStatus.PROCESSING.name -> "Drawing"
+            LotteryStatus.COMPLETED.name -> "Drawn"
+            LotteryStatus.CANCELLED.name -> "Cancelled"
+            else -> status
+        }
     }
 }
 

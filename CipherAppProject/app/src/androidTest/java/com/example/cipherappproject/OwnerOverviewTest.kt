@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -9,7 +8,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.example.cipherappproject.database.models.Campsite
-import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -26,7 +25,7 @@ class OwnerOverviewTest {
     fun campsiteRepositoryReceivesFirestoreData() {
 
         val db = Firebase.firestore
-        val repository = CampsiteRepository()
+        val repository = RepositoryDatabase.campsiteRepository
 
         val campsiteId = "test-${UUID.randomUUID()}"
         val ownerId = "test-owner"
@@ -59,7 +58,7 @@ class OwnerOverviewTest {
 
             while (System.currentTimeMillis() < deadline) {
 
-                val found = repository.campsites.any {
+                val found = repository.campsites.value.any {
                     it.campsiteId == campsiteId
                 }
 
@@ -77,7 +76,7 @@ class OwnerOverviewTest {
                 received.count == 0L
             )
 
-            val retrieved = repository.campsites.first {
+            val retrieved = repository.campsites.value.first {
                 it.campsiteId == campsiteId
             }
 
@@ -99,5 +98,3 @@ class OwnerOverviewTest {
         }
     }
 }
-
- */

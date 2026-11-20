@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject.ui.lottery
 
 import androidx.compose.foundation.layout.Arrangement
@@ -12,31 +11,34 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.cipherappproject.LotteryConstants
+import com.example.cipherappproject.database.enums.LotteryEntryStatus
 import com.example.cipherappproject.database.models.LotteryEntry
-import com.example.cipherappproject.database.repositories.CampsiteRepository
-import com.example.cipherappproject.database.repositories.LotteryEntryRepository
-import com.example.cipherappproject.database.repositories.LotteryRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
  * Entrant screen listing the lotteries they've joined.
  *
- * NOTE: entrantId is PLACEHOLDER_USER_ID (LotteryNavigation.kt) until US 01.09.01 is done.
+ * entrantId is the signed-in user's profile id (looked up by device in CampsiteApp).
  */
 @Composable
 fun EntrantLotteriesView(
     navController: NavController,
     entrantId: String
 ) {
-    val entryRepository = remember { LotteryEntryRepository() }
-    val lotteryRepository = remember { LotteryRepository() }
-    val campsiteRepository = remember { CampsiteRepository() }
-    val myEntries = entryRepository.lotteries.filter { it.userId == entrantId }
+    // Shared repository instances; their lists are Compose State, so this recomposes on change
+    val entryRepository = RepositoryDatabase.lotteryEntryRepository
+    val lotteryRepository = RepositoryDatabase.lotteryRepository
+    val campsiteRepository = RepositoryDatabase.campsiteRepository
+
+    if (!entryRepository.isLotteriesEntriesLoaded.value || !lotteryRepository.isLotteriesLoaded.value) {
+        LoadingIndicator()
+        return
+    }
+    val myEntries = entryRepository.getLotteryEntriesFromListByUserId(entrantId)
 
     Column(
         modifier = Modifier
@@ -52,9 +54,9 @@ fun EntrantLotteriesView(
                 item { Text("You haven't joined any lotteries yet.") }
             }
             items(myEntries) { entry ->
-                val lottery = lotteryRepository.lotteries.find { it.lotteryId == entry.lotteryId }
+                val lottery = lotteryRepository.getLotteryFromListById(entry.lotteryId)
                 val campsiteNames = lottery?.campsiteIds?.map { id ->
-                    campsiteRepository.campsites.find { it.campsiteId == id }?.campsiteName
+                    campsiteRepository.getCampsiteFromListById(id)?.campsiteName
                         ?: "Unknown campsite"
                 } ?: emptyList()
 
@@ -94,13 +96,12 @@ private fun EntryRow(
 /** Readable text for a lottery entry status. */
 private fun entryStatusText(status: String): String {
     return when (status) {
-        LotteryConstants.ENTRY_REGISTERED -> "Waiting for the draw"
-        LotteryConstants.ENTRY_WINNER -> "You won! Tap to reserve"
-        LotteryConstants.ENTRY_NOT_SELECTED -> "Not selected"
-        LotteryConstants.ENTRY_ACCEPTED -> "Reserved"
-        LotteryConstants.ENTRY_DECLINED -> "Declined"
+        LotteryEntryStatus.REGISTERED.name -> "Waiting for the draw"
+        LotteryEntryStatus.WINNER.name -> "You won! Tap to reserve"
+        LotteryEntryStatus.NOT_SELECTED.name -> "Not selected"
+        LotteryEntryStatus.ACCEPTED.name -> "Reserved"
+        LotteryEntryStatus.DECLINED.name -> "Declined"
+        LotteryEntryStatus.WITHDRAWN.name -> "Left the waiting list"
         else -> status
     }
 }
-
- */

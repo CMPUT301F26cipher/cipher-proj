@@ -1,4 +1,3 @@
-/*
 package com.example.cipherappproject.ui.lottery
 
 import androidx.navigation.NavController
@@ -14,8 +13,7 @@ import androidx.navigation.compose.composable
  *  - owner/lotteries/{lotteryId}/edit
  *  - lottery/{lotteryId}/result
  *
- * NOTE: [PLACEHOLDER_USER_ID] stands in for the current user until device
- * identification (US 01.09.01) exists. The same ID acts as owner and entrant for testing.
+ * [currentUserId] is the signed-in user's profile id (looked up by device in CampsiteApp).
  */
 object LotteryRoutes {
     const val CREATE = "owner/lotteries/create"
@@ -29,7 +27,7 @@ object LotteryRoutes {
 /** Adds the lottery sub-screens to a NavHost. */
 fun NavGraphBuilder.lotteryScreens(
     navController: NavController,
-    currentUserId: String = PLACEHOLDER_USER_ID
+    currentUserId: String
 ) {
     composable(LotteryRoutes.CREATE) {
         CreateLotteryView(navController, currentUserId)
@@ -43,5 +41,3 @@ fun NavGraphBuilder.lotteryScreens(
         LotteryResultScreen(navController, lotteryId, currentUserId)
     }
 }
-
- */

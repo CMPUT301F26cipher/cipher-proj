@@ -1,7 +1,6 @@
-/*
 package com.example.cipherappproject.ui.lottery
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,20 +8,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,118 +36,91 @@ import com.example.cipherappproject.DateUtils
 import com.example.cipherappproject.LotteryBookingController
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
-import com.example.cipherappproject.database.repositories.CampsiteRepository
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.FilterChip
-
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
  * Screens for an entrant who won a lottery
  *
- * NOTE: the Reserve button calls [onReserve]; creating the reservation
- * belongs to the reservation components.
+ * Available dates come from the shared availability + reservation lists (Compose State),
+ * so this redraws by itself once they have loaded or changed.
  */
 @Composable
 fun LotteryWinScreen(
     controller: LotteryBookingController,
     lottery: Lottery,
-    entry: LotteryEntry,
-    onDeclined: () -> Unit,
-    onReserve: (campsiteId: String, checkIn: String, checkOut: String) -> Unit
+    entry: LotteryEntry
 ) {
-    val campsiteRepository = remember { CampsiteRepository() }
     val choices = controller.getCampsiteChoices(lottery)
 
     // Copies of the controller's state, so Compose redraws when they change
     var selectedCampsiteId by remember { mutableStateOf(choices.firstOrNull()) }
-    var availableNights by remember { mutableStateOf<List<String>?>(null) }
-    var selectedNights by remember { mutableStateOf(setOf<String>()) }
-    var loadFailed by remember { mutableStateOf(false) }
+    var selectedDates by remember { mutableStateOf(setOf<String>()) }
     var message by remember { mutableStateOf<String?>(null) }
+    // True while a reserve/decline write is in flight, so repeat taps can't send it twice
+    var isWorking by remember { mutableStateOf(false) }
 
-    // Reload the nights whenever a different campsite is chosen
+    // Make sure the controller knows about the initially shown campsite
     LaunchedEffect(selectedCampsiteId) {
-        val campsiteId = selectedCampsiteId ?: return@LaunchedEffect
-        
-        controller.selectCampsite(lottery, campsiteId)
-        availableNights = null
-        selectedNights = controller.getSelectedNights()
-        loadFailed = false
-        
-        controller.loadAvailableNights(campsiteId) { nights ->
-            if (selectedCampsiteId == campsiteId) {
-            loadFailed = nights == null
-            availableNights = nights?.sorted()
-            }
-        }
+        selectedCampsiteId?.let { controller.selectCampsite(lottery, it) }
     }
+
+    // null while availability is loading; read here so Compose tracks the repositories' State
+    val availableDates = selectedCampsiteId?.let { controller.getAvailableDates(it) }
 
     // (id, display name) pairs; names fill in once the campsites have loaded
     val campsiteChoices = choices.map { id ->
-        val name = campsiteRepository.campsites.find { it.campsiteId == id }?.campsiteName
+        val name = RepositoryDatabase.campsiteRepository.getCampsiteFromListById(id)?.campsiteName
         Pair(id, name ?: "Campsite")
     }
 
     LotteryWinView(
         campsiteChoices = campsiteChoices,
         selectedCampsiteId = selectedCampsiteId,
-        onCampsiteSelected = { 
-            campsiteId ->
+        onCampsiteSelected = { campsiteId ->
             if (campsiteId != selectedCampsiteId) {
                 controller.selectCampsite(lottery, campsiteId)
-
-                selectedNights = emptySet()
-                availableNights = null
-                loadFailed = false
+                selectedDates = emptySet()
                 message = null
                 selectedCampsiteId = campsiteId
             }
-         },
-        availableNights = availableNights,
-        loadFailed = loadFailed,
-        selectedNights = selectedNights,
-        onNightClicked = { night ->
-            if (night in controller.getSelectedNights()) {
-                controller.deselectNight(night)
+        },
+        availableDates = availableDates,
+        selectedDates = selectedDates,
+        onRangeSelected = { start, end ->
+            message = if (start == null) {
+                controller.clearSelectedDates()
+                null
             } else {
-                controller.selectNight(night)
+                controller.selectRange(start, end)
             }
-            selectedNights = controller.getSelectedNights()
+            selectedDates = controller.getSelectedDates()
         },
         message = message,
+        isWorking = isWorking,
         onReserve = {
-            val error = when {
-                !controller.canBook(entry) -> 
-                    "You do not have an active winning offer."  // Validate the winner's selection and pass the campsite,
-                                                                // check-in, and check-out to the reservation component.
-                availableNights == null || loadFailed ->
-                    "Wait for available nights to load."
-
-                else -> controller.validateSelection(lottery)
-            }
-
-            if (error != null) {
-                message = error
-            } else {
-                val stay = controller.getStay()
-                val campsiteId = controller.getSelectedCampsiteId()
-
-                if (stay != null && campsiteId != null) {
-                    onReserve(campsiteId, stay.first, stay.second)
+            if (isWorking) return@LotteryWinView
+            isWorking = true
+            message = null
+            controller.reserve(lottery, entry) { reserveResult ->
+                // On success the entry becomes ACCEPTED and LotteryResultScreen switches screens
+                reserveResult.onFailure {
+                    isWorking = false
+                    message = it.message ?: "Could not reserve. Check your connection and try again."
                 }
             }
         },
         onDecline = {
-            controller.declineOffer(entry) { success ->
-                if (success) {
-                    onDeclined()
-                } else {
+            if (isWorking) return@LotteryWinView
+            isWorking = true
+            message = null
+            controller.declineOffer(entry) { declineResult ->
+                // On success the entry becomes DECLINED and LotteryResultScreen switches screens
+                declineResult.onFailure {
+                    isWorking = false
                     message = "Could not decline. Check your connection and try again."
                 }
             }
         }
-    
     )
 }
 
@@ -154,21 +129,23 @@ fun LotteryWinScreen(
  * Draws the winner screen.
  *
  * @param campsiteChoices (campsite ID, campsite name) pairs
- * @param availableNights "yyyy-MM-dd" nights, earliest first; null while loading
- * @param selectedNights "yyyy-MM-dd" nights the entrant has ticked
+ * @param availableDates "yyyy-MM-dd" dates, earliest first; null while loading
+ * @param selectedDates "yyyy-MM-dd" dates of the chosen stay
+ * @param onRangeSelected called with the picked first and last day ("yyyy-MM-dd"); the last
+ *   day is null while only the first has been tapped, and both are null when cleared
  */
 @Composable
 fun LotteryWinView(
     campsiteChoices: List<Pair<String, String>>,
     selectedCampsiteId: String?,
     onCampsiteSelected: (String) -> Unit,
-    availableNights: List<String>?,
-    loadFailed: Boolean,
-    selectedNights: Set<String>,
-    onNightClicked: (String) -> Unit,
+    availableDates: List<String>?,
+    selectedDates: Set<String>,
+    onRangeSelected: (String?, String?) -> Unit,
     message: String?,
     onReserve: () -> Unit,
-    onDecline: () -> Unit
+    onDecline: () -> Unit,
+    isWorking: Boolean = false
 ) {
     var showDeclineDialog by remember { mutableStateOf(false) }
 
@@ -179,55 +156,40 @@ fun LotteryWinView(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(text = "You won the lottery!", style = MaterialTheme.typography.headlineMedium)
-        Text("Pick the nights you want, or decline if none of them work for you.")
+        Text("Pick the first and last night of your stay, or decline if no dates work for you.")
 
         // Only shown when the lottery covers more than one campsite (US 01.04.02)
         if (campsiteChoices.size > 1) {
             LotteryCampsiteTabs(
-                        campsiteChoices = campsiteChoices,
-                        selectedCampsiteId = selectedCampsiteId,
-                        onCampsiteSelected = onCampsiteSelected
+                campsiteChoices = campsiteChoices,
+                selectedCampsiteId = selectedCampsiteId,
+                onCampsiteSelected = onCampsiteSelected
             )
         }
-
-        Text(text = "Available nights", style = MaterialTheme.typography.titleMedium)
 
         // Takes the leftover space so the buttons stay at the bottom
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             when {
-                loadFailed -> Text("Could not load the available dates.")
-                availableNights == null -> CircularProgressIndicator()
-                availableNights.isEmpty() -> Text("There are no nights left to book for this campsite.")
-                else -> LazyColumn(modifier = Modifier.testTag("availableNightsList")) {
-                    items(availableNights) { night ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNightClicked(night) }
-                                .testTag("night_$night")
-                        ) {
-                            Checkbox(checked = night in selectedNights, onCheckedChange = null)
-                            Text(
-                                text = DateUtils.parse(night)?.let { DateUtils.display(it) } ?: night,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
-                    }
+                availableDates == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                availableDates.isEmpty() -> Text("There are no dates left to book for this campsite.")
+                // New calendar per campsite / availability change, so old picks don't carry over
+                else -> key(selectedCampsiteId, availableDates) {
+                    AvailabilityCalendar(
+                        availableDates = availableDates,
+                        onRangeSelected = onRangeSelected
+                    )
                 }
             }
         }
 
-        if (selectedNights.isNotEmpty()) {
-            Text("${selectedNights.size} night(s) selected")
-        }
+        StaySummary(selectedDates)
         if (message != null) {
             Text(text = message, color = MaterialTheme.colorScheme.error)
         }
 
         Button(
             onClick = onReserve,
-            enabled = selectedNights.isNotEmpty(),
+            enabled = selectedDates.isNotEmpty() && !isWorking,
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("reserveButton")
@@ -236,6 +198,7 @@ fun LotteryWinView(
         }
         OutlinedButton(
             onClick = { showDeclineDialog = true },
+            enabled = !isWorking,
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("declineButton")
@@ -269,6 +232,66 @@ fun LotteryWinView(
     }
 }
 
+/**
+ * Calendar of the campsite's bookable dates (US 01.04.01). Dates that can't be booked are
+ * greyed out and can't be tapped; the entrant taps a first and a last night.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AvailabilityCalendar(
+    availableDates: List<String>,
+    onRangeSelected: (String?, String?) -> Unit
+) {
+    val available = remember(availableDates) {
+        availableDates.mapNotNull { DateUtils.parse(it) }.toSet()
+    }
+    val firstDate = available.min()
+    val lastDate = available.max()
+
+    val state = rememberDateRangePickerState(
+        initialDisplayedMonthMillis = DateUtils.toUtcMillis(firstDate),
+        yearRange = firstDate.year..lastDate.year,
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                DateUtils.fromUtcMillis(utcTimeMillis) in available
+
+            override fun isSelectableYear(year: Int): Boolean =
+                year in firstDate.year..lastDate.year
+        }
+    )
+
+    // Report each change of the picked range to the controller
+    LaunchedEffect(state.selectedStartDateMillis, state.selectedEndDateMillis) {
+        val start = state.selectedStartDateMillis?.let { DateUtils.fromUtcMillis(it).toString() }
+        val end = state.selectedEndDateMillis?.let { DateUtils.fromUtcMillis(it).toString() }
+        onRangeSelected(start, end)
+    }
+
+    DateRangePicker(
+        state = state,
+        title = null,
+        headline = null,
+        showModeToggle = false,
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("availableDatesCalendar")
+    )
+}
+
+/** "Sat, May 1, 2027 to Mon, May 3, 2027 (3 nights)", or nothing if no dates are picked. */
+@Composable
+private fun StaySummary(selectedDates: Set<String>) {
+    if (selectedDates.isEmpty()) return
+    val sorted = selectedDates.sorted()
+    val first = DateUtils.parse(sorted.first())?.let { DateUtils.display(it) } ?: sorted.first()
+    val last = DateUtils.parse(sorted.last())?.let { DateUtils.display(it) } ?: sorted.last()
+    val nights = if (sorted.size == 1) "1 night" else "${sorted.size} nights"
+    Text(
+        text = if (sorted.size == 1) "$first ($nights)" else "$first to $last ($nights)",
+        modifier = Modifier.testTag("staySummary")
+    )
+}
+
 /*
     Displays a horizontally scrollable campsite choices for multiple
     campsite lottery and reports the selected campsite ID
@@ -298,5 +321,3 @@ fun LotteryCampsiteTabs(
         }
     }
 }
-
- */
