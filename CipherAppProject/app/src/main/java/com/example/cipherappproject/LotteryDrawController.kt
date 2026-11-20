@@ -133,33 +133,4 @@ import kotlin.random.Random
 
    }
 
-   /* 
-        Svae each entry, then call onDone once: success if all are saved
-        or on the first failure
-
-
-    private fun saveEntries(entries: List<LotteryEntry>, onDone: (Result<Unit>) -> Unit) {
-        if (entries.isEmpty()) {
-            onDone(Result.success(Unit))
-            return
-        }
-
-        var remaining = entries.size
-
-        var failed = false
-        for entry in entries {
-            entryRepository.updateLotteryEntry(entry) { result ->
-                if (failed) return @updateLotteryEntry
-                if (result.isFailure) {
-                    failed = true
-                    onDone(result)
-                    return @updateLotteryEntry
-                }
-
-                remaining--
-                if (remaining == 0) onDone(Result.success(Unit))
-
-            }
-        }
-    }
-        */
+   
