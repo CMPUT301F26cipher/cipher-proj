@@ -41,14 +41,14 @@ import kotlin.random.Random
      */
 
      fun pickWinners(
-        entries: List<LotteryEntry>
+        entries: List<LotteryEntry>,
         numWinners: Int,
         random: Random = Random.Default
      ) : List<LotteryEntry> {
         return entries
             .filter {it.status == LotteryEntryStatus.REGISTERED.name}
             .shuffled(random)
-            mapIndexed {index, entry ->
+            .mapIndexed {index, entry ->
                 val status = 
                     if (index < numWinners) LotteryEntryStatus.WINNER
                     else LotteryEntryStatus.NOT_SELECTED
@@ -67,18 +67,18 @@ import kotlin.random.Random
         lotteryRepository.updateLottery(processing) { processingResult ->
                 if (processingResult.isFailure) {
                     onResult(processingResult)
-                    return @updateLottery
+                    return@updateLottery
                 }
 
                 val entries = entryRepository.getLotteryEntriesFromListByLotteryId(lottery.lotteryId)
-                val draw = pickWinners(entries, lottery.numWinners)
+                val drawn = pickWinners(entries, lottery.numWinners)
                 saveEntries(drawn) { saveResult ->
                     if (saveResult.isFailure) {
                         onResult(saveResult)
-                        return @saveEntries
+                        return@saveEntries
                     }
                     val completed = lottery.copy(status = LotteryStatus.COMPLETED.name)
-                    lotteryRepository.update(completed, onresult)
+                    lotteryRepository.updateLottery(completed, onResult)
                 }
         }
       }
@@ -93,8 +93,8 @@ import kotlin.random.Random
         .filter {isReadyToDraw(it, today) }
         .forEach { lottery ->
             drawLottery(lottery) { result ->
-                result.onFailure {
-                    Log.e("LotteryDraw", "Draw failed for ${lottery.lotteryID}", error)
+                result.onFailure { error ->
+                    Log.e("LotteryDraw", "Draw failed for ${lottery.lotteryId}", error)
                 }
 
             }
@@ -113,17 +113,15 @@ import kotlin.random.Random
         }
 
         var remaining = entries.size
-
         var failed = false
-        for entry in entries {
+        for (entry in entries) {
             entryRepository.updateLotteryEntry(entry) { result ->
-                if (failed) return @updateLotteryEntry
+                if (failed) return@updateLotteryEntry
                 if (result.isFailure) {
                     failed = true
                     onDone(result)
-                    return @updateLotteryEntry
+                    return@updateLotteryEntry
                 }
-
                 remaining--
                 if (remaining == 0) onDone(Result.success(Unit))
 
@@ -131,6 +129,6 @@ import kotlin.random.Random
         }
     }
 
-   }
+}
 
    
