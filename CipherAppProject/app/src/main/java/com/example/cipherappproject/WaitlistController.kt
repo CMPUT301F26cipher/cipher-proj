@@ -114,6 +114,13 @@ class WaitlistController {
             return
         }
 
+        // Respect the owner's optional waitlist capacity (US 02.04.07)
+        val lottery = lotteryRepository.getLotteryFromListById(lotteryId)
+        if (lottery == null || LotteryController().isWaitlistFull(lottery)) {
+            result(false)
+            return
+        }
+
         entryRepository.addLotteryEntry(
             lotteryId = lotteryId,
             userId = userId,

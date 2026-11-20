@@ -76,6 +76,13 @@ class LotteryBookingController {
     fun validateSelection(lottery: Lottery): String? {
         val campsiteId = selectedCampsiteId
             ?: return "Choose a campsite."
+        return validateSelection(lottery, getAvailableDates(campsiteId))
+    }
+
+    /** [validateSelection] against an already known list of available dates (null = loading). */
+    fun validateSelection(lottery: Lottery, available: List<String>?): String? {
+        val campsiteId = selectedCampsiteId
+            ?: return "Choose a campsite."
 
         if (campsiteId !in lottery.campsiteIds) {
             return "Choose a campsite from this lottery."
@@ -85,8 +92,7 @@ class LotteryBookingController {
             return "Select at least one date."
         }
 
-        val available = getAvailableDates(campsiteId)
-            ?: return "Wait for available dates to load."
+        if (available == null) return "Wait for available dates to load."
 
         if (!available.containsAll(selectedDates)) {
             return "Some selected dates are unavailable."
@@ -107,23 +113,37 @@ class LotteryBookingController {
         return null
     }
 
-    /** Adds an available date, only if it extends the current consecutive selection. */
-    fun selectDate(date: String) {
-        val campsiteId = selectedCampsiteId ?: return
-        val available = getAvailableDates(campsiteId) ?: return
-        if (date !in available || date in selectedDates) return
+    /**
+     * Adds an available date, only if it extends the current consecutive selection.
+     * Returns true if the date was added.
+     */
+    fun selectDate(date: String): Boolean {
+        val campsiteId = selectedCampsiteId ?: return false
+        return selectDate(date, getAvailableDates(campsiteId) ?: return false)
+    }
+
+    /** [selectDate] against an already known list of available dates. */
+    fun selectDate(date: String, available: List<String>): Boolean {
+        if (selectedCampsiteId == null) return false
+        if (date !in available || date in selectedDates) return false
 
         if (selectedDates.isEmpty() || isNextToSelection(date)) {
             selectedDates.add(date)
+            return true
         }
+        return false
     }
 
-    /** Removes a selected date (only from either end, so the selection stays consecutive). */
-    fun deselectDate(date: String) {
-        if (selectedDates.isEmpty()) return
+    /**
+     * Removes a selected date (only from either end, so the selection stays consecutive).
+     * Returns true if the date was removed.
+     */
+    fun deselectDate(date: String): Boolean {
+        if (selectedDates.isEmpty()) return false
         if (date == selectedDates.first() || date == selectedDates.last()) {
-            selectedDates.remove(date)
+            return selectedDates.remove(date)
         }
+        return false
     }
 
     /** Returns the selected campsite ID, or null if none is selected. */

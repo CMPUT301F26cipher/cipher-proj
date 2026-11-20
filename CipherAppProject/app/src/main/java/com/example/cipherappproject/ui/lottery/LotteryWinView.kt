@@ -57,6 +57,8 @@ fun LotteryWinScreen(
     var selectedCampsiteId by remember { mutableStateOf(choices.firstOrNull()) }
     var selectedDates by remember { mutableStateOf(setOf<String>()) }
     var message by remember { mutableStateOf<String?>(null) }
+    // True while a reserve/decline write is in flight, so repeat taps can't send it twice
+    var isWorking by remember { mutableStateOf(false) }
 
     // Make sure the controller knows about the initially shown campsite
     LaunchedEffect(selectedCampsiteId) {
@@ -86,26 +88,41 @@ fun LotteryWinScreen(
         availableDates = availableDates,
         selectedDates = selectedDates,
         onDateClicked = { date ->
-            if (date in controller.getSelectedDates()) {
+            val changed = if (date in controller.getSelectedDates()) {
                 controller.deselectDate(date)
             } else {
                 controller.selectDate(date)
             }
             selectedDates = controller.getSelectedDates()
+            // Explain taps that were ignored to keep the stay consecutive
+            message = if (changed) null else if (date in selectedDates) {
+                "You can only remove the first or last selected date."
+            } else {
+                "Pick a date right before or after your selected dates."
+            }
         },
         message = message,
+        isWorking = isWorking,
         onReserve = {
+            if (isWorking) return@LotteryWinView
+            isWorking = true
+            message = null
             controller.reserve(lottery, entry) { reserveResult ->
                 // On success the entry becomes ACCEPTED and LotteryResultScreen switches screens
                 reserveResult.onFailure {
+                    isWorking = false
                     message = it.message ?: "Could not reserve. Check your connection and try again."
                 }
             }
         },
         onDecline = {
+            if (isWorking) return@LotteryWinView
+            isWorking = true
+            message = null
             controller.declineOffer(entry) { declineResult ->
                 // On success the entry becomes DECLINED and LotteryResultScreen switches screens
                 declineResult.onFailure {
+                    isWorking = false
                     message = "Could not decline. Check your connection and try again."
                 }
             }
@@ -131,7 +148,8 @@ fun LotteryWinView(
     onDateClicked: (String) -> Unit,
     message: String?,
     onReserve: () -> Unit,
-    onDecline: () -> Unit
+    onDecline: () -> Unit,
+    isWorking: Boolean = false
 ) {
     var showDeclineDialog by remember { mutableStateOf(false) }
 
@@ -189,7 +207,7 @@ fun LotteryWinView(
 
         Button(
             onClick = onReserve,
-            enabled = selectedDates.isNotEmpty(),
+            enabled = selectedDates.isNotEmpty() && !isWorking,
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("reserveButton")
@@ -198,6 +216,7 @@ fun LotteryWinView(
         }
         OutlinedButton(
             onClick = { showDeclineDialog = true },
+            enabled = !isWorking,
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("declineButton")
