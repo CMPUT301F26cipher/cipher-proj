@@ -22,7 +22,7 @@ import com.example.cipherappproject.database.provider.RepositoryDatabase
 /**
  * Entrant screen listing the lotteries they've joined.
  *
- * NOTE: entrantId is PLACEHOLDER_USER_ID (LotteryNavigation.kt) until US 01.09.01 is done.
+ * entrantId is the signed-in user's profile id (looked up by device in CampsiteApp).
  */
 @Composable
 fun EntrantLotteriesView(

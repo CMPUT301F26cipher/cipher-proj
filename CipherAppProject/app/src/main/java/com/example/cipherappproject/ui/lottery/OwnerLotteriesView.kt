@@ -13,21 +13,27 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.example.cipherappproject.LotteryConstants
+import com.example.cipherappproject.LotteryController
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.cipherappproject.database.enums.LotteryEntryStatus
 import com.example.cipherappproject.database.enums.LotteryStatus
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
  * Owner screen listing their lotteries.
- *
- * NOTE: the "View result as entrant" button is only for testing the entrant
- * screens until notifications (US 01.03.01) link to them. Remove it after that.
  */
 @Composable
 fun OwnerLotteriesView(
@@ -37,13 +43,17 @@ fun OwnerLotteriesView(
     // Shared repository instances; the lists below are Compose State, so this recomposes on change
     val lotteryRepository = RepositoryDatabase.lotteryRepository
     val campsiteRepository = RepositoryDatabase.campsiteRepository
-    val entryRepository = RepositoryDatabase.lotteryEntryRepository
+    val controller = remember { LotteryController() }
+
+    // null = show every status
+    var statusFilter by rememberSaveable { mutableStateOf<String?>(null) }
 
     if (!lotteryRepository.isLotteriesLoaded.value) {
         LoadingIndicator()
         return
     }
-    val myLotteries = lotteryRepository.getLotteriesFromListByOwnerId(ownerId)
+    val allMyLotteries = lotteryRepository.getLotteriesFromListByOwnerId(ownerId)
+    val myLotteries = controller.filterByStatus(allMyLotteries, statusFilter)
 
     Column(
         modifier = Modifier
@@ -62,9 +72,17 @@ fun OwnerLotteriesView(
             Text("Create Lottery")
         }
 
+        StatusFilterChips(
+            selected = statusFilter,
+            onSelected = { statusFilter = it },
+            statusText = controller::statusText
+        )
+
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (myLotteries.isEmpty()) {
+            if (allMyLotteries.isEmpty()) {
                 item { Text("You haven't created any lotteries yet.") }
+            } else if (myLotteries.isEmpty()) {
+                item { Text("No lotteries with this status.") }
             }
             items(myLotteries, key = { it.lotteryId }) { lottery ->
                 val campsiteNames = lottery.campsiteIds.map { id ->
@@ -73,22 +91,10 @@ fun OwnerLotteriesView(
                 }
                 LotteryRow(
                     lottery = lottery,
+                    statusText = controller.statusText(lottery.status),
+                    canEdit = controller.canEdit(lottery),
                     campsiteNames = campsiteNames,
                     onEdit = { navController.navigate(LotteryRoutes.edit(lottery.lotteryId)) },
-                    onViewAsEntrant = { navController.navigate(LotteryRoutes.result(lottery.lotteryId)) },
-                    onMakeWinner = {
-                        val existing = entryRepository
-                            .getLotteryEntryFromListByLotteryIdAndUserId(lottery.lotteryId, ownerId)
-                        if (existing == null) {
-                            entryRepository.addLotteryEntry(
-                                lottery.lotteryId, ownerId, LotteryEntryStatus.WINNER.name, 1
-                            ) {}
-                        } else {
-                            entryRepository.updateLotteryEntry(
-                                existing.copy(status = LotteryEntryStatus.WINNER.name)
-                            ) {}
-                        }
-                    }
                 )
             }
         }
@@ -99,10 +105,10 @@ fun OwnerLotteriesView(
 @Composable
 private fun LotteryRow(
     lottery: Lottery,
+    statusText: String,
+    canEdit: Boolean,
     campsiteNames: List<String>,
-    onEdit: () -> Unit,
-    onViewAsEntrant: () -> Unit,
-    onMakeWinner: () -> Unit
+    onEdit: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -111,16 +117,55 @@ private fun LotteryRow(
                 style = MaterialTheme.typography.titleMedium
             )
             Text("Registration: ${lottery.startDate} to ${lottery.endDate}")
-            Text("Winners: ${lottery.numWinners}    Status: ${lottery.status}")
+            Text("Winners: ${lottery.numWinners}    Status: $statusText")
+            Text("Waitlist capacity: ${capacityText(lottery.maxParticipants)}")
 
-            Row {
-                if (lottery.status == LotteryStatus.OPEN.name) {
-                    TextButton(onClick = onEdit) { Text("Edit") }
-                }
-                // TEMPORARY: for testing the entrant screens, see the file comment
-                TextButton(onClick = onViewAsEntrant) { Text("View result as entrant") }
+            if (canEdit) {
+                TextButton(
+                    onClick = onEdit,
+                    modifier = Modifier.testTag("editLottery_${lottery.lotteryId}")
+                ) { Text("Edit") }
             }
-            TextButton(onClick = onMakeWinner) { Text("Make me a winner (demo)") }
+        }
+    }
+}
+/** "Unlimited" or the waitlist limit. */
+private fun capacityText(maxParticipants: Int?): String {
+    return if (maxParticipants == null || maxParticipants == LotteryConstants.UNLIMITED_PARTICIPANTS) {
+        "Unlimited"
+    } else {
+        maxParticipants.toString()
+    }
+}
+
+/** One chip per lottery status, plus "All". */
+@Composable
+private fun StatusFilterChips(
+    selected: String?,
+    onSelected: (String?) -> Unit,
+    statusText: (String) -> String
+) {
+    // Lifecycle order rather than enum order
+    val options = listOf(
+        null,
+        LotteryStatus.OPEN.name,
+        LotteryStatus.PROCESSING.name,
+        LotteryStatus.COMPLETED.name,
+        LotteryStatus.CANCELLED.name
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        options.forEach { status ->
+            FilterChip(
+                selected = status == selected,
+                onClick = { onSelected(status) },
+                label = { Text(if (status == null) "All" else statusText(status)) },
+                modifier = Modifier.testTag("lotteryFilter_${status ?: "ALL"}")
+            )
         }
     }
 }

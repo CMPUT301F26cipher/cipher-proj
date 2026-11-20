@@ -14,7 +14,7 @@ import com.example.cipherappproject.database.provider.RepositoryDatabase
  * (Compose State), so the screen updates by itself when the entry's status changes
  * (e.g. after declining or reserving).
  *
- * NOTE: entrantId is PLACEHOLDER_USER_ID (LotteryNavigation.kt) until US 01.09.01 is done.
+ * entrantId is the signed-in user's profile id (looked up by device in CampsiteApp).
  */
 @Composable
 fun LotteryResultScreen(

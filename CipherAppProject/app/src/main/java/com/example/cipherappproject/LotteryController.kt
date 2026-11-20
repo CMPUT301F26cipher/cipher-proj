@@ -1,5 +1,6 @@
 package com.example.cipherappproject
 
+import com.example.cipherappproject.database.enums.LotteryEntryStatus
 import com.example.cipherappproject.database.enums.LotteryStatus
 import com.example.cipherappproject.database.exceptions.PermissionException
 import com.example.cipherappproject.database.exceptions.ValidationException
@@ -242,8 +243,74 @@ class LotteryController {
         val ownership = checkCampsiteOwnership(original.ownerId, input.campsiteIds)
         if (ownership.isFailure) return ownership.exceptionOrNull()?.message
 
+        val capacityError = checkCapacityFitsWaitlist(original.lotteryId, parseCapacity(input.capacity))
+        if (capacityError != null) return capacityError
+
         repository.updateLottery(applyChanges(original, input), onResult)
         return null
+    }
+
+    // ------------------------- Waitlist capacity (US 02.04.07) -------------------------
+
+    private val entryRepository get() = RepositoryDatabase.lotteryEntryRepository
+
+    /**
+     * Number of entrants currently on the lottery's waitlist (everyone who joined and has not
+     * left), or null while the entries are still loading.
+     */
+    fun getWaitlistSize(lotteryId: String): Int? {
+        if (!entryRepository.isLotteriesEntriesLoaded.value) return null
+        return entryRepository.getLotteryEntriesFromListByLotteryId(lotteryId)
+            .count { it.status != LotteryEntryStatus.WITHDRAWN.name }
+    }
+
+    /** True if [capacity] is a set limit that [waitlistSize] entrants have already reached. */
+    fun isFull(capacity: Int?, waitlistSize: Int): Boolean {
+        if (capacity == null || capacity == LotteryConstants.UNLIMITED_PARTICIPANTS) return false
+        return waitlistSize >= capacity
+    }
+
+    /**
+     * True if the lottery's waitlist has reached its capacity, so no one else can join.
+     * Treated as full while the entries are still loading, so the limit can't be skipped.
+     * For the join-waitlist flow to call before adding an entry.
+     */
+    fun isWaitlistFull(lottery: Lottery): Boolean {
+        val size = getWaitlistSize(lottery.lotteryId) ?: return true
+        return isFull(lottery.maxParticipants, size)
+    }
+
+    /** Error message if [capacity] is lower than the number already on the waitlist, else null. */
+    fun checkCapacityFitsWaitlist(lotteryId: String, capacity: Int?): String? {
+        if (capacity == null) return null
+        val size = getWaitlistSize(lotteryId)
+            ?: return "The waitlist is still loading. Please try again."
+        return capacityBelowWaitlistError(capacity, size)
+    }
+
+    /** Error message if [capacity] is below [waitlistSize], else null. */
+    fun capacityBelowWaitlistError(capacity: Int, waitlistSize: Int): String? {
+        return if (capacity < waitlistSize) {
+            "Waitlist capacity can't be lower than the $waitlistSize entrants already on it"
+        } else null
+    }
+
+    // ------------------------- Viewing / filtering (owner list) -------------------------
+
+    /** The owner's lotteries with [status] (a LotteryStatus name), or all of them when null. */
+    fun filterByStatus(lotteries: List<Lottery>, status: String?): List<Lottery> {
+        return if (status == null) lotteries else lotteries.filter { it.status == status }
+    }
+
+    /** Readable text for a lottery status. */
+    fun statusText(status: String): String {
+        return when (status) {
+            LotteryStatus.OPEN.name -> "Open"
+            LotteryStatus.PROCESSING.name -> "Drawing"
+            LotteryStatus.COMPLETED.name -> "Drawn"
+            LotteryStatus.CANCELLED.name -> "Cancelled"
+            else -> status
+        }
     }
 }
 
