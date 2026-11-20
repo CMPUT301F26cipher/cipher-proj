@@ -1,18 +1,14 @@
 package com.example.cipherappproject.database.repositories
 
-import android.util.Log
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import com.example.cipherappproject.database.exceptions.DataConversionException
 import com.example.cipherappproject.database.exceptions.NotFoundException
 import com.example.cipherappproject.database.exceptions.ValidationException
+import com.example.cipherappproject.database.models.LotteryEntry
 import com.example.cipherappproject.database.models.Message
-import com.example.cipherappproject.database.models.Notification
-import com.example.cipherappproject.database.models.Profile
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
-
 
 /*
 --------------------------------------------------------------------------------------
@@ -27,11 +23,11 @@ Date        Person     CSR#     Description
 2026-11-12  Sofia      1.01     added skeleton
 2026-11-15  Sofia      1.02     added states to the local list and changes init too
 2026-11-15  Sofia      1.03     added custom exceptions
+2026-11-19  Sofia      1.04     added custom exceptions
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
  */
-
 
 /**
  * Manages Message data stored in the Firebase Firestore database.
@@ -43,14 +39,16 @@ NA
  * The local list is synchronized with Firestore using a snapshot listener.
  */
 
-/*
 class MessageRepository {
+
     private val db = Firebase.firestore
-    private val messagesRef = db.collection("messages")
+    private val messagesRef = db.collectionGroup("messages")
     private val _allMessages = mutableStateOf<List<Message>>(emptyList())
+
 
     val messages: State<List<Message>>
         get() = _allMessages
+
 
     private val _isMessagesLoaded = mutableStateOf(false)
 
@@ -58,15 +56,11 @@ class MessageRepository {
         get() = _isMessagesLoaded
 
 
-
-    // ----------------------------------- Queries -----------------------------------
-
     /**
      * Creates behinds a Message object and add it to the firebase database with a random and unique id.
      *
-     * @param reservationId
+     * @param conversationId
      * @param fromUserId
-     * @param toUserId
      * @param message
      * @param status
      * @param result lamba function that provide if:
@@ -76,102 +70,53 @@ class MessageRepository {
      */
 
     fun addMessage(
-        reservationId: String,
+        conversationId: String,
         fromUserId: String,
-        toUserId: String,
         message: String,
         status: String,
         result: (Result<String>) -> Unit
 
-    ){
+    ) {
         // create a reference and id to the new Message
-        val messageRef = messagesRef.document()
+        val conversationRef = db.collection("conversations").document(conversationId)
 
-        // create Message object
-        val campsite = Message(
-            messageId = messageRef.id,
-            reservationId = reservationId,
-            fromUserId = fromUserId,
-            toUserId = toUserId,
-            message = message,
-            status = status
-        )
 
-        // save the object in the firebase
-        messageRef
-            .set(campsite)
-            .addOnSuccessListener {
-                result(Result.success(messageRef.id))
+        db.runTransaction { transaction ->
+            val messageSnapshot = transaction.get(conversationRef)
 
-            }
-            .addOnFailureListener { exception ->
-                result(Result.failure(exception))
+            // Check if the parent lottery exists
+            if (!messageSnapshot.exists()) {
+                throw NotFoundException("Conversation does not exist.")
             }
 
-    }
+            val messageRef = conversationRef
+                .collection("messages")
+                .document()
 
+            // create Message object
+            val message = Message(
+                messageId = messageRef.id,
+                conversationId = conversationId,
+                fromUserId = fromUserId,
+                message = message,
+                status = status
 
-    /**
-     * retrieves Result type that has Message object
-     *
-     * @param messageId
-     * @param result lamba function that has Result and if:
-     *      - Result.success(Message) if successful
-     *      - Result.failure(exception) if not successful
-     * @return Result<Campsite>
-     */
+            )
 
-    fun getMessageById(
-        messageId: String,
-        result: (Result<Message>) -> Unit
-    ){
+            // set entry
+            transaction.set(messageRef, message)
 
-        if (messageId.isBlank()) {
-            result(Result.failure(
-                ValidationException("Message ID cannot be empty.")
-            ))
-            return
+            // return id
+            messageRef.id
+
         }
-
-        messagesRef
-            .document(messageId)
-            .get()
-            .addOnSuccessListener { document ->
-
-
-                // if the document do not exist --> Message do not exist
-                if (!document.exists()) {
-                    result(Result.failure(
-                        NotFoundException("Message does not exist.")
-                    ))
-                    return@addOnSuccessListener // we return the object so that it do not continue the next lines
-                }
-
-                val message = document.toObject(Message::class.java)
-
-
-                // for testing
-                Log.d("MessageTest", "Raw data: ${document.data}")
-                Log.d("MessageTest", "Mapped object: $message")
-
-
-                // if conversion was successful
-                if (message == null) {
-                    result(Result.failure(
-                        DataConversionException("Failed to convert document to Message.")
-                    ))
-                    return@addOnSuccessListener
-                }
-
-                // return successfully retrieved Message
-                result(Result.success(message))
-
+            .addOnSuccessListener { messageId -> // since is success return id
+                result(Result.success(messageId))
             }
-
-            // if any other error
             .addOnFailureListener { exception ->
                 result(Result.failure(exception))
             }
+
     }
 
 
@@ -189,28 +134,53 @@ class MessageRepository {
         message: Message,
         result: (Result<Unit>) -> Unit
     ) {
+        val messageId = message.messageId
+        val conversationId = message.conversationId
 
-        if (message.messageId.isBlank()) {
+        // Check IDs
+        if (messageId.isBlank() || conversationId.isBlank()) {
             result(Result.failure(
-                ValidationException("Message ID cannot be empty.")
+                ValidationException("Conversation or Message ID cannot be empty.")
             ))
             return
         }
 
-        // https://firebase.google.com/docs/firestore/manage-data/transactions
-        val messageRef = messagesRef.document(message.messageId)
+        val conversationRef = db.collection("conversations").document(conversationId)
 
+        val messageRef = conversationRef
+            .collection("messages")
+            .document(messageId)
+
+        // Check conversation and message before updating
         db.runTransaction { transaction ->
-            val snapshot = transaction.get(messageRef)
 
-            // if object do not exist
-            if (!snapshot.exists()) {
-                throw NotFoundException("Message does not exist.")
+            val conversationSnapshot = transaction.get(conversationRef)
+
+            // Check whether conversation exists
+            if (!conversationSnapshot.exists()) {
+                throw NotFoundException("Conversation does not exist.")
             }
 
+            val messageSnapshot = transaction.get(messageRef)
+
+            // Check whether lottery entry exists
+            if (!messageSnapshot.exists()) {
+                throw NotFoundException("Message entry does not exist.")
+            }
+
+            // Check whether entry belongs to the specified lottery
+            val storedConversationId = messageSnapshot.getString("conversationId")
+
+            if (storedConversationId != conversationId) {
+                throw ValidationException(
+                    "The Message does not belong to this Conversation."
+                )
+            }
+
+            // Update lottery entry
             transaction.set(messageRef, message)
 
-            // since we do not care about get an object but just success or not
+            // We only care whether the operation succeeded
             Unit
 
         }
@@ -219,11 +189,71 @@ class MessageRepository {
             }
             .addOnFailureListener { exception ->
                 result(Result.failure(exception))
-
             }
-
     }
 
+
+    /**
+     * retrieves Result type that has Message object
+     *
+     * @param messageId
+     * @param result lamba function that has Result and if:
+     *      - Result.success(Message) if successful
+     *      - Result.failure(exception) if not successful
+     * @return Result<Message>
+     */
+    fun getMessageById(
+        conversationId: String,
+        messageId: String,
+        result: (Result<Message>) -> Unit
+    ) {
+        // Check IDs
+        if (conversationId.isBlank() || messageId.isBlank()) {
+            result(Result.failure(
+                ValidationException(
+                    "Message ID and Conversation ID cannot be empty."
+                )
+            ))
+            return
+        }
+
+        val messageRef = db
+            .collection("conversations")
+            .document(conversationId)
+            .collection("messages")
+            .document(messageId)
+
+        messageRef
+            .get()
+            .addOnSuccessListener { document ->
+
+                // Check whether entry exists
+                if (!document.exists()) {
+                    result(Result.failure(
+                        NotFoundException("Message entry does not exist.")
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                // Convert document into message object
+                val message = document.toObject(Message::class.java)
+
+                // Check whether conversion was successful
+                if (message == null) {
+                    result(Result.failure(
+                        DataConversionException(
+                            "Failed to convert document to Message."
+                        )
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                result(Result.success(message))
+            }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
+            }
+    }
 
     // ----------------------------------- From list -----------------------------------
 
@@ -231,77 +261,72 @@ class MessageRepository {
      * Get a Message object
      *
      * @param messageId String
+     * @param conversationId String
      * @return Message? --> null if not match found
      */
-    fun getMessageFromListById(messageId: String): Message? {
-        return _allMessages.value.find { it.messageId == messageId }
 
-    }
-
-    /**
-     * Get a list of Message objects
-     *
-     * @param reservationId String
-     * @return List<Message> --> can be empty list if not match found
-     *
-     */
-
-    fun getMessagesFromListByReservationId(reservationId: String): List<Message> {
-        return _allMessages.value.filter { it.reservationId == reservationId }
-
-    }
-
-    /**
-     * Get a list of Message objects
-     *
-     * @param status String
-     * @return List<Message> --> can be empty list if not match found
-     *
-     * Example: getMessagesFromListByStatus(MessageStatus.ACTIVE.name)
-     */
-
-    fun getMessagesFromListByStatus(status: String): List<Message> {
-        return _allMessages.value.filter { it.status == status }
-
-    }
-
-
-    /**
-     * Get a list of Message objects
-     *
-     * @param userId String
-     * @return List<Message> --> can be empty list if not match found
-     *
-     */
-    fun getMessagesFromListBySenderId(userId: String): List<Message> {
-        return _allMessages.value.filter { it.fromUserId == userId }
-    }
-
-    /**
-     * Get a list of Message objects
-     *
-     * @param userId String
-     * @return List<Message> --> can be empty list if not match found
-     *
-     */
-    fun getMessagesFromListByReceiverId(userId: String): List<Message> {
-        return _allMessages.value.filter { it.toUserId == userId }
-    }
-
-    /**
-     * Get a list of Message objects
-     *
-     * @param userId1 String
-     * @param userId2 String
-     * @return List<Message> --> can be empty list if not match found
-     *
-     */
-    fun getMessagesFromListBetweenUsers(userId1: String, userId2: String): List<Message> {
-        return _allMessages.value.filter {
-            (it.fromUserId == userId1 && it.toUserId == userId2) ||
-                    (it.fromUserId == userId2 && it.toUserId == userId1)
+    fun getMessageFromListById(messageId: String, conversationId: String): Message? {
+        return _allMessages.value.find {
+            it.messageId == messageId && it.conversationId == conversationId
         }
     }
+
+
+    /**
+     * Get a list of Message objects
+     *
+     * @param conversationId String
+     * @return List<Message> --> can be empty list if not match found
+     */
+    fun getMessagesFromListByConversationId(conversationId: String): List<Message> {
+        return _allMessages.value.filter {
+            it.conversationId == conversationId
+        }
+    }
+
+
+
+    /**
+     * Get a list of Message objects
+     *
+     * @param conversationId String
+     * @return List<Message> --> can be empty list if not match found
+     */
+    fun getMessagesFromListByConversationIdSorted(conversationId: String): List<Message> {
+        return _allMessages.value
+            .filter { it.conversationId == conversationId }
+            .sortedBy { it.createdAt }
+    }
+
+
+
+    /**
+     * Get a list of Message objects
+     *
+     * @param conversationId String
+     * @param fromUserId String
+     * @return List<Message> --> can be empty list if not match found
+     */
+    fun getMessagesFromListBySenderId(conversationId: String, fromUserId: String): List<Message> {
+        return _allMessages.value.filter {
+            it.conversationId == conversationId && it.fromUserId == fromUserId
+        }
+    }
+
+
+    /**
+     * Get a list of Message objects
+     *
+     * @param conversationId String
+     * @param status String
+     * @return List<Message> --> can be empty list if not match found
+     */
+    fun getMessagesFromListByStatus(conversationId: String, status: String): List<Message> {
+        return _allMessages.value.filter {
+            it.conversationId == conversationId && it.status == status
+        }
+    }
+
 
     init {
         messagesRef.addSnapshotListener { snapshot, error ->
@@ -313,15 +338,14 @@ class MessageRepository {
                 return@addSnapshotListener
             }
 
-            val updateMessages = snapshot.documents.mapNotNull { document ->
+            val updatedMessages= snapshot.documents.mapNotNull { document ->
                 document.toObject(Message::class.java)
             }
-
-            _allMessages.value = updateMessages
+            _allMessages.value = updatedMessages
 
             _isMessagesLoaded.value = true
         }
     }
-}
 
- */
+
+}

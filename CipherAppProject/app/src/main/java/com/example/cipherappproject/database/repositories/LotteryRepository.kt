@@ -91,11 +91,8 @@ class LotteryRepository {
         result: (Result<String>) -> Unit
 
     ) {
-        Log.d("LotteryTest", "enter function")
         // create a reference and id to the new profile
         val lotteryRef = lotteriesRef.document()
-
-        Log.d("LotteryTest", "created document and id ${lotteryRef.id}")
 
         // create lottery object
         val lottery = Lottery(
