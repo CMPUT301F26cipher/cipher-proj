@@ -1,6 +1,8 @@
 package com.example.cipherappproject
 
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
@@ -22,6 +24,14 @@ object DateUtils {
 
     /** Formats a date for display, e.g. "Fri, May 7, 2027". */
     fun display(date: LocalDate): String = date.format(displayFormat)
+
+    /** Midnight UTC of [date] in epoch millis, the format Material3 date pickers use. */
+    fun toUtcMillis(date: LocalDate): Long =
+        date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+    /** The calendar day of a Material3 date picker value (epoch millis, UTC). */
+    fun fromUtcMillis(millis: Long): LocalDate =
+        Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
 
     /** Every night from [start] up to, but not including, [end]. */
     fun nightsBetween(start: LocalDate, end: LocalDate): List<LocalDate> {

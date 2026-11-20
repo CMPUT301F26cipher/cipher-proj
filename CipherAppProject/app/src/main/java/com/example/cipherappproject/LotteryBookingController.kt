@@ -146,6 +146,40 @@ class LotteryBookingController {
         return false
     }
 
+    /**
+     * Replaces the selection with every date from [start] to [end] (both inclusive,
+     * "yyyy-MM-dd"); [end] null means a one-night stay. Used by the calendar picker.
+     *
+     * Returns an error message and leaves nothing selected if the range is invalid or
+     * includes a date that can't be booked, otherwise null.
+     */
+    fun selectRange(start: String, end: String?): String? {
+        val campsiteId = selectedCampsiteId ?: return "Choose a campsite."
+        val available = getAvailableDates(campsiteId)
+            ?: return "Wait for available dates to load."
+        return selectRange(start, end, available)
+    }
+
+    /** [selectRange] against an already known list of available dates. */
+    fun selectRange(start: String, end: String?, available: List<String>): String? {
+        clearSelectedDates()
+        if (selectedCampsiteId == null) return "Choose a campsite."
+
+        val first = DateUtils.parse(start) ?: return "A selected date is invalid."
+        val last = if (end == null) first else DateUtils.parse(end) ?: return "A selected date is invalid."
+        if (last.isBefore(first)) return "The stay must end on or after the day it starts."
+
+        val stay = generateSequence(first) { it.plusDays(1) }
+            .takeWhile { !it.isAfter(last) }
+            .map { it.toString() }
+            .toList()
+        if (!available.containsAll(stay)) {
+            return "Your stay includes dates that can't be booked. Pick dates without a greyed-out day in between."
+        }
+        selectedDates.addAll(stay)
+        return null
+    }
+
     /** Returns the selected campsite ID, or null if none is selected. */
     fun getSelectedCampsiteId(): String? {
         return selectedCampsiteId

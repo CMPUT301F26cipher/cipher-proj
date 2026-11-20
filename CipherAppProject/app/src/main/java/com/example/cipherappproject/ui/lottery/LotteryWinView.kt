@@ -1,6 +1,6 @@
 package com.example.cipherappproject.ui.lottery
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,20 +8,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,10 +37,6 @@ import com.example.cipherappproject.LotteryBookingController
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
 import com.example.cipherappproject.database.provider.RepositoryDatabase
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.FilterChip
-
 
 /**
  * Screens for an entrant who won a lottery
@@ -87,19 +86,14 @@ fun LotteryWinScreen(
         },
         availableDates = availableDates,
         selectedDates = selectedDates,
-        onDateClicked = { date ->
-            val changed = if (date in controller.getSelectedDates()) {
-                controller.deselectDate(date)
+        onRangeSelected = { start, end ->
+            message = if (start == null) {
+                controller.clearSelectedDates()
+                null
             } else {
-                controller.selectDate(date)
+                controller.selectRange(start, end)
             }
             selectedDates = controller.getSelectedDates()
-            // Explain taps that were ignored to keep the stay consecutive
-            message = if (changed) null else if (date in selectedDates) {
-                "You can only remove the first or last selected date."
-            } else {
-                "Pick a date right before or after your selected dates."
-            }
         },
         message = message,
         isWorking = isWorking,
@@ -136,7 +130,9 @@ fun LotteryWinScreen(
  *
  * @param campsiteChoices (campsite ID, campsite name) pairs
  * @param availableDates "yyyy-MM-dd" dates, earliest first; null while loading
- * @param selectedDates "yyyy-MM-dd" dates the entrant has ticked
+ * @param selectedDates "yyyy-MM-dd" dates of the chosen stay
+ * @param onRangeSelected called with the picked first and last day ("yyyy-MM-dd"); the last
+ *   day is null while only the first has been tapped, and both are null when cleared
  */
 @Composable
 fun LotteryWinView(
@@ -145,7 +141,7 @@ fun LotteryWinView(
     onCampsiteSelected: (String) -> Unit,
     availableDates: List<String>?,
     selectedDates: Set<String>,
-    onDateClicked: (String) -> Unit,
+    onRangeSelected: (String?, String?) -> Unit,
     message: String?,
     onReserve: () -> Unit,
     onDecline: () -> Unit,
@@ -160,47 +156,33 @@ fun LotteryWinView(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(text = "You won the lottery!", style = MaterialTheme.typography.headlineMedium)
-        Text("Pick the dates you want, or decline if none of them work for you.")
+        Text("Pick the first and last night of your stay, or decline if no dates work for you.")
 
         // Only shown when the lottery covers more than one campsite (US 01.04.02)
         if (campsiteChoices.size > 1) {
             LotteryCampsiteTabs(
-                        campsiteChoices = campsiteChoices,
-                        selectedCampsiteId = selectedCampsiteId,
-                        onCampsiteSelected = onCampsiteSelected
+                campsiteChoices = campsiteChoices,
+                selectedCampsiteId = selectedCampsiteId,
+                onCampsiteSelected = onCampsiteSelected
             )
         }
-
-        Text(text = "Available dates", style = MaterialTheme.typography.titleMedium)
 
         // Takes the leftover space so the buttons stay at the bottom
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             when {
-                availableDates == null -> CircularProgressIndicator()
+                availableDates == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 availableDates.isEmpty() -> Text("There are no dates left to book for this campsite.")
-                else -> LazyColumn(modifier = Modifier.testTag("availableDatesList")) {
-                    items(availableDates) { date ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onDateClicked(date) }
-                                .testTag("date_$date")
-                        ) {
-                            Checkbox(checked = date in selectedDates, onCheckedChange = null)
-                            Text(
-                                text = DateUtils.parse(date)?.let { DateUtils.display(it) } ?: date,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
-                    }
+                // New calendar per campsite / availability change, so old picks don't carry over
+                else -> key(selectedCampsiteId, availableDates) {
+                    AvailabilityCalendar(
+                        availableDates = availableDates,
+                        onRangeSelected = onRangeSelected
+                    )
                 }
             }
         }
 
-        if (selectedDates.isNotEmpty()) {
-            Text("${selectedDates.size} date(s) selected")
-        }
+        StaySummary(selectedDates)
         if (message != null) {
             Text(text = message, color = MaterialTheme.colorScheme.error)
         }
@@ -248,6 +230,66 @@ fun LotteryWinView(
             }
         )
     }
+}
+
+/**
+ * Calendar of the campsite's bookable dates (US 01.04.01). Dates that can't be booked are
+ * greyed out and can't be tapped; the entrant taps a first and a last night.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AvailabilityCalendar(
+    availableDates: List<String>,
+    onRangeSelected: (String?, String?) -> Unit
+) {
+    val available = remember(availableDates) {
+        availableDates.mapNotNull { DateUtils.parse(it) }.toSet()
+    }
+    val firstDate = available.min()
+    val lastDate = available.max()
+
+    val state = rememberDateRangePickerState(
+        initialDisplayedMonthMillis = DateUtils.toUtcMillis(firstDate),
+        yearRange = firstDate.year..lastDate.year,
+        selectableDates = object : SelectableDates {
+            override fun isSelectableDate(utcTimeMillis: Long): Boolean =
+                DateUtils.fromUtcMillis(utcTimeMillis) in available
+
+            override fun isSelectableYear(year: Int): Boolean =
+                year in firstDate.year..lastDate.year
+        }
+    )
+
+    // Report each change of the picked range to the controller
+    LaunchedEffect(state.selectedStartDateMillis, state.selectedEndDateMillis) {
+        val start = state.selectedStartDateMillis?.let { DateUtils.fromUtcMillis(it).toString() }
+        val end = state.selectedEndDateMillis?.let { DateUtils.fromUtcMillis(it).toString() }
+        onRangeSelected(start, end)
+    }
+
+    DateRangePicker(
+        state = state,
+        title = null,
+        headline = null,
+        showModeToggle = false,
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("availableDatesCalendar")
+    )
+}
+
+/** "Sat, May 1, 2027 to Mon, May 3, 2027 (3 nights)", or nothing if no dates are picked. */
+@Composable
+private fun StaySummary(selectedDates: Set<String>) {
+    if (selectedDates.isEmpty()) return
+    val sorted = selectedDates.sorted()
+    val first = DateUtils.parse(sorted.first())?.let { DateUtils.display(it) } ?: sorted.first()
+    val last = DateUtils.parse(sorted.last())?.let { DateUtils.display(it) } ?: sorted.last()
+    val nights = if (sorted.size == 1) "1 night" else "${sorted.size} nights"
+    Text(
+        text = if (sorted.size == 1) "$first ($nights)" else "$first to $last ($nights)",
+        modifier = Modifier.testTag("staySummary")
+    )
 }
 
 /*

@@ -102,6 +102,46 @@ class LotteryBookingControllerTest {
         assertNull(controller.getStay())
     }
 
+    // ---------- calendar range picking ----------
+
+    @Test
+    fun calendarRangeSelectsEveryNight() {
+        controller.selectCampsite(lottery, "siteA")
+        assertNull(controller.selectRange("2027-05-01", "2027-05-03", available))
+        assertEquals(setOf("2027-05-01", "2027-05-02", "2027-05-03"), controller.getSelectedDates())
+        assertNull(controller.validateSelection(lottery, available))
+    }
+
+    @Test
+    fun calendarStartOnlyIsOneNight() {
+        controller.selectCampsite(lottery, "siteA")
+        assertNull(controller.selectRange("2027-05-06", null, available))
+        assertEquals(Pair("2027-05-06", "2027-05-06"), controller.getStay())
+    }
+
+    @Test
+    fun calendarRangeOverUnavailableNightIsRejected() {
+        controller.selectCampsite(lottery, "siteA")
+        controller.selectRange("2027-05-01", "2027-05-02", available)
+        // May 4 and 5 are not available
+        assertNotNull(controller.selectRange("2027-05-03", "2027-05-06", available))
+        assertTrue(controller.getSelectedDates().isEmpty())
+    }
+
+    @Test
+    fun calendarRangeNeedsCampsiteAndValidOrder() {
+        assertNotNull(controller.selectRange("2027-05-01", "2027-05-02", available)) // no campsite
+        controller.selectCampsite(lottery, "siteA")
+        assertNotNull(controller.selectRange("2027-05-03", "2027-05-01", available))
+        assertNotNull(controller.selectRange("bad", null, available))
+    }
+
+    @Test
+    fun utcMillisRoundTrip() {
+        val date = java.time.LocalDate.of(2027, 5, 1)
+        assertEquals(date, DateUtils.fromUtcMillis(DateUtils.toUtcMillis(date)))
+    }
+
     @Test
     fun switchingCampsitesClearsSelectedNights() {
         controller.selectCampsite(lottery, "siteA")
