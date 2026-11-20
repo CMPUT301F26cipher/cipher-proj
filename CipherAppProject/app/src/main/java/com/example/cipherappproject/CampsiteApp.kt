@@ -45,6 +45,7 @@ import com.example.cipherappproject.ui.lottery.lotteryScreens
 import com.example.cipherappproject.reservations.ReservationScreen
 import com.example.cipherappproject.ui.registration.AccountErrorView
 import com.example.cipherappproject.ui.registration.Registration
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 
 /**
@@ -58,7 +59,7 @@ import com.example.cipherappproject.ui.registration.Registration
  * Updates:
  * Updated By Madison Nov 6 2026 - integrated registration
  * Updated Nov 6 2026 - removed temporary role switch button, pass current user id to screens
- *
+ * Updated by Justin on November 19th, 2026
  */
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +84,20 @@ fun CampsiteApp(){
     LaunchedEffect(Unit) {
         delay(10_000)
         loadTimedOut = true
+    }
+
+
+    // It should draw any lottery whose registration period has ended, and also 
+    // once lotteries and entries have loaded from Firestore
+
+    val drawController = remember { LotteryDrawController() }
+    val lotteriesLoaded = RepositoryDatabase.lotteryRepository.isLotteriesLoaded.value
+    val entriesLoaded = RepositoryDatabase.lotteryEntryRepository.isLotteriesEntriesLoaded.value
+
+    LaunchedEffect(lotteriesLoaded, entriesLoaded) {
+        if (lotteriesLoaded && entriesLoaded) {
+            drawController.drawExpiredLotteries()
+        }
     }
 
     // profileRepository.profiles is Compose State: once a profile is created below, the
