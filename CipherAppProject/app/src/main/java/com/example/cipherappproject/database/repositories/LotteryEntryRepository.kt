@@ -20,6 +20,7 @@ Date        Person     CSR#     Description
 2026-11-12  Sofia       1.08     added state boolean for list local queries.
 2026-11-15  Sofia       1.09     added states to the local list and changes init too
 2026-11-15  Sofia       1.10     added custom exceptions and get by single lottery entry id
+2026-11-20  Justin      1.11     made some changes, in order to handle some errors. Emulator wouldn't run.
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -38,6 +39,7 @@ import com.google.android.gms.tasks.Tasks
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import java.time.LocalDate
+import android.util.Log
 
 /**
  * Manages Lottery Entry data stored in the Firebase Firestore database.
@@ -526,7 +528,12 @@ class LotteryEntryRepository {
             }
 
             val updatedLotteriesEntries = snapshot.documents.mapNotNull { document ->
-                document.toObject(LotteryEntry::class.java)
+                try {
+                    document.toObject(LotteryEntry::class.java)
+                } catch (e: RuntimeException) {
+                    Log.e("LotteryEntryRepository", "Skipping bad lottery entry ${document.id}", e)
+                    null
+                }
             }
             _allLotteriesEntries.value = updatedLotteriesEntries
 

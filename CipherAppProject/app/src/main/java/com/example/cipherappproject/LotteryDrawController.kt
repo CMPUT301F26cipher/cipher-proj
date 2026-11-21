@@ -24,6 +24,8 @@ import kotlin.random.Random
     private val lotteryRepository get() = RepositoryDatabase.lotteryRepository
     private val entryRepository get() = RepositoryDatabase.lotteryEntryRepository
 
+    private val notificationController = NotificationController()
+
     // True if the lottery is open and its registration has ended
     // The end date is the last day to register, so the draw should happen day after it
 
@@ -78,7 +80,12 @@ import kotlin.random.Random
                         return@saveEntries
                     }
                     val completed = lottery.copy(status = LotteryStatus.COMPLETED.name)
-                    lotteryRepository.updateLottery(completed, onResult)
+                    lotteryRepository.updateLottery(completed) { completeResult ->
+                        if (completeResult.isSuccess) {
+                            notificationController.notifyLotteryResults(lottery, drawn)
+                        }
+                        onResult(completeResult)
+                    }
                 }
         }
       }

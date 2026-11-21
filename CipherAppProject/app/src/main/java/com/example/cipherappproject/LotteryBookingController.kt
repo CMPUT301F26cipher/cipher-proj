@@ -7,6 +7,7 @@ import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
 import com.example.cipherappproject.database.provider.RepositoryDatabase
+import com.example.cipherappproject.database.models.Reservation
 import java.time.LocalDate
 
 /**
@@ -26,6 +27,8 @@ class LotteryBookingController {
     private val reservationRepository get() = RepositoryDatabase.reservationRepository
     private val campsiteRepository get() = RepositoryDatabase.campsiteRepository
     private val entryRepository get() = RepositoryDatabase.lotteryEntryRepository
+
+    private val notificationController = NotificationController()
 
     private var selectedCampsiteId: String? = null
     private val selectedDates = sortedSetOf<String>()
@@ -263,7 +266,20 @@ class LotteryBookingController {
             totalPrice = pricePerNight * selectedDates.size
         ) { createResult ->
             createResult
-                .onSuccess {
+                .onSuccess { reservationId ->
+                    notificationController.notifyReservationConfirmed(
+                        Reservation(
+                            reservationId = reservationId,
+                            userId = entry.userId,
+                            campsiteId = campsiteId,
+                            lotteryId = lottery.lotteryId,
+                            status = ReservationStatus.ACTIVE.name,
+                            bookStartDate = stay.first,
+                            bookEndDate = stay.second,
+                            pricePerNight = pricePerNight,
+                            totalPrice = pricePerNight * selectedDates.size
+                        )
+                    )
                     entryRepository.updateLotteryEntry(
                         entry.copy(status = LotteryEntryStatus.ACCEPTED.name),
                         onResult
