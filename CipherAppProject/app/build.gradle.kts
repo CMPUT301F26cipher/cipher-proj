@@ -36,6 +36,14 @@ android {
     buildFeatures {
         compose = true
     }
+
+    //asked Anthropic Claude Opus 5.5, "how to import for @Nested inner class if existing
+    // JUint 4 tests?", 2026-11-20
+    testOptions {
+        unitTests.all {
+            it.useJUnitPlatform()
+        }
+    }
 }
 
 dependencies {
@@ -63,4 +71,12 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.10.2")
 
     implementation("com.google.firebase:firebase-installations:20.0.0")
+
+    // Junit 5.
+    testImplementation(platform("org.junit:junit-bom:5.14.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // should keep running JUnit 4 tests
+    testImplementation("org.junit.vintage:junit-vintage-engine")
 }
