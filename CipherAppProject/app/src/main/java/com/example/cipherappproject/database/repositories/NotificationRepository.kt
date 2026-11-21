@@ -78,8 +78,8 @@ class NotificationRepository {
         toUserId: String,
         title: String,
         message: String,
+        fromUserId: String = "",
         result: (Result<String>) -> Unit
-
     ){
         // create a reference and id to the new Message
         val notificationRef = notificationsRef.document()
@@ -91,7 +91,8 @@ class NotificationRepository {
             eventType = eventType,
             toUserId = toUserId,
             title = title,
-            message = message
+            message = message,
+            fromUserId = fromUserId
         )
 
         // save the object in the firebase
@@ -245,6 +246,12 @@ class NotificationRepository {
         return _allNotifications.value.filter { it.toUserId == userId }
     }
 
+    /** All notifications an owner has sent, newest first (US 02.10.02). */
+    fun getNotificationsFromListBySenderId(senderId: String): List<Notification> {
+        return _allNotifications.value
+            .filter { it.fromUserId == senderId}
+            .sortedByDescending { it.createdAt }
+    }
 
     /**
      * Get a list of Notification objects

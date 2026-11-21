@@ -250,7 +250,7 @@ fun CampsiteApp(){
                             MessageView()
                         }
                         composable(AppRoutes.ENTRANT_NOTIFICATIONS) {
-                            NotificationView()
+                            NotificationView(currentUserId)
                         }
                         composable(AppRoutes.SCAN_QR) {
                             QRScanView()
@@ -271,7 +271,10 @@ fun CampsiteApp(){
                             ReservationScreen(userID = currentUserId, isOwner = true)
                         }
                         composable(AppRoutes.OWNER_NOTIFICATIONS) {
-                            SentNotificationView()
+                            SentNotificationView(currentUserId)
+                        }
+                        composable(AppRoutes.PROFILE_SETTINGS) {
+                            ProfileSettingsView(currentUserId)
                         }
 
                         // Shared

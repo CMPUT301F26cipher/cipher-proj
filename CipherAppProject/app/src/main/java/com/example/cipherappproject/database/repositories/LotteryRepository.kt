@@ -272,6 +272,15 @@ class LotteryRepository {
         return _allLotteries.value.filter { it.ownerId == ownerId}
     }
 
+    /**
+     * Lotteries this owner created OR was added to as co-owner
+     *
+     */
+
+    fun getLotteriesFromListByAnyOwnerId(ownerId: String): List<Lottery> {
+        return _allLotteries.value.filter {it.ownerId == ownerId || ownerId in it.coOwnerIds}
+    }
+
 
 
     /**

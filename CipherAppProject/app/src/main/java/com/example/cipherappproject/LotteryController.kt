@@ -9,8 +9,7 @@ import com.example.cipherappproject.database.provider.RepositoryDatabase
 import java.time.LocalDate
 
 /**
- * Handles owner lottery creation and validation for US 02.04.01, 02.04.05,
- * and 02.04.07.
+ * Handles owner lottery creation and validation for US 02.04.01, 02.04.05, 02.04.07 and 02.04.08
  * Outstanding issues: implement logic and connect shared ownership/persistence
  * interfaces. Date semantics and capacity rules require team agreement.
  */
@@ -176,6 +175,8 @@ class LotteryController {
      * (now commented out): it uses the campsite repository's local list, so
      * the campsites must have finished loading.
      */
+
+    // TODO (US 02.04.08): also accept campsites owned by lottery.coOwnerIds
     fun checkCampsiteOwnership(ownerId: String, campsiteIds: Collection<String>): Result<Unit> {
         if (!campsiteRepository.isCampsitesLoaded.value) {
             return Result.failure(ValidationException("Campsites are still loading. Please try again."))
