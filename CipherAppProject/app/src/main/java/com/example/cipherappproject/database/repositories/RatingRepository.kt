@@ -184,7 +184,7 @@ class RatingRepository {
      *      - Result.failure(exception) if not successful
      * @return Result<Unit>
      */
-    fun updateCampsite(
+    fun updateRating (
         rating: Rating,
         result: (Result<Unit>) -> Unit
     ) {

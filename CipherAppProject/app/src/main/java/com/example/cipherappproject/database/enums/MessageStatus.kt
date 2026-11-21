@@ -25,5 +25,6 @@ NA
 
 enum class MessageStatus {
     SENT,
+    READ,
     REMOVED
 }

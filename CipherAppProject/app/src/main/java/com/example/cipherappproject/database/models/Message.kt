@@ -36,6 +36,7 @@ NA
 
 data class Message(
     val messageId: String = "",
+    val conversationId: String = "",
     val fromUserId: String = "",
     val message: String = "",
     val createdAt: Timestamp = Timestamp.now(),
