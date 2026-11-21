@@ -10,12 +10,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.example.cipherappproject.database.models.Lottery
 
 /**
  * PLACEHOLDER, REPLACE THIS FILE
  */
 @Composable
-fun NotificationView() {
+fun NotificationView(currentUserId: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -30,7 +31,7 @@ fun NotificationView() {
 
 /** Owner's sent notifications. */
 @Composable
-fun SentNotificationView() {
+fun SentNotificationView(ownerId: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -42,3 +43,11 @@ fun SentNotificationView() {
         Text(text = "Notifications you've sent to entrants will show here.")
     }
 }
+
+
+// owner should also write a message to a lottery's waitlist
+@Composable
+fun SendNotificationDialog(lottery: Lottery, onDismiss: () -> Unit) {
+// TODO: AlertDialog with title + message fields, Send -> controller.notifyWaitlist
+}
+

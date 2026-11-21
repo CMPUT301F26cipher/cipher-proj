@@ -263,7 +263,9 @@ class LotteryBookingController {
             totalPrice = pricePerNight * selectedDates.size
         ) { createResult ->
             createResult
-                .onSuccess {
+                .onSuccess { reservationId ->
+                    // TODO (US 01.05.02): look up the reservation and call
+                    // NotificationController().notifyReservationConfirmed(it)
                     entryRepository.updateLotteryEntry(
                         entry.copy(status = LotteryEntryStatus.ACCEPTED.name),
                         onResult

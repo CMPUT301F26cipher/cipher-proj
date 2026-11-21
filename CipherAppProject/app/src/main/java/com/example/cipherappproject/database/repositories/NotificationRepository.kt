@@ -80,9 +80,6 @@ class NotificationRepository {
         message: String,
         fromUserId: String = "",
         result: (Result<String>) -> Unit
-            message = message,
-            fromuserId = fromuserId
-
     ){
         // create a reference and id to the new Message
         val notificationRef = notificationsRef.document()
@@ -94,7 +91,8 @@ class NotificationRepository {
             eventType = eventType,
             toUserId = toUserId,
             title = title,
-            message = message
+            message = message,
+            fromUserId = fromUserId
         )
 
         // save the object in the firebase
