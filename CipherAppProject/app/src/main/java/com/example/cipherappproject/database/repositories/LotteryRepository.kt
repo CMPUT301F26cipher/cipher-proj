@@ -272,6 +272,16 @@ class LotteryRepository {
         return _allLotteries.value.filter { it.ownerId == ownerId}
     }
 
+    /**
+     * Lotteries this owner created OR was added to as co-owner
+     *
+     */
+
+    fun getLotteriesFromListByAnyOwnerId(ownerId: String): List<Lottery> {
+        // TODO (US 02.04.08)
+        return getLotteriesFromListByOwnerId(ownerId)
+    }
+
 
 
     /**

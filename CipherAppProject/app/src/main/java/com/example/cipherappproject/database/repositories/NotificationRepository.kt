@@ -78,7 +78,10 @@ class NotificationRepository {
         toUserId: String,
         title: String,
         message: String,
+        fromUserId: String = "",
         result: (Result<String>) -> Unit
+            message = message,
+            fromuserId = fromuserId
 
     ){
         // create a reference and id to the new Message
@@ -182,7 +185,7 @@ class NotificationRepository {
      *      - Result.failure(exception) if not successful
      * @return Result<Unit>
      */
-    fun updateCampsite(
+    fun updateNotification(
         notification: Notification,
         result: (Result<Unit>) -> Unit
     ) {
@@ -246,6 +249,12 @@ class NotificationRepository {
         return _allNotifications.value.filter { it.toUserId == userId }
     }
 
+    /** All notifications an owner has sent, newest first (US 02.10.02). */
+    fun getNotificationsFromListBySenderId(senderId: String): List<Notification> {
+        return _allNotifications.value
+            .filter { it.fromUserId == senderId}
+            .sortedByDescending { it.createdAt }
+    }
 
     /**
      * Get a list of Notification objects

@@ -41,6 +41,7 @@ data class Notification (
     val eventId: String = "",
     val eventType: String = "",
     val toUserId: String = "",
+    val fromUserId: String = "", // Added code, Justin. 
     val title: String = "",
     val message: String = "",
     val createdAt: Timestamp = Timestamp.now(),

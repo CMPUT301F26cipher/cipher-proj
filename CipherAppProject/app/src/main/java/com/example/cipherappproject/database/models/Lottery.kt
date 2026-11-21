@@ -44,6 +44,7 @@ NA
 data class Lottery (
     val lotteryId: String = "",
     val ownerId: String = "",
+    val coOwnerIds: MutableList<String> = mutableListOf(),
     // one lottery can be applicable to many lotteries
     val campsiteIds: MutableList<String> = mutableListOf(),
     var numWinners: Int = 0,
