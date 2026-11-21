@@ -2,8 +2,10 @@ package com.example.cipherappproject.database.provider
 
 import com.example.cipherappproject.database.repositories.CampsiteAvailabilityRepository
 import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.repositories.ConversationRepository
 import com.example.cipherappproject.database.repositories.LotteryEntryRepository
 import com.example.cipherappproject.database.repositories.LotteryRepository
+import com.example.cipherappproject.database.repositories.MessageRepository
 import com.example.cipherappproject.database.repositories.NotificationRepository
 import com.example.cipherappproject.database.repositories.ProfileRepository
 import com.example.cipherappproject.database.repositories.RatingRepository
@@ -39,7 +41,11 @@ object RepositoryDatabase {
 
     val ratingRepository = RatingRepository()
     val notificationRepository = NotificationRepository()
-    //val messageRepository = MessageRepository()
+
+
+    val messageRepository = MessageRepository()
+
+    val conversationRepository = ConversationRepository()
 
     val profileDeletion = ProfileDeletion(
         profileRepository,

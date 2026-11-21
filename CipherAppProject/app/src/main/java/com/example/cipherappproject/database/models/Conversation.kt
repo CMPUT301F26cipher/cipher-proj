@@ -4,10 +4,10 @@ import com.google.firebase.Timestamp
 
 /*
 --------------------------------------------------------------------------------------
-Program Name: Message.kt
+Program Name: Conversation.kt
 Date Written: November 16, 2026
 Author: Sofia Arturo Gomez
-Purpose: Manage database for the object as Message
+Purpose: Manage database for the object as Conversation
 --------------------------------------------------------------------------------------
 Modification History:
 --------------------------------------------------------------------------------------
@@ -43,5 +43,6 @@ data class Conversation(
     val userId: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val lastMessage: String = "",
+    val updatedAt: Timestamp = Timestamp.now(),
     val status: String = ""
 )

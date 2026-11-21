@@ -86,7 +86,7 @@ class LotteryRepository {
         numWinners: Int,
         startDate: String,
         endDate: String,
-        maxParticipants: Int,
+        maxParticipants: Int?,
         status: String,
         result: (Result<String>) -> Unit
 

@@ -29,5 +29,5 @@ enum class LotteryStatus {
     OPEN,
     CANCELLED,
     COMPLETED,
-    PROCESSING,
+    PROCESSING
 }
