@@ -52,7 +52,7 @@ object ReservationCsv {
         ) { uri ->
             if (uri == null) return@rememberLauncherForActivityResult // user didnt want csv
             try {
-                context.contentResolver.openOutputStream(uri)?.use { it.write(buildCsv.toByteArray()) }
+                context.contentResolver.openOutputStream(uri)?.use { it.write(buildCsv().toByteArray()) }
                 Toast.makeText(context, "Saved $fileName", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(context, "Could not save file", Toast.LENGTH_SHORT).show()

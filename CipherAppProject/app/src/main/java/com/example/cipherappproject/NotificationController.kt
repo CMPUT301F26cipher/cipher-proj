@@ -11,7 +11,13 @@ import com.example.cipherappproject.database.provider.RepositoryDatabase
 import com.google.firebase.Timestamp
 import java.util.Locale
 
-// One owner broadcase is shown as single row
+/**
+ * An owner "broadcast" is shwoan as a single row in the Sent Notificaitons screen
+ * Each customer gets their own Notification document, so these are grouped together.
+ * @property eventId the lottery the message was about
+ * @property sentAt when the broadcase was sent
+ * @property recipientCount how many entrants received it
+ **/
 data class SentNotificationGroup(
     val eventId: String,
     val title: String,
@@ -21,8 +27,10 @@ data class SentNotificationGroup(
 )
 
 /**
- * This class works to send and read in-app notifications
- * US 01.03.01, 01.03.02, 01.05.02, 01.07.02, 01.10.01, 02.10.01, 02.10.02
+ * This class works to create and read in-app notifications, stored in firestore
+ * Meets US 01.03.01, 01.03.02, 01.05.02, 01.07.02, 01.10.01, 02.10.01, 02.10.02
+ *
+ * Every notification goes through "send", which skips the users who opted out.
  */
 
 class NotificationController {
@@ -32,12 +40,19 @@ class NotificationController {
     private val campsiteRepository get() = RepositoryDatabase.campsiteRepository
 
 
-    // Return false if user turned notifications off
+    /* Check the user's notification setting.
+        - It should return false if the user turned notifications off, or their profile isnt loaded yet
+    */
     fun canNotify(userId: String): Boolean {
         return profileRepository.getProfileFromListById(userId)?.notificationsEnabled ?: false
     }
 
-    // Save a notification unless the recipent opted out, return true if it was sent.
+    /** Save a notification unless the recipent opted out, return true if it was sent.
+     *  All  public notify functions should use this.
+     *
+     * @param fromUserId the owner who sent it, or "" for system notifications
+     * @return true, if notification was sent, false if user opted out.
+     */
     private fun send(
         toUserId: String,
         eventId: String,
@@ -61,7 +76,9 @@ class NotificationController {
 
     }
 
-    // SHow lottery results
+    /**
+     * Join the names of a lottery's campsites for use in a message. S
+     */
     fun campsiteNames(lottery: Lottery): String {
         return lottery.campsiteIds
             .mapNotNull { campsiteRepository.getCampsiteFromListById(it)?.campsiteName }
@@ -69,6 +86,12 @@ class NotificationController {
             .ifBlank { "your campsite" }
     }
 
+
+    /**
+     * Build the title + message for one drawn entry.
+     *
+     * @return (title, message) for winner or not selected, or null for any other status.
+     */
     fun resultMessage(entry: LotteryEntry, campsiteNames: String): Pair<String, String>? {
         return when (entry.status) {
             LotteryEntryStatus.WINNER.name ->
@@ -83,6 +106,12 @@ class NotificationController {
         }
     }
 
+
+    /**
+     * Tell every enetrant in the drawn lottery, whether they have won/lost
+     *
+     * Called by LotteryDrawController after the draw is saved
+     */
     fun notifyLotteryResults(lottery: Lottery, drawnEntries: List<LotteryEntry>) {
         val names = campsiteNames(lottery)
         for (entry in drawnEntries) {
@@ -91,7 +120,11 @@ class NotificationController {
         }
     }
 
-    //
+    /**
+     * Check an owners mesage before sending, validation check.
+     *
+     * @return an error message/null if the title + message are both filled in
+     */
     fun validateMessage(title: String, message: String): String? {
         return when {
             title.isBlank() -> "Title cannot be empty."
@@ -100,7 +133,13 @@ class NotificationController {
         }
     }
 
-    /** Returns how many entrants were notified. */
+    /**
+     * Sends an owner's message to every entrant on a lottery's waitlist
+     * Skip the withdrawn entrants and anyone who opted out
+     *
+     * @param senderId, the owner sending it so it appears in their sent list
+     * @return, how many entrants were notified.
+     */
     fun notifyWaitlist(lottery: Lottery, title: String, message: String, senderId: String): Int {
         return entryRepository.getLotteryEntriesFromListByLotteryId(lottery.lotteryId)
             .filter { it.status != LotteryEntryStatus.WITHDRAWN.name }
@@ -113,12 +152,17 @@ class NotificationController {
             }
     }
 
-    // ---------- Owner's sent list (US 02.10.02) ----------
+    /**
+     * All messages an owner has sent, one row per broadcast, newest first
+     */
     fun getSentNotifications(ownerId: String): List<SentNotificationGroup> {
         return groupSent(notificationRepository.getNotificationsFromListBySenderId(ownerId))
     }
 
-    /** Pure: groups one broadcast's per-recipient docs into one row. */
+    /**
+     * Groups the per-recipient documents of each broadcast into one row
+     * matching on lottery, title and message. Newest broadcast first.
+     */
     fun groupSent(sent: List<Notification>): List<SentNotificationGroup> {
         return sent
             .groupBy { Triple(it.eventId, it.title, it.message) }
@@ -134,9 +178,15 @@ class NotificationController {
             .sortedByDescending { it.sentAt }
     }
 
+    /**
+     * Display the name of the campsite, by defualt it is "your campsite.
+     */
     private fun campsiteName(campsiteId: String): String =
         campsiteRepository.getCampsiteFromListById(campsiteId)?.campsiteName ?: "your campsite"
 
+    /**
+     * Tell the entrant their reservation was made, with the dates and the total price
+     */
     fun notifyReservationConfirmed(reservation: Reservation) {
         val total = String.format(Locale.US, "%.2f", reservation.totalPrice)
         send(reservation.userId, reservation.reservationId, NotificationEventType.RESERVATION,
@@ -146,6 +196,10 @@ class NotificationController {
                     "You can download a CSV copy from Reservations.")
     }
 
+    /**
+     * Tells the entrant their reservation was cancelled
+     * Must be called by the cancel feature, once a resrvation's status is set to CANCELLED
+     */
     fun notifyReservationCancelled(reservation: Reservation) {
         send(reservation.userId, reservation.reservationId, NotificationEventType.RESERVATION,
             "Reservation cancelled",
@@ -154,12 +208,13 @@ class NotificationController {
                     "You can download a CSV confirmation from Reservations.")
     }
 
-    // ---------- Entrant inbox ----------
+    // notifications sent to this user, newest first
     fun getReceived(userId: String): List<Notification> {
         return notificationRepository.getNotificationsFromListByUserId(userId)
             .sortedByDescending { it.createdAt }
     }
 
+    // Mark a notification as read in firestore, and does nothing if it already is.
     fun markAsRead(notification: Notification) {
         if (notification.isRead) return
         notificationRepository.updateNotification(notification.copy(isRead = true)) { result ->

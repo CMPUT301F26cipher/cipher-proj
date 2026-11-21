@@ -29,10 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import com.google.firebase.Timestamp
 import java.text.DateFormat
 
-/**
- * PLACEHOLDER, REPLACE THIS FILE
- */
-
 private fun formatTime(time: Timestamp): String =
     DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(time.toDate())
 @Composable
@@ -69,7 +65,7 @@ fun NotificationView(currentUserId: String) {
             }
         }
     }
-
+}
     /** Owner's sent notifications. */
     @Composable
     fun SentNotificationView(ownerId: String) {
@@ -108,7 +104,7 @@ fun NotificationView(currentUserId: String) {
 
             }
         }
-
+    }
         // owner should also write a message to a lottery's waitlist
         @Composable
         fun SendNotificationDialog(lottery: Lottery, senderId: String, onDismiss: () -> Unit) {
@@ -158,8 +154,6 @@ fun NotificationView(currentUserId: String) {
                 dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
             )
         }
-    }
-}
 
 
 
