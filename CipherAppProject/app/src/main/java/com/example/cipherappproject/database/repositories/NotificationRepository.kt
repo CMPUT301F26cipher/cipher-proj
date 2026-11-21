@@ -182,7 +182,7 @@ class NotificationRepository {
      *      - Result.failure(exception) if not successful
      * @return Result<Unit>
      */
-    fun updateCampsite(
+    fun updateNotification(
         notification: Notification,
         result: (Result<Unit>) -> Unit
     ) {
@@ -206,7 +206,6 @@ class NotificationRepository {
                 throw NotFoundException("Notification does not exist.")
             }
 
-            transaction.set(notificationRef, notification)
             transaction.set(notificationRef, notification)
 
             // since we do not care about get an object but just success or not

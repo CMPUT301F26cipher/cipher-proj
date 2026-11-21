@@ -5,7 +5,9 @@ import com.example.cipherappproject.database.enums.CampsiteAvailabilityStatus
 import com.example.cipherappproject.database.enums.LotteryEntryStatus
 import com.example.cipherappproject.database.enums.ProfileRole
 import com.example.cipherappproject.database.enums.LotteryStatus
+import com.example.cipherappproject.database.enums.NotificationEventType
 import com.example.cipherappproject.database.enums.ProfileStatus
+import com.example.cipherappproject.database.enums.RatingStatus
 import com.example.cipherappproject.database.enums.ReservationStatus
 import com.example.cipherappproject.database.exceptions.NotFoundException
 import com.example.cipherappproject.database.exceptions.ValidationException
@@ -14,6 +16,8 @@ import com.example.cipherappproject.database.models.CampsiteAvailability
 import com.example.cipherappproject.database.models.Profile
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
+import com.example.cipherappproject.database.models.Notification
+import com.example.cipherappproject.database.models.Rating
 import com.example.cipherappproject.database.models.Reservation
 import com.example.cipherappproject.database.provider.RepositoryDatabase
 import com.example.cipherappproject.database.repositories.CampsiteRepository
@@ -49,6 +53,9 @@ class DatabaseUnitTest {
     private val reservationRepository = RepositoryDatabase.reservationRepository
     private val notificationRepository = RepositoryDatabase.notificationRepository
     private val lotteryEntryRepository = RepositoryDatabase.lotteryEntryRepository
+    private val ratingRepository = RepositoryDatabase.ratingRepository
+    private val conversationRepository = RepositoryDatabase.conversationRepository
+    private val messageRepository = RepositoryDatabase.messageRepository
 
     // PASSED
     /*
@@ -2936,9 +2943,651 @@ class DatabaseUnitTest {
     // ----------------------------------- Notification  -----------------------------------
 
 
+    // PASSED
+    /*
+    @Test
+    fun addNotificationExistsTest() {
+
+        val eventId = "h3ZnwXUi0n7belnOGacR"
+        val eventType = NotificationEventType.RESERVATION.name
+        val toUserId = "U6IpXzXFGpEuwvVuiObR"
+        val title = "Reservation Confirmed"
+        val message = "Your reservation has been confirmed."
+
+        // Create notification
+        val notificationId = awaitCallback<Result<String>> { callback ->
+            notificationRepository.addNotification(
+                eventId = eventId,
+                eventType = eventType,
+                toUserId = toUserId,
+                title = title,
+                message = message,
+                result = callback
+            )
+        }.getOrThrow()
+
+        assertTrue(notificationId.isNotBlank())
+
+        // Retrieve created notification
+        val notification = awaitCallback<Result<Notification>> { callback ->
+            notificationRepository.getNotificationById(
+                notificationId,
+                callback
+            )
+        }.getOrThrow()
+
+        // Verify fields
+        assertEquals(notificationId, notification.notificationId)
+        assertEquals(eventId, notification.eventId)
+        assertEquals(eventType, notification.eventType)
+        assertEquals(toUserId, notification.toUserId)
+        assertEquals(title, notification.title)
+        assertEquals(
+            message,
+            notification.message
+        )
+        assertEquals(false, notification.isRead)
+
+        Log.d("NotificationTest", "addNotificationExistsTest passed")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateNotificationExistsTest() {
+        val eventId = "h7ctE62p7flpfXUKQjvV"
+        val eventType = NotificationEventType.RESERVATION.name
+        val toUserId = "U6IpXzXFGpEuwvVuiObR"
+        val title = "Reservation Confirmed"
+        val message = "Your reservation has been confirmed."
+
+        // Create notification
+        val notificationId = awaitCallback<Result<String>> { callback ->
+            notificationRepository.addNotification(
+                eventId = eventId,
+                eventType = eventType,
+                toUserId = toUserId,
+                title = title,
+                message = message,
+                result = callback
+            )
+        }.getOrThrow()
+
+        // Retrieve original notification
+        val originalNotification = awaitCallback<Result<Notification>> { callback ->
+            notificationRepository.getNotificationById(
+                notificationId,
+                callback
+            )
+        }.getOrThrow()
+
+        val updateTitle = "Reservation Cancelled"
+        val updateMessage = "Your reservation has been cancelled."
+        val updateIsRead = true
+
+        // Update notification
+        val updatedNotification = originalNotification.copy(
+            title = updateTitle,
+            message = updateMessage,
+            isRead = updateIsRead
+        )
+
+        awaitCallback<Result<Unit>> { callback ->
+            notificationRepository.updateNotification(
+                updatedNotification,
+                callback
+            )
+        }.getOrThrow()
+
+        // Retrieve updated notification
+        val retrievedNotification = awaitCallback<Result<Notification>> { callback ->
+            notificationRepository.getNotificationById(
+                notificationId,
+                callback
+            )
+        }.getOrThrow()
+
+        // Verify updated fields
+        assertEquals(notificationId, retrievedNotification.notificationId)
+        assertEquals(eventId, retrievedNotification.eventId)
+        assertEquals(eventType, retrievedNotification.eventType)
+        assertEquals(toUserId, retrievedNotification.toUserId)
+        assertEquals(updateTitle, retrievedNotification.title)
+        assertEquals(
+            updateMessage,
+            retrievedNotification.message
+        )
+        assertEquals(updateIsRead, retrievedNotification.isRead)
+
+        // Verify createdAt was preserved
+        assertEquals(
+            originalNotification.createdAt,
+            retrievedNotification.createdAt
+        )
+
+        Log.d("NotificationTest", "updateNotificationExistsTest passed")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateNotificationBlankIdTest() {
+        val notification = Notification(
+            notificationId = "",
+            eventId = "test-event",
+            eventType = "RESERVATION",
+            toUserId = "test-user",
+            title = "Test Title",
+            message = "Test Message"
+        )
+
+        val result = awaitCallback<Result<Unit>> { callback ->
+            notificationRepository.updateNotification(
+                notification,
+                callback
+            )
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException -> {
+                    Log.d(
+                        "NotificationTest",
+                        "Correctly caught ValidationException"
+                    )
+                }
+
+                else -> throw exception
+            }
+        }
+
+        Log.d("NotificationTest", "updateNotificationBlankIdTest passed")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getNotificationByIdBlankIdTest() {
+        val result = awaitCallback<Result<Notification>> { callback ->
+            notificationRepository.getNotificationById(
+                "",
+                callback
+            )
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException -> {
+                    Log.d(
+                        "NotificationTest",
+                        "Correctly caught ValidationException"
+                    )
+                }
+
+                else -> throw exception
+            }
+        }
+
+        Log.d("NotificationTest", "getNotificationByIdBlankIdTest passed")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateNotificationNotFoundTest() {
+        val notification = Notification(
+            notificationId = "missing-notification-001",
+            eventId = "test-event",
+            eventType = "RESERVATION",
+            toUserId = "test-user",
+            title = "Test Title",
+            message = "Test Message"
+        )
+
+        val result = awaitCallback<Result<Unit>> { callback ->
+            notificationRepository.updateNotification(
+                notification,
+                callback
+            )
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is NotFoundException -> {
+                    Log.d(
+                        "NotificationTest",
+                        "Correctly caught NotFoundException"
+                    )
+                }
+
+                else -> throw exception
+            }
+        }
+
+        Log.d("NotificationTest", "updateNotificationNotFoundTest passed")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getNotificationByIdNotFoundTest() {
+        val result = awaitCallback<Result<Notification>> { callback ->
+            notificationRepository.getNotificationById(
+                "missing-notification-002",
+                callback
+            )
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is NotFoundException -> {
+                    Log.d(
+                        "NotificationTest",
+                        "Correctly caught NotFoundException"
+                    )
+                }
+
+                else -> throw exception
+            }
+        }
+
+        Log.d("NotificationTest", "getNotificationByIdNotFoundTest passed")
+    }
+
+     */
+
+
+    // PASSED
+    /*
+    @Test
+    fun getNotificationFromListByIdExistsTest() {
+        val notificationId = "ANKfi1zgYxHP8Ba1re0f"
+
+        // Wait until notifications are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!notificationRepository.isNotificationsLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Notifications failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve notification from local list
+        val notification = notificationRepository
+            .getNotificationFromListById(notificationId)
+
+        // Verify
+        assertNotNull("Notification should exist in the local list", notification)
+        assertEquals(notificationId, notification?.notificationId)
+
+        Log.d("NotificationTest", "Existing notification retrieved from local list successfully")
+    }
+
+    @Test
+    fun getNotificationFromListByIdDoesNotExistTest() {
+        val notificationId = "nonexistent-notification-001"
+
+        // Wait until notifications are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!notificationRepository.isNotificationsLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Notifications failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve notification from local list
+        val notification = notificationRepository
+            .getNotificationFromListById(notificationId)
+
+        assertNull("Notification should not exist in the local list", notification)
+
+        Log.d("NotificationTest", "Notification not found in local list as expected")
+    }
+
+    @Test
+    fun getNotificationsFromListByUserIdTest() {
+        val userId = "U6IpXzXFGpEuwvVuiObR"
+
+        // Wait until notifications are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!notificationRepository.isNotificationsLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Notifications failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve notifications from local list
+        val userNotifications = notificationRepository
+            .getNotificationsFromListByUserId(userId)
+
+        // Verify
+        assertTrue(userNotifications.all {
+            it.toUserId == userId
+        })
+
+        Log.d("NotificationTest", "Notifications for user retrieved from local list")
+    }
+
+
+    @Test
+    fun getNotificationsFromListByReadStatusTrueTest() {
+        // Wait until notifications are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!notificationRepository.isNotificationsLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Notifications failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve read notifications from local list
+        val readNotifications = notificationRepository
+            .getNotificationsFromListByReadStatus(true)
+
+        // Verify
+        assertTrue(readNotifications.all {
+            it.isRead
+        })
+
+        Log.d("NotificationTest", "Read notifications retrieved from local list")
+    }
+
+     */
+
     // ----------------------------------- Rating -----------------------------------
+    // PASSED
+    /*
+    @Test
+    fun addRatingExistsTest() {
+        val userId = "U6IpXzXFGpEuwvVuiObR"
+        val campsiteId = "Hh7EEaZY2nD9OiKmdgFE"
+        val reservationId = "gnR0rjkKTVBoUk6f8mIr"
+        val review = "Great campsite!"
+        val rating = 4.5
+        val status = RatingStatus.ACTIVE.name
 
+        // Add rating to Firestore
+        val ratingId = awaitCallback<Result<String>> { callback ->
+            ratingRepository.addRating(
+                userId,
+                campsiteId,
+                reservationId,
+                review,
+                rating,
+                status,
+                callback
+            )
+        }.getOrThrow()
 
+        // Retrieve the newly created rating
+        val result = awaitCallback<Result<Rating>> { callback ->
+            ratingRepository.getRatingById(ratingId, callback)
+        }.getOrThrow()
+
+        // Verify
+        assertEquals(ratingId, result.ratingId)
+        assertEquals(userId, result.userId)
+        assertEquals(campsiteId, result.campsiteId)
+        assertEquals(reservationId, result.reservationId)
+        assertEquals(review, result.review)
+        assertEquals(rating, result.rating, 0.0)
+        assertEquals(status, result.status)
+
+        Log.d("RatingTest", "Rating added successfully")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getRatingByIdBlankIdTest() {
+        val ratingId = ""
+
+        // Retrieve rating from Firestore
+        val result = awaitCallback<Result<Rating>> { callback ->
+            ratingRepository.getRatingById(ratingId, callback)
+        }
+
+        // Verify
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException ->
+                    Log.d("RatingTest", "Correctly caught ValidationException")
+
+                else -> throw exception
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateRatingBlankIdTest() {
+        val rating = Rating(
+            ratingId = "",
+            userId = "test-user-001",
+            campsiteId = "test-campsite-001",
+            reservationId = "test-reservation-001",
+            review = "Testing blank ID",
+            rating = 4.0,
+            status = RatingStatus.ACTIVE.name
+        )
+
+        // Update rating in Firestore
+        val result = awaitCallback<Result<Unit>> { callback ->
+            ratingRepository.updateRating(rating, callback)
+        }
+
+        // Verify
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException ->
+                    Log.d("RatingTest", "Correctly caught ValidationException")
+
+                else -> throw exception
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getRatingByIdNotFoundTest() {
+        val ratingId = "nonexistent-rating-001"
+
+        // Retrieve rating from Firestore
+        val result = awaitCallback<Result<Rating>> { callback ->
+            ratingRepository.getRatingById(ratingId, callback)
+        }
+
+        // Verify
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is NotFoundException ->
+                    Log.d("RatingTest", "Correctly caught NotFoundException")
+
+                else -> throw exception
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateRatingBlankIdTest() {
+        val rating = Rating(
+            ratingId = "",
+            userId = "test-user-001",
+            campsiteId = "test-campsite-001",
+            reservationId = "test-reservation-001",
+            review = "Testing blank ID",
+            rating = 4.0,
+            status = RatingStatus.ACTIVE.name
+        )
+
+        // Update rating in Firestore
+        val result = awaitCallback<Result<Unit>> { callback ->
+            ratingRepository.updateRating(rating, callback)
+        }
+
+        // Verify
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException ->
+                    Log.d("RatingTest", "Correctly caught ValidationException")
+
+                else -> throw exception
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateRatingExistsTest() {
+        val ratingId = "jjIyt01CXrGS4MeRYq3M"
+        val updatedReview = "Excellent campsite!"
+        val updatedRating = 5.0
+        val updatedStatus = RatingStatus.ACTIVE.name
+
+        // Retrieve original rating
+        val originalRating = awaitCallback<Result<Rating>> { callback ->
+            ratingRepository.getRatingById(ratingId, callback)
+        }.getOrThrow()
+
+        // Create updated rating
+        val rating = originalRating.copy(
+            review = updatedReview,
+            rating = updatedRating,
+            status = updatedStatus
+        )
+
+        // Update rating in Firestore
+        val result = awaitCallback<Result<Unit>> { callback ->
+            ratingRepository.updateRating(rating, callback)
+        }
+
+        // Verify
+        assertTrue(result.isSuccess)
+
+        // Retrieve updated rating
+        val updatedResult = awaitCallback<Result<Rating>> { callback ->
+            ratingRepository.getRatingById(ratingId, callback)
+        }.getOrThrow()
+
+        assertEquals(ratingId, updatedResult.ratingId)
+        assertEquals(updatedReview, updatedResult.review)
+        assertEquals(updatedRating, updatedResult.rating, 0.0)
+        assertEquals(updatedStatus, updatedResult.status)
+
+        // Verify original fields were preserved
+        assertEquals(originalRating.userId, updatedResult.userId)
+        assertEquals(originalRating.campsiteId, updatedResult.campsiteId)
+        assertEquals(originalRating.reservationId, updatedResult.reservationId)
+        assertEquals(originalRating.createdAt, updatedResult.createdAt)
+
+        Log.d("RatingTest", "Rating updated successfully")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getRatingFromListByIdExistsTest() {
+        val ratingId = "jjIyt01CXrGS4MeRYq3M"
+
+        // Wait until ratings are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!ratingRepository.isRatingsLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Ratings failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve rating from local list
+        val rating = ratingRepository.getRatingFromListById(ratingId)
+
+        // Verify
+        assertNotNull("Rating should exist in the local list", rating)
+        assertEquals(ratingId, rating?.ratingId)
+
+        Log.d("RatingTest", "Rating retrieved from local list successfully")
+    }
+
+    @Test
+    fun getRatingFromListByIdDoesNotExistTest() {
+        val ratingId = "nonexistent-rating-003"
+
+        // Wait until ratings are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!ratingRepository.isRatingsLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Ratings failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve rating from local list
+        val rating = ratingRepository.getRatingFromListById(ratingId)
+
+        // Verify
+        assertNull("Rating should not exist in the local list", rating)
+
+        Log.d("RatingTest", "Rating not found in local list as expected")
+    }
+
+     */
     // ----------------------------------- Messages -----------------------------------
 
 
