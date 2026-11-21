@@ -11,11 +11,10 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-02  Bailey      1.01     Built
-2026-11-18  Madison     1.02     Safe location lookup, removed stale remember, price format
+2026-11-18  Madison     1.02     made it run
 --------------------------------------------------------------------------------------
 Future Enhancements
 Show campsite image (campsite.imagePath)
-is price necessary to include here?
  */
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,14 +37,13 @@ import java.util.Locale
  * Displays a summary of a campsite. Clicking it opens the campsite's details.
  *
  * @param onClick called when the card is tapped
- * @param campsite the campsite to summarize
+ * @param campsite the campsite on the card
  */
 @Composable
 fun CampsiteSummary(
     onClick: () -> Unit,
     campsite: Campsite,
 ){
-    // mapLocation is [latitude, longitude, name] (see Campsite.kt).
     val locationName = campsite.mapLocation.getOrNull(2).orEmpty()
     val priceText = String.format(Locale.CANADA, "$%.2f / night", campsite.pricePerNight)
 

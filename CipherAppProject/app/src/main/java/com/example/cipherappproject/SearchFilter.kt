@@ -5,7 +5,6 @@ Program Name: SearchFilter.kt
 Date Written: Nov 2 2026
 Author: Bailey Parrish
 Purpose: Class that stores input filter specifications
-US: 01.01.02
 --------------------------------------------------------------------------------------
 Modification History:
 --------------------------------------------------------------------------------------

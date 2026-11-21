@@ -11,11 +11,12 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-02  Bailey      1.01     Built
-2026-11-17  Madison     1.02     made it run, added loading/empty messages
+2026-11-17  Madison     1.02     made it run, added loading/empty messages, keeps search on back
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
  */
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,17 +27,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.database.models.Campsite
-import com.example.cipherappproject.database.repositories.CampsiteRepository
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
- * Entrant home screen: a search bar and the list of campsites that match it.
+ * Entrant home screen: search filters and the list of campsites that match them.
  *
  * @param onNavigateToCampsite called with the campsite the entrant taps on
  */
@@ -44,14 +45,19 @@ import com.example.cipherappproject.database.repositories.CampsiteRepository
 fun CampsiteSearch(
     onNavigateToCampsite: (Campsite) -> Unit,
 ){
-    val repository = remember { CampsiteRepository() }
-    val allCampsites = repository.campsites.value
-    val isLoaded = repository.isCampsitesLoaded.value
-    val searchFilter = remember { SearchFilter() }
-    var searchedName by remember { mutableStateOf("") }
-    val filteredCampsites = remember(allCampsites, searchedName) {
-        CampsiteListFromFilters(allCampsites, searchFilter).getList()
-    }
+    val campsiteRepository = RepositoryDatabase.campsiteRepository
+    val availabilityRepository = RepositoryDatabase.campsiteAvailabilityRepository
+    val allCampsites = campsiteRepository.campsites.value
+    var searchFilter by rememberSaveable { mutableStateOf(SearchFilter()) }
+
+    val isLoading = !campsiteRepository.isCampsitesLoaded.value ||
+        (searchFilter.checkIn != null && !availabilityRepository.isCampsiteAvailabilitiesLoaded.value)
+
+    val filteredCampsites = CampsiteListFromFilters(
+        allCampsites,
+        searchFilter,
+        availabilityRepository::getAvailableBookingDates
+    ).getList()
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -60,7 +66,7 @@ fun CampsiteSearch(
     ) {
         SearchFiltersView(
             searchFilter,
-            onSearch = { searchedName = it.getName() }
+            onSearch = { searchFilter = it }
         )
         LazyColumn(
             modifier = Modifier
@@ -68,7 +74,7 @@ fun CampsiteSearch(
                 .testTag("searchResults"),
         ) {
             when {
-                !isLoaded -> item {
+                isLoading -> item {
                     Text("Loading campsites…", modifier = Modifier.padding(16.dp))
                 }
                 filteredCampsites.isEmpty() -> item {

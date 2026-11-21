@@ -4,7 +4,7 @@ package com.example.cipherappproject
 Program Name: SearchException.kt
 Date Written: Nov 4 2026
 Author: Bailey Parrish
-Purpose: Encodes the status of the previous search
+Purpose: The error thrown when search input is invalid. Its message is shown to the entrant.
 --------------------------------------------------------------------------------------
 Modification History:
 --------------------------------------------------------------------------------------
