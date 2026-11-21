@@ -38,6 +38,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.cipherappproject.database.enums.ProfileRole
 import com.example.cipherappproject.reservations.OwnerOverview
+import com.example.cipherappproject.reservations.RegisterCampsiteScreen
 import com.example.cipherappproject.ui.campsite.EntrantCampsiteView
 import com.example.cipherappproject.ui.lottery.EntrantLotteriesView
 import com.example.cipherappproject.ui.lottery.OwnerLotteriesView
@@ -252,7 +253,18 @@ fun CampsiteApp(){
 
                         // Owner
                         composable(AppRoutes.OWNER_CAMPSITES) {
-                            OwnerOverview(ownerId = currentUserId)
+                            OwnerOverview(
+                                ownerId = currentUserId,
+                                onRegisterClick = {
+                                    navController.navigate(AppRoutes.OWNER_REGISTER_CAMPSITE)
+                                }
+                            )
+                        }
+                        composable(AppRoutes.OWNER_REGISTER_CAMPSITE) {
+                            RegisterCampsiteScreen(
+                                ownerId = currentUserId,
+                                onRegistered = { navController.popBackStack() }
+                            )
                         }
                         composable(AppRoutes.OWNER_LOTTERIES) {
                             OwnerLotteriesView(navController, currentUserId)
