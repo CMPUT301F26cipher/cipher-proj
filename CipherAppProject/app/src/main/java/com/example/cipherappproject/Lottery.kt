@@ -18,6 +18,7 @@ package com.example.cipherappproject
  * @property status lifecycle status values, pending team agreement
  * @property createdAt creation date/time in the agreed representation
  */
+
 data class Lottery(
     private val lotteryId: String = "",
     private val ownerId: String = "",

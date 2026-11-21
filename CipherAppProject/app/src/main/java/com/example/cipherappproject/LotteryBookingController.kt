@@ -6,6 +6,7 @@ package com.example.cipherappproject
  * Outstanding issues: implement logic and connect shared eligibility and
  * availability interfaces; agree on date format and consecutive-night rules.
  */
+
 class LotteryBookingController {
     /** Checks the entrant's active winning offer through the shared component. */
     fun canBook(lotteryId: String, entrantId: String): Boolean {
