@@ -5,6 +5,7 @@ import com.example.cipherappproject.database.enums.CampsiteAvailabilityStatus
 import com.example.cipherappproject.database.enums.LotteryEntryStatus
 import com.example.cipherappproject.database.enums.ProfileRole
 import com.example.cipherappproject.database.enums.LotteryStatus
+import com.example.cipherappproject.database.enums.MessageStatus
 import com.example.cipherappproject.database.enums.NotificationEventType
 import com.example.cipherappproject.database.enums.ProfileStatus
 import com.example.cipherappproject.database.enums.RatingStatus
@@ -13,9 +14,11 @@ import com.example.cipherappproject.database.exceptions.NotFoundException
 import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.CampsiteAvailability
+import com.example.cipherappproject.database.models.Conversation
 import com.example.cipherappproject.database.models.Profile
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
+import com.example.cipherappproject.database.models.Message
 import com.example.cipherappproject.database.models.Notification
 import com.example.cipherappproject.database.models.Rating
 import com.example.cipherappproject.database.models.Reservation
@@ -3588,8 +3591,748 @@ class DatabaseUnitTest {
     }
 
      */
+    // ----------------------------------- Conversation -----------------------------------
+    // PASSED
+    /*
+    @Test
+    fun addConversationExistsTest() {
+        val campsiteId = "1tboZkTDSQ7B1G6AwPPj"
+        val reservationId = "h7ctE62p7flpfXUKQjvV"
+        val ownerId = "5hOgW5zNpxgVc3u6sdeP"
+        val userId = "kDrTERBuWvd7OIrk9cAu"
+        val lastMessage = "Hello, I have a question about my reservation."
+        val status = "OPEN"
+
+        // Add conversation to Firestore
+        val conversationId = awaitCallback<Result<String>> { callback ->
+            conversationRepository.addConversation(
+                campsiteId,
+                reservationId,
+                ownerId,
+                userId,
+                lastMessage,
+                status,
+                callback
+            )
+        }.getOrThrow()
+
+        // Retrieve the newly created conversation
+        val conversation = awaitCallback<Result<Conversation>> { callback ->
+            conversationRepository.getConversationById(conversationId, callback)
+        }.getOrThrow()
+
+        // Verify
+        assertEquals(conversationId, conversation.conversationId)
+        assertEquals(campsiteId, conversation.campsiteId)
+        assertEquals(reservationId, conversation.reservationId)
+        assertEquals(ownerId, conversation.ownerId)
+        assertEquals(userId, conversation.userId)
+        assertEquals(lastMessage, conversation.lastMessage)
+        assertEquals(status, conversation.status)
+
+        Log.d("ConversationTest", "Conversation added successfully")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getConversationByIdNotFoundTest() {
+        val conversationId = "nonexistent-conversation-001"
+
+        // Retrieve conversation from Firestore
+        val result = awaitCallback<Result<Conversation>> { callback ->
+            conversationRepository.getConversationById(conversationId, callback)
+        }
+
+        // Verify
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is NotFoundException ->
+                    Log.d("ConversationTest", "Correctly caught NotFoundException")
+
+                else -> throw exception
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getConversationByIdBlankIdTest() {
+        val conversationId = ""
+
+        // Retrieve conversation from Firestore
+        val result = awaitCallback<Result<Conversation>> { callback ->
+            conversationRepository.getConversationById(conversationId, callback)
+        }
+
+        // Verify
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException ->
+                    Log.d("ConversationTest", "Correctly caught ValidationException")
+
+                else -> throw exception
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateConversationExistsTest() {
+        val campsiteId = "Hh7EEaZY2nD9OiKmdgFE"
+        val reservationId = "gnR0rjkKTVBoUk6f8mIr"
+        val ownerId = "5hOgW5zNpxgVc3u6sdeP"
+        val userId = "U6IpXzXFGpEuwvVuiObR"
+        val lastMessage = "Hello, I need some information."
+        val status = "OPEN"
+
+        // Create conversation
+        val conversationId = awaitCallback<Result<String>> { callback ->
+            conversationRepository.addConversation(
+                campsiteId,
+                reservationId,
+                ownerId,
+                userId,
+                lastMessage,
+                status,
+                callback
+            )
+        }.getOrThrow()
+
+        // Retrieve original conversation
+        val originalConversation = awaitCallback<Result<Conversation>> { callback ->
+            conversationRepository.getConversationById(conversationId, callback)
+        }.getOrThrow()
+
+        // Updated values
+        val updatedLastMessage = "Thank you for your response!"
+        val updatedStatus = "CLOSED"
+
+        // Create updated conversation
+        val updatedConversation = originalConversation.copy(
+            lastMessage = updatedLastMessage,
+            status = updatedStatus
+        )
+
+        // Update conversation in Firestore
+        val result = awaitCallback<Result<Unit>> { callback ->
+            conversationRepository.updateConversation(
+                updatedConversation,
+                callback
+            )
+        }
+
+        // Verify update operation
+        assertTrue(result.isSuccess)
+
+        // Retrieve updated conversation
+        val conversation = awaitCallback<Result<Conversation>> { callback ->
+            conversationRepository.getConversationById(conversationId, callback)
+        }.getOrThrow()
+
+        // Verify updated fields
+        assertEquals(conversationId, conversation.conversationId)
+        assertEquals(updatedLastMessage, conversation.lastMessage)
+        assertEquals(updatedStatus, conversation.status)
+
+        // Verify original fields were preserved
+        assertEquals(campsiteId, conversation.campsiteId)
+        assertEquals(reservationId, conversation.reservationId)
+        assertEquals(ownerId, conversation.ownerId)
+        assertEquals(userId, conversation.userId)
+
+        Log.d("ConversationTest", "Conversation updated successfully")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateConversationBlankIdTest() {
+        val conversation = Conversation(
+            conversationId = "",
+            campsiteId = "test-campsite-001",
+            reservationId = "test-reservation-001",
+            ownerId = "test-owner-001",
+            userId = "test-user-001",
+            lastMessage = "Testing blank ID",
+            status = "OPEN"
+        )
+
+        // Update conversation in Firestore
+        val result = awaitCallback<Result<Unit>> { callback ->
+            conversationRepository.updateConversation(conversation, callback)
+        }
+
+        // Verify
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException ->
+                    Log.d("ConversationTest", "Correctly caught ValidationException")
+
+                else -> throw exception
+            }
+        }
+    }
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateConversationNotFoundTest() {
+        val conversation = Conversation(
+            conversationId = "nonexistent-conversation-002",
+            campsiteId = "test-campsite-001",
+            reservationId = "test-reservation-001",
+            ownerId = "test-owner-001",
+            userId = "test-user-001",
+            lastMessage = "Testing missing conversation",
+            status = "OPEN"
+        )
+
+        // Update conversation in Firestore
+        val result = awaitCallback<Result<Unit>> { callback ->
+            conversationRepository.updateConversation(conversation, callback)
+        }
+
+        // Verify
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is NotFoundException ->
+                    Log.d("ConversationTest", "Correctly caught NotFoundException")
+
+                else -> throw exception
+            }
+        }
+    }
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getConversationFromListByIdExistsTest() {
+        val conversationId = "CX98rBE8OBwmFLckcNv2"
+
+        // Wait until conversations are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!conversationRepository.isConversationsLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Conversations failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve conversation from local list
+        val conversation = conversationRepository
+            .getConversationFromListById(conversationId)
+
+        // Verify
+        assertNotNull("Conversation should exist in the local list", conversation)
+        assertEquals(conversationId, conversation?.conversationId)
+
+        Log.d("ConversationTest", "Conversation retrieved from local list successfully")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getConversationFromListByIdDoesNotExistTest() {
+        val conversationId = "nonexistent-conversation-003"
+
+        // Wait until conversations are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!conversationRepository.isConversationsLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Conversations failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve conversation from local list
+        val conversation = conversationRepository
+            .getConversationFromListById(conversationId)
+
+        // Verify
+        assertNull("Conversation should not exist in the local list", conversation)
+
+        Log.d("ConversationTest", "Conversation not found in local list as expected")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getConversationFromListByReservationIdExistsTest() {
+        val reservationId = "h7ctE62p7flpfXUKQjvV"
+
+        // Wait until conversations are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!conversationRepository.isConversationsLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Conversations failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve conversation from local list
+        val conversation = conversationRepository
+            .getConversationFromListByReservationId(reservationId)
+
+        // Verify
+        assertNotNull("Conversation should exist in the local list", conversation)
+        assertEquals(reservationId, conversation?.reservationId)
+
+        Log.d("ConversationTest", "Conversation retrieved by reservation ID successfully")
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getConversationFromListByReservationIdDoesNotExistTest() {
+        val reservationId = "nonexistent-reservation-001"
+
+        // Wait until conversations are loaded from Firestore
+        val startTime = System.currentTimeMillis()
+
+        while (!conversationRepository.isConversationsLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Conversations failed to load from Firestore."
+            }
+
+            Thread.sleep(100)
+        }
+
+        // Retrieve conversation from local list
+        val conversation = conversationRepository
+            .getConversationFromListByReservationId(reservationId)
+
+        // Verify
+        assertNull("Conversation should not exist in the local list", conversation)
+
+        Log.d("ConversationTest", "Conversation not found by reservation ID as expected")
+    }
+
+     */
+
     // ----------------------------------- Messages -----------------------------------
 
+    // PASSED
+    /*
+    @Test
+    fun addMessageExistsTest() {
+        val conversationId = "zuXxQnkMDO4yHcfgmHZ1"
+        val fromUserId = "U6IpXzXFGpEuwvVuiObR"
+        val messageText = "Hello!"
+        val status = MessageStatus.SENT.name
+
+        val result = awaitCallback<Result<String>> { callback ->
+            messageRepository.addMessage(
+                conversationId,
+                fromUserId,
+                messageText,
+                status,
+                callback
+            )
+        }
+
+        val messageId = result.getOrThrow()
+        assertTrue(messageId.isNotBlank())
+
+        val getResult = awaitCallback<Result<Message>> { callback ->
+            messageRepository.getMessageById(
+                conversationId,
+                messageId,
+                callback
+            )
+        }
+
+        val message = getResult.getOrThrow()
+
+        assertEquals(messageId, message.messageId)
+        assertEquals(conversationId, message.conversationId)
+        assertEquals(fromUserId, message.fromUserId)
+        assertEquals(messageText, message.message)
+        assertEquals(status, message.status)
+    }
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun addMessageConversationDoesNotExistTest() {
+        val conversationId = "fakeConversationId123"
+        val fromUserId = "U6IpXzXFGpEuwvVuiObR"
+        val messageText = "This message should not be added."
+        val status = MessageStatus.SENT.name
+
+        val result = awaitCallback<Result<String>> { callback ->
+            messageRepository.addMessage(
+                conversationId,
+                fromUserId,
+                messageText,
+                status,
+                callback
+            )
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is NotFoundException ->
+                    Log.d("MessageTest", "Correctly caught NotFoundException")
+                else -> throw exception
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getMessageByIdExistsTest() {
+        val conversationId = "zuXxQnkMDO4yHcfgmHZ1"
+        val fromUserId = "U6IpXzXFGpEuwvVuiObR"
+        val messageText = "Hello!"
+        val status = MessageStatus.SENT.name
+
+        val addResult = awaitCallback<Result<String>> { callback ->
+            messageRepository.addMessage(
+                conversationId,
+                fromUserId,
+                messageText,
+                status,
+                callback
+            )
+        }
+
+        val messageId = addResult.getOrThrow()
+
+        val result = awaitCallback<Result<Message>> { callback ->
+            messageRepository.getMessageById(
+                conversationId,
+                messageId,
+                callback
+            )
+        }
+
+        val message = result.getOrThrow()
+
+        assertEquals(messageId, message.messageId)
+        assertEquals(conversationId, message.conversationId)
+        assertEquals(fromUserId, message.fromUserId)
+        assertEquals(messageText, message.message)
+    }
+
+    @Test
+    fun getMessageByIdBlankConversationIdTest() {
+        val conversationId = ""
+        val messageId = "someMessageId"
+
+        val result = awaitCallback<Result<Message>> { callback ->
+            messageRepository.getMessageById(
+                conversationId,
+                messageId,
+                callback
+            )
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException ->
+                    Log.d("MessageTest", "Correctly caught ValidationException")
+                else -> throw exception
+            }
+        }
+    }
+
+    @Test
+    fun getMessageByIdBlankMessageIdTest() {
+        val conversationId = "zuXxQnkMDO4yHcfgmHZ1"
+        val messageId = ""
+
+        val result = awaitCallback<Result<Message>> { callback ->
+            messageRepository.getMessageById(
+                conversationId,
+                messageId,
+                callback
+            )
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException ->
+                    Log.d("MessageTest", "Correctly caught ValidationException")
+                else -> throw exception
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateMessageExistsTest() {
+        val conversationId = "zuXxQnkMDO4yHcfgmHZ1"
+        val fromUserId = "U6IpXzXFGpEuwvVuiObR"
+        val messageText = "Original message."
+        val status = MessageStatus.SENT.name
+
+        val addResult = awaitCallback<Result<String>> { callback ->
+            messageRepository.addMessage(
+                conversationId,
+                fromUserId,
+                messageText,
+                status,
+                callback
+            )
+        }
+
+        val messageId = addResult.getOrThrow()
+
+        val getResult = awaitCallback<Result<Message>> { callback ->
+            messageRepository.getMessageById(
+                conversationId,
+                messageId,
+                callback
+            )
+        }
+
+        val originalMessage = getResult.getOrThrow()
+
+        val updatedMessage = originalMessage.copy(
+            message = "Updated message.",
+            status = MessageStatus.READ.name
+        )
+
+        val updateResult = awaitCallback<Result<Unit>> { callback ->
+            messageRepository.updateMessage(
+                updatedMessage,
+                callback
+            )
+        }
+
+        updateResult.getOrThrow()
+
+        val updatedResult = awaitCallback<Result<Message>> { callback ->
+            messageRepository.getMessageById(
+                conversationId,
+                messageId,
+                callback
+            )
+        }
+
+        val message = updatedResult.getOrThrow()
+
+        assertEquals(messageId, message.messageId)
+        assertEquals(conversationId, message.conversationId)
+        assertEquals(fromUserId, message.fromUserId)
+        assertEquals("Updated message.", message.message)
+        assertEquals(MessageStatus.READ.name, message.status)
+        assertEquals(originalMessage.createdAt, message.createdAt)
+    }
+
+    @Test
+    fun updateMessageBlankMessageIdTest() {
+        val conversationId = "zuXxQnkMDO4yHcfgmHZ1"
+
+        val message = Message(
+            messageId = "",
+            conversationId = conversationId,
+            fromUserId = "U6IpXzXFGpEuwvVuiObR",
+            message = "Test message.",
+            status = MessageStatus.SENT.name
+        )
+
+        val result = awaitCallback<Result<Unit>> { callback ->
+            messageRepository.updateMessage(message, callback)
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException ->
+                    Log.d("MessageTest", "Correctly caught ValidationException")
+                else -> throw exception
+            }
+        }
+    }
+
+    @Test
+    fun updateMessageBlankConversationIdTest() {
+        val message = Message(
+            messageId = "someMessageId",
+            conversationId = "",
+            fromUserId = "U6IpXzXFGpEuwvVuiObR",
+            message = "Test message.",
+            status = MessageStatus.SENT.name
+        )
+
+        val result = awaitCallback<Result<Unit>> { callback ->
+            messageRepository.updateMessage(message, callback)
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is ValidationException ->
+                    Log.d("MessageTest", "Correctly caught ValidationException")
+                else -> throw exception
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun updateMessageNotFoundTest() {
+        val conversationId = "zuXxQnkMDO4yHcfgmHZ1"
+        val messageId = "fakeMessageId123"
+
+        val message = Message(
+            messageId = messageId,
+            conversationId = conversationId,
+            fromUserId = "U6IpXzXFGpEuwvVuiObR",
+            message = "Test message.",
+            status = MessageStatus.SENT.name
+        )
+
+        val result = awaitCallback<Result<Unit>> { callback ->
+            messageRepository.updateMessage(message, callback)
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is NotFoundException ->
+                    Log.d("MessageTest", "Correctly caught NotFoundException")
+                else -> throw exception
+            }
+        }
+    }
+
+    @Test
+    fun updateMessageConversationDoesNotExistTest() {
+        val conversationId = "fakeConversationId123"
+        val messageId = "someMessageId"
+
+        val message = Message(
+            messageId = messageId,
+            conversationId = conversationId,
+            fromUserId = "U6IpXzXFGpEuwvVuiObR",
+            message = "Test message.",
+            status = MessageStatus.SENT.name
+        )
+
+        val result = awaitCallback<Result<Unit>> { callback ->
+            messageRepository.updateMessage(message, callback)
+        }
+
+        assertTrue(result.isFailure)
+
+        result.onFailure { exception ->
+            when (exception) {
+                is NotFoundException ->
+                    Log.d("MessageTest", "Correctly caught NotFoundException")
+                else -> throw exception
+            }
+        }
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getMessageFromListByIdDoesNotExistTest() {
+        val conversationId = "zuXxQnkMDO4yHcfgmHZ1"
+        val messageId = "fakeMessageId123"
+
+        val startTime = System.currentTimeMillis()
+
+        while (!messageRepository.isMessagesLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Messages failed to load from Firestore."
+            }
+            Thread.sleep(100)
+        }
+
+        val message = messageRepository.getMessageFromListById(
+            messageId,
+            conversationId
+        )
+
+        assertNull(message)
+    }
+
+     */
+
+    // PASSED
+    /*
+    @Test
+    fun getMessageFromListByIdExistsTest() {
+        val conversationId = "zuXxQnkMDO4yHcfgmHZ1"
+        val messageId = " LtnRqw7psp9KRemEFF91 "
+
+        val startTime = System.currentTimeMillis()
+
+        while (!messageRepository.isMessagesLoaded.value) {
+            check(System.currentTimeMillis() - startTime < 15000) {
+                "Messages failed to load from Firestore."
+            }
+            Thread.sleep(100)
+        }
+
+        val message = messageRepository.getMessageFromListById(
+            messageId,
+            conversationId
+        )
+
+        assertNotNull(message)
+        assertEquals(messageId, message?.messageId)
+        assertEquals(conversationId, message?.conversationId)
+    }
+
+     */
 
     // ----------------------------------- callback for testing -----------------------------------
     /*Taken and learn from OpenAI, ChatGPT on 06-11-2026, with the subject of: "How to make sure the test case wait for
