@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +20,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import com.example.cipherappproject.database.models.Reservation
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -88,7 +98,21 @@ fun ReservationScreen(userID: String, isOwner: Boolean) {
             onStatusSelected = { newStatus -> controller.currentStatus = newStatus}
         )
 
-        DisplayListContent(reservations, controller.currentStatus.name.lowercase(), isOwner)
+        // entrants can download their active (confirmed) reservations as a CSV
+        if (!isOwner && controller.currentStatus == Status.ACTIVE) {
+            val campsiteRepo = RepositoryDatabase.campsiteRepository
+            ReservationCsv.DownloadCsvButton(
+                fileName = "active_reservations.csv",
+                buildCsv = {
+                    ReservationCsv.build(reservations.getActiveReservations()) {
+                        campsiteRepo.getCampsiteFromListById(it)?.campsiteName ?: "Unknown campsite"
+                    }
+                },
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+        }
+
+        DisplayListContent(reservations, controller.currentStatus.name.lowercase(), isOwner, controller)
     }
 }
 
@@ -130,13 +154,44 @@ fun ReservationStatusSelector(selectedStatus: Status, onStatusSelected: (Status)
  * @param status selected button status, which determines which list is shown
  */
 @Composable
-fun DisplayListContent(reservationsList: ReservationList, status: String, isOwner: Boolean) {
+fun DisplayListContent(
+    reservationsList: ReservationList,
+    status: String,
+    isOwner: Boolean,
+    controller: ReservationController = remember { ReservationController() }
+) {
+    var toCancel by remember { mutableStateOf<Reservation?>(null) }
+    var message by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
 
 
     val reservations = when (status) {
         "active" -> reservationsList.getActiveReservations()
         "past" -> reservationsList.getPastReservations()
         else -> emptyList()
+    }
+
+    toCancel?.let { target ->
+        // owners have no cancel action yet (nothing happens for them)
+        if (!isOwner) {
+            ConfirmCancelDialog(
+                campsiteName = campsiteRepoName(target),
+                onConfirm = {
+                    toCancel = null
+                    controller.cancel(target) { result ->
+                        val text = result.fold(
+                            onSuccess = { refund ->
+                                if (refund > 0.0) "Reservation cancelled. Refund: $" + String.format(java.util.Locale.US, "%.2f", refund)
+                                else "Reservation cancelled. No refund applies."
+                            },
+                            onFailure = { "Could not cancel: ${it.message}" }
+                        )
+                        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+                    }
+                },
+                onDismiss = { toCancel = null }
+            )
+        } else toCancel = null
     }
 
     LazyColumn(
@@ -150,17 +205,40 @@ fun DisplayListContent(reservationsList: ReservationList, status: String, isOwne
                 val helpers = remember(reservation) { ReservationListHelpers(reservation, isOwner) }
 
                 ReservationRow(
-                     helpers.getCampsiteImg(),
+                    helpers.getCampsiteImg(),
                     helpers.formattedCampsiteName(),
                     helpers.formattedUserName(),
-                    helpers.formattedBookingPeriod()
-                    )
+                    helpers.formattedBookingPeriod(),
+                    // entrants remove an active reservation (asks for confirmation first)
+                    onCancelClick = { toCancel = reservation },
+                    buttonLabel = if (!isOwner && status == "active") "Remove" else "Cancel"
+                )
                 HorizontalDivider()
             }
         } else {
             item { Text("No reservations") }
         }
     }
+}
+
+private fun campsiteRepoName(reservation: Reservation): String =
+    RepositoryDatabase.campsiteRepository.getCampsiteFromListById(reservation.campsiteId)?.campsiteName
+        ?: "this campsite"
+
+/**
+ * Asks the entrant to confirm removing a reservation.
+ */
+@Composable
+fun ConfirmCancelDialog(campsiteName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Cancel reservation?") },
+        text = { Text("Do you want to cancel your reservation at $campsiteName? Any refund depends on the campsite's policy.") },
+        confirmButton = {
+            TextButton(onClick = onConfirm, modifier = Modifier.testTag("confirmCancel")) { Text("Confirm") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Keep reservation") } }
+    )
 }
 
 /**
@@ -179,7 +257,8 @@ fun ReservationRow(
     campsiteName: String,
     userName: String,
     bookingPeriod: String,
-    onCancelClick: () -> Unit = {}) {
+    onCancelClick: () -> Unit = {},
+    buttonLabel: String = "Cancel") {
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -201,8 +280,8 @@ fun ReservationRow(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        Button( onClick = { onCancelClick() }) {
-            Text("Cancel")
+        Button(onClick = { onCancelClick() }, modifier = Modifier.testTag("removeReservation")) {
+            Text(buttonLabel)
         }
     }
 }
