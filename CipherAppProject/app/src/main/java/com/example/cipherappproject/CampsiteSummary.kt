@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.cipherappproject.database.models.Campsite
 
 /**
  * Displays summary of a given campsite. Is clickable, which allows navigation to the details on
@@ -24,16 +25,23 @@ import androidx.navigation.NavController
  * @param campsite gives details of the campsite to be summarized
  *
  */
+/*
+ * Built by Bailey
+ * Nov 2 2026
+ * Updates:
+ *
+ */
 @Composable
 fun CampsiteSummary(
-    navController: NavController,
+    onClick: () -> Unit,
     campsite: Campsite,
 ){
     val campsite = remember { campsite }
-    val campsiteID = campsite.getCampsiteId()
-    val campsiteName = campsite.getCampsiteName()
-    val campsiteImagePath = campsite.getCampsiteImagePath() //TODO: implement getting picture
-    val campsitePrice = campsite.getCampsitePricePerNight()
+    val campsiteID = campsite.campsiteId
+    val campsiteName = campsite.campsiteName
+    val campsiteLocation = campsite.mapLocation
+    val campsiteImagePath = campsite.imagePath //TODO: implement getting picture
+    val campsitePrice = campsite.pricePerNight
     val campsitePriceStr = "$$campsitePrice" //TODO: must reformat once campsite price type is finalized
 
     Box(
@@ -44,23 +52,25 @@ fun CampsiteSummary(
                     vertical = 5.dp
                 )
                 .clickable(enabled = true){
-                    navController.navigate(campsiteID)
+                    onClick()
                 }
                 .background(color = MaterialTheme.colorScheme.primaryContainer)
     ) {
         Column() {
             // TODO: add image here
             Text(
-                text = campsiteName
+                text = campsiteName,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(12.dp)
             )
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = campsitePriceStr
-                )
+                Text( text = campsitePriceStr )
+                Text( text = campsiteLocation[2] )
+                Text( text = "Max Guests: " + campsite.maxGuests.toString() )
             }
         }
     }

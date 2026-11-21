@@ -8,14 +8,16 @@ P - Productivity related (low priority)
 ---
 
 ## Madison
-- [ ] 
-- [ ] 
-- [ ] 
+- [US 01.09.01]
+- [US 03.11.01]
+- 
 
 ## Neth
-- [ ] 
-- [ ] 
-- [ ] 
+- [US 02.04.06] - Completed
+- [US 02.04.02] - Completed
+- [US 01.04.03] - Completed
+- [US 01.04.01] - Completed
+- Navigation (Added to Baileys initial enum and bottom bar, added two more bottom bar icons along with a profile menu that navigated between dummy screens).
 
 ## Shira
 - [x] grouped project classes by features using CRC cards and user stories (oct 25) (D)
@@ -29,12 +31,31 @@ P - Productivity related (low priority)
     - [x] profile
     - [x] reservation-and-waitlist
 - [ ] write script to update uml's images (P)
-- [ ] 
+
+Assigned but not complete
+[US 02.07.02] As a campsite owner, I want to view a list of past reservations.
+* what is left: having trouble displaying list of campsites
+[US 02.07.01] As a campsite owner, I want to view a list of active reservations.
+* what is left: having trouble displaying list of campsites
+[US 01.06.02] As an entrant, I want to view a list of my past reservations.
+* what is left: having trouble displaying list of campsites
+[US 01.06.01] As an entrant, I want to view a list of my active reservations.
+* what is left: having trouble displaying list of campsites
+
+[US 02.01.01] As a campsite owner, I want to register my campsite with the app.
+[US 02.01.02] As a campsite owner, I want to provide campsite details including name, location, description (amenities), maximum occupancy, map location, optional image, and tags.
+
 
 ## Sofia
-- [ ] 
-- [ ] 
-- [ ] 
+- Created the Firebase database. Complete the Android Studio requirements and JSON.
+- Created a package called database inside the project.
+- Created a models package inside database, containing the following data classes: Campsite, CampsiteAvailability, Lottery, LotteryEntry, Profile, and Reservation.
+- Created a repositories package inside database, containing ProfileRepository, CampsiteRepository, CampsiteAvailabilityRepository, LotteryEntryRepository, and ReservationRepository. These repositories connect the data classes in the models package to Firebase and handle queries, data retrieval, and CRUD operations.
+- Added file modification and author documentation sections to each file. Also added comments to the main functions, following a format similar to the labs, specially lab 4, lab 5, and lab 7.
+- Added functional test cases. They are currently commented out to avoid unnecessary read and write operations on Firebase.
+- Added error handling. This has not yet fully been integrated into the main application.
+- Added a database README to help the team better understand the available methods and their intended uses.
+- Added arrows to the Figma Design and deleted Login and Register screen.
 
 ## Bailey
 - [ ] 
@@ -42,14 +63,22 @@ P - Productivity related (low priority)
 - [ ] 
 
 ## Justin
-- [ ] 
-- [ ] 
-- [ ] 
+- [US 02.04.07], mostly complete, need to run tests
+- [US 02.04.05], mostly complete, need to run tests
+- [US 02.04.01], mostly complete, need to run tests
+- [US 01.04.02], mostly complete, need to run tests
+- Added validation and saving lottery registration dates, winner count, and optional waitlist capacity.
+- Connected lottery creation to Firestore, added campsite preselection through navigation, and prepared the winner’s campsite and dates for the reservation handoff.
 
 ## Hye-Sung
-- [ ] 
-- [ ] 
-- [ ] 
+- [US 02.01.02]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 01.02.01]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 02.01.03]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 02.03.01]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 02.04.03]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 02.04.04]: Mostly complete, need to run tests to check if implementation works with the rest of the app
+- [US 02.09.01]: Not yet complete
+- Implemented reservation views, refactored redundant files, added a registration period for the lottery, view who joined owner's campsite waitlist. Connected reservations to firestore, yet to test.
 
 # Additionals
 - [ ] Presentation (P)

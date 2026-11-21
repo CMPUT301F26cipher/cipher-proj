@@ -1,0 +1,355 @@
+package com.example.cipherappproject.database.repositories
+
+/*
+--------------------------------------------------------------------------------------
+Program Name: ReservationRepository.kt
+Date Written: October 27, 2026
+Author: Sofia Arturo Gomez
+Purpose: Manage database methods for ReservationRepository
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-03-27  Sofia      1.01     added skeleton
+2026-04-10  Sofia      1.02     added query get by id
+2026-04-11  Sofia      1.03     added queries retrieve list and set by group of collection
+2026-11-06  Sofia      1.04     delete getters and setters. Set the attributes to public.
+2026-11-08  Sofia      1.06     added exceptions and error handling
+2026-11-08  Sofia      1.07     added queries using the list
+2026-11-12  Sofia      1.08     added state boolean for list local queries.
+2026-11-15  Sofia      1.09     added states to the local list and changes init too
+2026-11-15  Sofia      1.10     added custom exceptions
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
+
+import android.util.Log
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import com.example.cipherappproject.database.exceptions.DataConversionException
+import com.example.cipherappproject.database.exceptions.NotFoundException
+import com.example.cipherappproject.database.exceptions.ValidationException
+import com.example.cipherappproject.database.models.Campsite
+import com.example.cipherappproject.database.models.Lottery
+import com.example.cipherappproject.database.models.Notification
+import com.example.cipherappproject.database.models.Profile
+import com.example.cipherappproject.database.models.Reservation
+import com.google.android.gms.tasks.Tasks
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+import java.time.LocalDate
+
+/**
+ * Manages Reservation data stored in the Firebase Firestore database.
+ *
+ * Provides methods to add, retrieve, and update Reservation documents directly from Firestore, as well as methods to search and filter from the local Reservation list. This local list is inside a state.
+ *
+ * The local list is synchronized with Firestore using a snapshot listener.
+ */
+
+class ReservationRepository {
+    private val db = Firebase.firestore
+    private val reservationsRef = db.collection("reservations")
+    private val _allReservations = mutableStateOf<List<Reservation>>(emptyList())
+
+
+    val reservations: State<List<Reservation>>
+        get() = _allReservations
+
+
+    private val _isReservationsLoaded = mutableStateOf(false)
+
+    val isReservationsLoaded: State<Boolean>
+        get() = _isReservationsLoaded
+
+    // ----------------------------------- Queries -----------------------------------
+
+
+    /**
+     * Creates behinds a Reservation object and add it to the firebase
+     * database with a random and unique id.
+     *
+     * @param userId
+     * @param campsiteId
+     * @param lotteryId
+     * @param status
+     * @param bookStartDate
+     * @param bookEndDate
+     * @param pricePerNight
+     * @param totalPrice
+     * @param result lamba function that provide if:
+     *      - Result.success(id) if successful
+     *      - Result.failure(exception) if not successful
+     * @return Result<String>
+     */
+    fun createReservation(
+        userId: String,
+        campsiteId: String,
+        lotteryId: String,
+        status: String,
+        bookStartDate: String,
+        bookEndDate: String,
+        pricePerNight: Double,
+        totalPrice: Double,
+        result: (Result<String>) -> Unit
+
+    ){
+        // create a reference and id to the new document
+        val reservationRef = reservationsRef.document()
+
+        // create object
+        val reservation = Reservation(
+            reservationId = reservationRef.id,
+            userId = userId,
+            campsiteId = campsiteId,
+            lotteryId = lotteryId,
+            status = status,
+            bookStartDate = bookStartDate,
+            bookEndDate = bookEndDate,
+            pricePerNight = pricePerNight,
+            totalPrice = totalPrice
+
+        )
+
+        //Tasks.await(reservationRef.set(reservation))
+        // save the object in the firebase
+        reservationRef
+            .set(reservation)
+            .addOnSuccessListener {
+                result(Result.success(reservationRef.id))
+
+            }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
+            }
+    }
+
+    /**
+     * Updates a Reservation object
+     *
+     * @param reservation object
+     * @param result lamba function as callback that provide if:
+     *      - Result.success(Unit) if successfully
+     *      - Result.failure(exception) if not successful
+     * @return Result<Unit>
+     */
+    fun updateReservation(
+        reservation: Reservation,
+        result: (Result<Unit>) -> Unit
+
+    ){
+
+        if (reservation.reservationId.isBlank()) {
+            result(Result.failure(
+                ValidationException("Reservation ID cannot be empty.")
+            ))
+            return
+        }
+
+        val reservationRef = reservationsRef.document(reservation.reservationId)
+
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(reservationRef)
+
+            // if object do not exist
+            if (!snapshot.exists()) {
+                throw NotFoundException("reservation does not exist.")
+            }
+
+            transaction.set(reservationRef, reservation)
+
+            // since we do not care about get an object but just success or not
+            Unit
+        }
+            .addOnSuccessListener {
+                result(Result.success(Unit))
+            }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
+
+            }
+    }
+
+    /*
+    fun getReservationsByUserId(
+        userId: String,
+        result: (List<Reservation?>) -> Unit
+
+    ){
+
+    }*/
+
+
+    /**
+     * get one single Reservation object
+     *
+     * @param reservationId
+     * @param result lamba function that has Result and if:
+     *      - Result.success(Reservation) if successful
+     *      - Result.failure(exception) if not successful
+     * @return Result<Reservation>
+     */
+    fun getReservationById(
+        reservationId: String,
+        result: (Result<Reservation>) -> Unit
+
+    ){
+        if (reservationId.isBlank()) {
+            result(Result.failure(
+                ValidationException("Reservation ID cannot be empty.")
+            ))
+            return
+        }
+
+        reservationsRef
+            .document(reservationId)
+            .get()
+            .addOnSuccessListener { document ->
+
+                // if the document do not exist --> Reservation do not exist
+                if (!document.exists()) {
+                    result(Result.failure(
+                        NotFoundException("Reservation does not exist.")
+                    ))
+                    return@addOnSuccessListener // we return the object so that it do not continue the next lines
+                }
+
+                /*learn and taken form https://medium.com/@ender.koca94/effective-data-modeling-in-firebase-cloud-firestore-using-kotlin-0a3224d84bb8*/
+                val reservation = document.toObject(Reservation::class.java)
+
+                // for testing
+                Log.d("ReservationTest", "Raw data: ${document.data}")
+                Log.d("ReservationTest", "Mapped object: $reservation")
+
+                // if conversion was successful
+                if (reservation == null) {
+                    result(Result.failure(
+                        DataConversionException("Failed to convert document to Reservation.")
+                    ))
+                    return@addOnSuccessListener
+                }
+
+                // return successfully retrieved campsite
+                result(Result.success(reservation))
+
+            }
+            .addOnFailureListener { exception ->
+                result(Result.failure(exception))
+            }
+    }
+
+
+    // ----------------------------------- From list -----------------------------------
+    /**
+     * Get a Reservation object
+     *
+     * @param reservationId String
+     * @return Reservation? --> null if not match found
+     */
+    fun getReservationFromListById(reservationId: String): Reservation? {
+        return _allReservations.value.find { it.reservationId == reservationId }
+
+    }
+
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param userId String
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationFromListByUserId(userId: String): List<Reservation>  {
+        return _allReservations.value.filter { it.userId == userId }
+
+    }
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param userId String
+     * @param campsiteId String
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationsFromListByUserIdAndCampsiteId(userId: String, campsiteId: String
+    ): List<Reservation> {
+        return _allReservations.value.filter {
+            it.userId == userId && it.campsiteId == campsiteId
+        }
+    }
+
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param campsiteId String
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationsFromListByCampsiteId(campsiteId: String): List<Reservation>  {
+        return _allReservations.value.filter { it.campsiteId == campsiteId }
+
+    }
+
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param lotteryId String
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationsFromListByLotteryId(lotteryId: String): List<Reservation>  {
+        return _allReservations.value.filter { it.lotteryId == lotteryId }
+
+    }
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param status String
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationsFromListByStatus(status: String): List<Reservation>  {
+        return _allReservations.value.filter { it.status == status }
+
+    }
+
+
+    /**
+     * Get a list of Reservation objects
+     *
+     * @param date LocalDate
+     * @return List<Reservation> --> can be empty list if not match found
+     */
+    fun getReservationsFromListActiveOnDate(date: LocalDate): List<Reservation> {
+        return _allReservations.value.filter { reservation ->
+            val startDate = LocalDate.parse(reservation.bookStartDate)
+            val endDate = LocalDate.parse(reservation.bookEndDate)
+
+            date in startDate..endDate
+        }
+    }
+
+
+
+    init {
+        reservationsRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                return@addSnapshotListener
+            }
+
+            if (snapshot == null) {
+                return@addSnapshotListener
+            }
+
+            val updatedReservations = snapshot.documents.mapNotNull { document ->
+                document.toObject(Reservation::class.java)
+            }
+
+            _allReservations.value = updatedReservations
+
+            _isReservationsLoaded.value = true
+        }
+    }
+
+}
