@@ -208,7 +208,6 @@ class NotificationRepository {
             }
 
             transaction.set(notificationRef, notification)
-            transaction.set(notificationRef, notification)
 
             // since we do not care about get an object but just success or not
             Unit
