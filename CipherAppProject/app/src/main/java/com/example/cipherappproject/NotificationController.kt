@@ -1,12 +1,15 @@
 package com.example.cipherappproject
 
+import android.util.Log
+import com.example.cipherappproject.database.enums.LotteryEntryStatus
+import com.example.cipherappproject.database.enums.NotificationEventType
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.models.LotteryEntry
 import com.example.cipherappproject.database.models.Notification
 import com.example.cipherappproject.database.models.Reservation
 import com.example.cipherappproject.database.provider.RepositoryDatabase
 import com.google.firebase.Timestamp
-
+import java.util.Locale
 
 // One owner broadcase is shown as single row
 data class SentNotificationGroup(
@@ -19,6 +22,7 @@ data class SentNotificationGroup(
 
 /**
  * This class works to send and read in-app notifications
+ * US 01.03.01, 01.03.02, 01.05.02, 01.07.02, 01.10.01, 02.10.01, 02.10.02
  */
 
 class NotificationController {
@@ -28,35 +32,85 @@ class NotificationController {
     private val campsiteRepository get() = RepositoryDatabase.campsiteRepository
 
 
-    // ---------- Opt-out (US 01.10.01) ----------
+    // Return false if user turned notifications off
     fun canNotify(userId: String): Boolean {
-        // TODO: read profile.notificationsEnabled
-        return true
+        return profileRepository.getProfileFromListById(userId)?.notificationsEnabled ?: false
     }
 
-    // ---------- Lottery results (US 01.03.01 / 01.03.02) ----------
-    /** Pure: title + message for one drawn entry, or null if no notification is needed. */
+    // Save a notification unless the recipent opted out, return true if it was sent.
+    private fun send(
+        toUserId: String,
+        eventId: String,
+        eventType: NotificationEventType,
+        title: String,
+        message: String,
+        fromUserId: String = ""
+    ): Boolean {
+        if (!canNotify(toUserId)) return false
+        notificationRepository.addNotification(
+            eventId = eventId,
+            eventType = eventType.name,
+            toUserId = toUserId,
+            title = title,
+            message = message,
+            fromUserId = fromUserId
+        ) { result ->
+            result.onFailure { Log.e("Notification", "Send to $toUserId failed", it) }
+        }
+        return true
+
+    }
+
+    // SHow lottery results
+    fun campsiteNames(lottery: Lottery): String {
+        return lottery.campsiteIds
+            .mapNotNull { campsiteRepository.getCampsiteFromListById(it)?.campsiteName }
+            .joinToString(", ")
+            .ifBlank { "your campsite" }
+    }
+
     fun resultMessage(entry: LotteryEntry, campsiteNames: String): Pair<String, String>? {
-        // TODO: WINNER -> "You won", NOT_SELECTED -> "Not selected"
-        return null
+        return when (entry.status) {
+            LotteryEntryStatus.WINNER.name ->
+                "You won the lottery!" to
+                        "You were selected for $campsiteNames. Open Lotteries to choose your dates."
+
+            LotteryEntryStatus.NOT_SELECTED.name ->
+                "Lottery results" to
+                        "Sorry, you weren't selected for $campsiteNames this time."
+
+            else -> null
+        }
     }
 
     fun notifyLotteryResults(lottery: Lottery, drawnEntries: List<LotteryEntry>) {
-        // TODO: send resultMessage(...) to each entry.userId
+        val names = campsiteNames(lottery)
+        for (entry in drawnEntries) {
+            val (title, message) = resultMessage(entry, names) ?: continue
+            send(entry.userId, lottery.lotteryId, NotificationEventType.LOTTERY, title, message)
+        }
     }
 
-    // ---------- Owner -> waitlist (US 02.10.01) ----------
-    /** Pure: returns an error message, or null if valid. */
+    //
     fun validateMessage(title: String, message: String): String? {
-        // TODO: blank checks
-        return null
+        return when {
+            title.isBlank() -> "Title cannot be empty."
+            message.isBlank() -> "Message cannot be empty."
+            else -> null
+        }
     }
 
     /** Returns how many entrants were notified. */
-    fun notifyWaitlist(lottery: Lottery, title: String, message: String): Int {
-        // TODO: every non-WITHDRAWN entry of this lottery
-        return 0
-
+    fun notifyWaitlist(lottery: Lottery, title: String, message: String, senderId: String): Int {
+        return entryRepository.getLotteryEntriesFromListByLotteryId(lottery.lotteryId)
+            .filter { it.status != LotteryEntryStatus.WITHDRAWN.name }
+            .map { it.userId }
+            .distinct()
+            .count { userId ->
+                send(
+                    userId, lottery.lotteryId, NotificationEventType.LOTTERY,
+                    title.trim(), message.trim(), fromUserId = senderId)
+            }
     }
 
     // ---------- Owner's sent list (US 02.10.02) ----------
@@ -66,17 +120,38 @@ class NotificationController {
 
     /** Pure: groups one broadcast's per-recipient docs into one row. */
     fun groupSent(sent: List<Notification>): List<SentNotificationGroup> {
-        // TODO: groupBy (eventId, title, message)
-        return emptyList()
+        return sent
+            .groupBy { Triple(it.eventId, it.title, it.message) }
+            .map { (key, docs) ->
+                SentNotificationGroup(
+                    eventId = key.first,
+                    title = key.second,
+                    message = key.third,
+                    sentAt = docs.minOf { it.createdAt },
+                    recipientCount = docs.size
+                )
+            }
+            .sortedByDescending { it.sentAt }
     }
 
-    // ---------- Reservations (US 01.05.02 / 01.07.02) ----------
+    private fun campsiteName(campsiteId: String): String =
+        campsiteRepository.getCampsiteFromListById(campsiteId)?.campsiteName ?: "your campsite"
+
     fun notifyReservationConfirmed(reservation: Reservation) {
-        // TODO
+        val total = String.format(Locale.US, "%.2f", reservation.totalPrice)
+        send(reservation.userId, reservation.reservationId, NotificationEventType.RESERVATION,
+            "Reservation confirmed",
+            "${campsiteName(reservation.campsiteId)} from ${reservation.bookStartDate} to " +
+                    "${reservation.bookEndDate}. Total: $$total. " +
+                    "You can download a CSV copy from Reservations.")
     }
 
     fun notifyReservationCancelled(reservation: Reservation) {
-        // TODO
+        send(reservation.userId, reservation.reservationId, NotificationEventType.RESERVATION,
+            "Reservation cancelled",
+            "Your reservation at ${campsiteName(reservation.campsiteId)} " +
+                    "(${reservation.bookStartDate} to ${reservation.bookEndDate}) was cancelled. " +
+                    "You can download a CSV confirmation from Reservations.")
     }
 
     // ---------- Entrant inbox ----------
@@ -86,7 +161,10 @@ class NotificationController {
     }
 
     fun markAsRead(notification: Notification) {
-    // TODO: notificationRepository.updateNotification(notification.copy(isRead = true)) {}
+        if (notification.isRead) return
+        notificationRepository.updateNotification(notification.copy(isRead = true)) { result ->
+            result.onFailure { Log.e("Notification", "Mark read failed", it) }
+        }
     }
 
 }

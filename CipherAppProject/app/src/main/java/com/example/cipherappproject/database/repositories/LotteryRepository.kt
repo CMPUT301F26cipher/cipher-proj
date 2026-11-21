@@ -278,8 +278,7 @@ class LotteryRepository {
      */
 
     fun getLotteriesFromListByAnyOwnerId(ownerId: String): List<Lottery> {
-        // TODO (US 02.04.08)
-        return getLotteriesFromListByOwnerId(ownerId)
+        return _allLotteries.value.filter {it.ownerId == ownerId || ownerId in it.coOwnerIds}
     }
 
 
