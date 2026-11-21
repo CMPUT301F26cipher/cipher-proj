@@ -1,4 +1,23 @@
 package com.example.cipherappproject
+/*
+--------------------------------------------------------------------------------------
+Program Name: CampsiteApp.kt
+Date Written: Nov 2 2026
+Author: Bailey Parrish
+Purpose: Origin of all navigation, handles persistence of nav-bar and title bar
+The user's role (entrant/owner) comes from their Profile, loaded by device ID on startup.
+Devices without a profile are sent to registration first.
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-02  Bailey      1.01     Built
+2026-11-6   Madison     1.02     Integrated registration
+2026-11-19  Justin      1.03     Not provided
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,8 +57,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.cipherappproject.database.enums.ProfileRole
 import com.example.cipherappproject.reservations.OwnerOverview
-import com.example.cipherappproject.reservations.RegisterCampsiteScreen
 import com.example.cipherappproject.ui.campsite.EntrantCampsiteView
+import com.example.cipherappproject.ui.campsite.CampsiteRoutes
+import com.example.cipherappproject.ui.campsite.ownerCampsiteScreens
 import com.example.cipherappproject.ui.lottery.EntrantLotteriesView
 import com.example.cipherappproject.ui.lottery.OwnerLotteriesView
 import com.example.cipherappproject.ui.lottery.lotteryScreens
@@ -47,21 +67,6 @@ import com.example.cipherappproject.reservations.ReservationScreen
 import com.example.cipherappproject.ui.registration.AccountErrorView
 import com.example.cipherappproject.ui.registration.Registration
 import com.example.cipherappproject.database.provider.RepositoryDatabase
-
-
-/**
- * Origin of all navigation, handles persistence of nav-bar and title bar
- *
- * The user's role (entrant/owner) comes from their Profile, loaded by device ID on startup.
- * Devices without a profile are sent to registration first.
- */
-/*
- * Built by Bailey Nov 2 2026
- * Updates:
- * Updated By Madison Nov 6 2026 - integrated registration
- * Updated Nov 6 2026 - removed temporary role switch button, pass current user id to screens
- * Updated by Justin on November 19th, 2026
- */
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,7 +93,7 @@ fun CampsiteApp(){
     }
 
 
-    // It should draw any lottery whose registration period has ended, and also 
+    // It should draw any lottery whose registration period has ended, and also
     // once lotteries and entries have loaded from Firestore
 
     val drawController = remember { LotteryDrawController() }
@@ -255,15 +260,8 @@ fun CampsiteApp(){
                         composable(AppRoutes.OWNER_CAMPSITES) {
                             OwnerOverview(
                                 ownerId = currentUserId,
-                                onRegisterClick = {
-                                    navController.navigate(AppRoutes.OWNER_REGISTER_CAMPSITE)
-                                }
-                            )
-                        }
-                        composable(AppRoutes.OWNER_REGISTER_CAMPSITE) {
-                            RegisterCampsiteScreen(
-                                ownerId = currentUserId,
-                                onRegistered = { navController.popBackStack() }
+                                onRegisterClick = { navController.navigate(CampsiteRoutes.REGISTER) },
+                                onCampsiteClick = { navController.navigate(CampsiteRoutes.detail(it.campsiteId)) }
                             )
                         }
                         composable(AppRoutes.OWNER_LOTTERIES) {
@@ -296,6 +294,7 @@ fun CampsiteApp(){
                         // FEATURE SUB SCREENS ADD UNDER HERE
 
                         lotteryScreens(navController = navController, currentUserId = currentUserId)
+                        ownerCampsiteScreens(navController = navController, currentUserId = currentUserId)
 
                         //TODO: implement Admin navigation
                     }

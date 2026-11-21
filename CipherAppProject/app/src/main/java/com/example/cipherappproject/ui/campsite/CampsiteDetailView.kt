@@ -1,5 +1,20 @@
 package com.example.cipherappproject.ui.campsite
-
+/*
+--------------------------------------------------------------------------------------
+Program Name: CampsiteDetailView.kt
+Date Written: Unknown
+Author: Unknown
+Purpose: Details page for a campsite, opened by tapping a campsite in the entrant search results. Also lets the entrant join the campsite's lottery.
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-02  Unknown     1.01     Lottery
+2026-11-18  Madison    1.02     Added campsite details
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,6 +31,7 @@ import com.example.cipherappproject.WaitlistController
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.Lottery
 import java.time.LocalDate
+import java.util.Locale
 
 @Composable
 fun CampsiteDetailView(
@@ -38,8 +54,30 @@ fun CampsiteDetailView(
         )
 
         Text(
-            "Price per Night: $${campsite.pricePerNight}"
+            String.format(Locale.CANADA, "Price per Night: $%.2f", campsite.pricePerNight)
         )
+        if (campsite.mapLocation.isNotEmpty()) {
+            val latitude = campsite.mapLocation.getOrNull(0) ?: "?"
+            val longitude = campsite.mapLocation.getOrNull(1) ?: "?"
+            val locationName = campsite.mapLocation.getOrNull(2).orEmpty()
+            Text("Location: $locationName ($latitude, $longitude)")
+        }
+
+        if (campsite.amenities.isNotEmpty()) {
+            Text("Amenities: ${campsite.amenities.joinToString(", ")}")
+        }
+
+        if (campsite.tags.isNotEmpty()) {
+            Text("Tags: ${campsite.tags.joinToString(", ")}")
+        }
+
+        if (campsite.rules.isNotEmpty()) {
+            Text("Rules: ${campsite.rules.joinToString(", ")}")
+        }
+
+        if (campsite.policies.isNotEmpty()) {
+            Text("Policies: ${campsite.policies.joinToString(", ")}")
+        }
 
         if (isOwner) {
             Button(onClick = onEditClick) {
