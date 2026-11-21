@@ -1,6 +1,7 @@
 package com.example.cipherappproject
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -8,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.cipherappproject.database.models.Campsite
+import com.example.cipherappproject.database.models.Rating
 import com.example.cipherappproject.database.provider.RepositoryDatabase
 import com.example.cipherappproject.ui.campsite.EntrantCampsiteView
 import com.google.android.gms.tasks.Tasks
@@ -35,6 +37,8 @@ class EntrantCampsiteFlowTest {
     private val repository = RepositoryDatabase.campsiteRepository
     private val campsitesRef = Firebase.firestore.collection("campsites")
     private val createdIds = mutableListOf<String>()
+    private val ratingsRef = Firebase.firestore.collection("ratings")
+    private val createdRatingIds = mutableListOf<String>()
 
     /** unique word in every seeded campsite's name */
     private val token = "Zq${UUID.randomUUID().toString().take(6)}"
@@ -42,6 +46,17 @@ class EntrantCampsiteFlowTest {
     @After
     fun cleanUp() {
         createdIds.forEach { Tasks.await(campsitesRef.document(it).delete(), 15, TimeUnit.SECONDS) }
+        createdRatingIds.forEach { Tasks.await(ratingsRef.document(it).delete(), 15, TimeUnit.SECONDS) }
+    }
+
+    private fun seedRating(campsiteId: String, value: Double, status: String = "ACTIVE") {
+        val id = "test-${UUID.randomUUID()}"
+        val rating = Rating(ratingId = id, userId = "test-entrant", campsiteId = campsiteId, rating = value, status = status)
+        Tasks.await(ratingsRef.document(id).set(rating), 15, TimeUnit.SECONDS)
+        createdRatingIds.add(id)
+        composeRule.waitUntil(15_000) {
+            RepositoryDatabase.ratingRepository.getRatingsFromListByCampsiteId(campsiteId).any { it.ratingId == id }
+        }
     }
 
     private fun seed(name: String, location: String, guests: Int, price: Double = 45.5): Campsite {
@@ -90,6 +105,27 @@ class EntrantCampsiteFlowTest {
         composeRule.onNodeWithText("Jasper, AB").assertIsDisplayed()
         composeRule.onNodeWithText("Max Guests: 8").assertIsDisplayed()
         composeRule.onNodeWithText("$65.00 / night").assertIsDisplayed()
+    }
+
+    @Test
+    fun summary_showsAverageOfVisibleRatings() {
+        val seeded = seed("Rated", "Jasper, AB", 4)
+        seedRating(seeded.campsiteId, 5.0)
+        seedRating(seeded.campsiteId, 4.0)
+        seedRating(seeded.campsiteId, 1.0, status = "HIDDEN")
+        composeRule.setContent { CampsiteSearch(onNavigateToCampsite = {}) }
+        search()
+
+        composeRule.onNodeWithTag("campsiteRating", useUnmergedTree = true).assertTextEquals("★ 4.5 (2)")
+    }
+
+    @Test
+    fun summary_withoutRatings_saysSo() {
+        seed("Unrated", "Jasper, AB", 4)
+        composeRule.setContent { CampsiteSearch(onNavigateToCampsite = {}) }
+        search()
+
+        composeRule.onNodeWithTag("campsiteRating", useUnmergedTree = true).assertTextEquals("No ratings yet")
     }
 
     @Test
