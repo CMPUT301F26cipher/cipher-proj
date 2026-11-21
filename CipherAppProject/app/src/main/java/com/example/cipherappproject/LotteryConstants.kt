@@ -10,4 +10,5 @@ package com.example.cipherappproject
 object LotteryConstants {
     /** Lottery.maxParticipants value meaning "no waitlist limit". */
     const val UNLIMITED_PARTICIPANTS = 0
+
 }

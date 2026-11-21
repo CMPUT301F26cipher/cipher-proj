@@ -29,8 +29,18 @@ import androidx.compose.ui.text.font.FontWeight
 import com.google.firebase.Timestamp
 import java.text.DateFormat
 
+/**
+ * Format a firestore timestamp for display
+ */
 private fun formatTime(time: Timestamp): String =
     DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(time.toDate())
+
+/**
+ * Entrant's notification inbox, which is opened from the bell icon
+ * Unread notifications are bold, and tapping one marks it red.
+ *
+ * @param cuurentUserId the signed-in owner's profile id
+ */
 @Composable
 fun NotificationView(currentUserId: String) {
     val controller = remember { NotificationController() }
@@ -66,7 +76,11 @@ fun NotificationView(currentUserId: String) {
         }
     }
 }
-    /** Owner's sent notifications. */
+    /**
+     * Owner's list of messages they have sent, with how many entrants got each one
+     *
+     * @param ownerId, the signed-in owner's profile id
+     * */
     @Composable
     fun SentNotificationView(ownerId: String) {
         val controller = remember { NotificationController() }
@@ -105,7 +119,13 @@ fun NotificationView(currentUserId: String) {
             }
         }
     }
-        // owner should also write a message to a lottery's waitlist
+        /**
+         * Pop up where an owner writes a title and message to send to a lottery's waitlist
+         *
+         * @param lottery, the lottery whose entrants receive the messag
+         * @param senderId, the owner sending it
+         * @param onDismiss, close the dialog
+         */
         @Composable
         fun SendNotificationDialog(lottery: Lottery, senderId: String, onDismiss: () -> Unit) {
             val controller = remember { NotificationController() }

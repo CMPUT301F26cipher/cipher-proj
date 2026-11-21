@@ -21,6 +21,7 @@ import kotlin.random.Random
 
    class LotteryDrawController {
 
+       // send win/loss notifications once a draw is saved
     private val lotteryRepository get() = RepositoryDatabase.lotteryRepository
     private val entryRepository get() = RepositoryDatabase.lotteryEntryRepository
 
@@ -80,6 +81,8 @@ import kotlin.random.Random
                         return@saveEntries
                     }
                     val completed = lottery.copy(status = LotteryStatus.COMPLETED.name)
+
+                    // Mark the lottery as COMPLETED, then notify entrants only if save worked.
                     lotteryRepository.updateLottery(completed) { completeResult ->
                         if (completeResult.isSuccess) {
                             notificationController.notifyLotteryResults(lottery, drawn)

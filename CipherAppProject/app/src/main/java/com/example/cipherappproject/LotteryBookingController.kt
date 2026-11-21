@@ -28,6 +28,7 @@ class LotteryBookingController {
     private val campsiteRepository get() = RepositoryDatabase.campsiteRepository
     private val entryRepository get() = RepositoryDatabase.lotteryEntryRepository
 
+    // SEnd a reservation confirmation notification
     private val notificationController = NotificationController()
 
     private var selectedCampsiteId: String? = null
@@ -267,7 +268,7 @@ class LotteryBookingController {
         ) { createResult ->
             createResult
                 .onSuccess { reservationId ->
-                    notificationController.notifyReservationConfirmed(
+                    notificationController.notifyReservationConfirmed( // This works to notify the entrant.
                         Reservation(
                             reservationId = reservationId,
                             userId = entry.userId,

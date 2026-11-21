@@ -263,7 +263,7 @@ fun CampsiteApp(){
                         composable(AppRoutes.OWNER_NOTIFICATIONS) {
                             SentNotificationView(currentUserId)
                         }
-                        composable(AppRoutes.PROFILE_SETTINGS) {
+                        composable(AppRoutes.PROFILE_SETTINGS) { // profile settings, including the notifications on/off switch
                             ProfileSettingsView(currentUserId)
                         }
 

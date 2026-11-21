@@ -5,7 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 
-// appying some tests for producing csv
+// appying some unit tests for producing csv
 class ReservationCsvTest {
     @Test
     fun emptyListGivesHeaderOnly() {

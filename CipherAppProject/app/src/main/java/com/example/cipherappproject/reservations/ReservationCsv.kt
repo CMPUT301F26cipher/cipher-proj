@@ -12,13 +12,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import java.util.Locale
 
+
+/**
+ * Build reservation and cancellation confirmations as CSV text that entrants can download.
+ * Satisfy US 01.05.02, 01.07.02
+ */
 object ReservationCsv {
     val HEADER = listOf(
         "Reservation ID", "Campsite", "Start date", "End date",
         "Status", "Price per night", "Total price"
     )
 
-    // builds CSV text. campsiteName maps a campsiteId to a display name. */
+    // turn reservations into CSV text: a header row, and then one row per reservation
     fun build(reservations: List<Reservation>, campsiteName: (String) -> String): String {
         val rows = reservations.map { r ->
             listOf(
@@ -36,14 +41,19 @@ object ReservationCsv {
     }
 }
 
-    // quote a value if it has a comma, quote or newline
+    // Wrap a value in quotes if it contains comma, quote or newline. Ensure csv stays valid.
     fun escape(value: String): String {
         return if (value.any { it == ',' || it == '"' || it == '\n' }) {
             "\"" + value.replace("\"", "\"\"") + "\""
         } else value
     }
 
-    // Save a CSV through the system "Save as" picker
+    /**
+     * CSV button that opens the system "Save as" picker and writes the file there
+     *
+     * @param filename, it is the suggested filename
+     * @param buildCsv, creates the CSV text when the user picks a location.
+     */
     @Composable
     fun DownloadCsvButton(fileName: String, buildCsv: () -> String, modifier: Modifier = Modifier) {
         val context = LocalContext.current

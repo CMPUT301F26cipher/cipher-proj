@@ -18,9 +18,11 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.cipherappproject.database.provider.RepositoryDatabase
 
 /**
- * Satisfy user story US 01.10.01
+ * Shows the profile settings screen. Also has a switch that turns notifications on or off
+ * The choice is saved onto the profile's notificationsEnabled field
+ *
+ * @param, currentUserId the signed-in user's profile id
  */
-
 @Composable
 fun ProfileSettingsView(currentUserId: String) {
     val profileRepository = RepositoryDatabase.profileRepository
