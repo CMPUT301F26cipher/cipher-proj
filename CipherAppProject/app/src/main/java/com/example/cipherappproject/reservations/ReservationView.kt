@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.DateUtils
+import com.example.cipherappproject.ratings.RatingRules
 import com.example.cipherappproject.reservations.ReservationList.Status
 import kotlinx.coroutines.delay
 import java.time.ZoneId
@@ -71,9 +72,10 @@ NA
  * (active, past, cancelled) and see the list of their most recent reservations
  *
  * @param userID string representing the user, used to load reservations
+ * @param onRateClick (entrants) opens the rate/review screen for a past reservation
  */
 @Composable
-fun ReservationScreen(userID: String, isOwner: Boolean) {
+fun ReservationScreen(userID: String, isOwner: Boolean, onRateClick: (Reservation) -> Unit = {}) {
     val reservations = remember { ReservationList(userID, isOwner) }
     val controller = remember { ReservationController() }
 
@@ -129,7 +131,7 @@ fun ReservationScreen(userID: String, isOwner: Boolean) {
             )
         }
 
-        DisplayListContent(reservations, controller.currentStatus.name.lowercase(), isOwner, controller)
+        DisplayListContent(reservations, controller.currentStatus.name.lowercase(), isOwner, controller, userID, onRateClick)
     }
 }
 
@@ -175,8 +177,11 @@ fun DisplayListContent(
     reservationsList: ReservationList,
     status: String,
     isOwner: Boolean,
-    controller: ReservationController = remember { ReservationController() }
+    controller: ReservationController = remember { ReservationController() },
+    userID: String = "",
+    onRateClick: (Reservation) -> Unit = {}
 ) {
+    val ratingRepository = RepositoryDatabase.ratingRepository
     var toCancel by remember { mutableStateOf<Reservation?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     var selected by remember { mutableStateOf<Reservation?>(null) }
@@ -282,7 +287,20 @@ fun DisplayListContent(
                     onClick = if (isOwner && status == "active") ({ selected = reservation }) else null,
                     // entrants remove an active reservation (asks for confirmation first)
                     onCancelClick = { toCancel = reservation },
-                    buttonLabel = if (!isOwner && status == "active") "Remove" else "Cancel"
+                    buttonLabel = if (!isOwner && status == "active") "Remove" else "Cancel",
+                    // entrants can rate past stays (US 01.13.01, 01.13.02)
+                    rateLabel = if (!isOwner && status == "past" && RatingRules.canRate(reservation, userID)) {
+                        val existing = RatingRules.existingRating(
+                            ratingRepository.getRatingsFromListByReservationId(reservation.reservationId),
+                            reservation.reservationId, userID
+                        )
+                        when {
+                            RatingRules.isLocked(existing) -> null
+                            existing != null -> "Edit Rating"
+                            else -> "Rate"
+                        }
+                    } else null,
+                    onRateClick = { onRateClick(reservation) }
                 )
                 HorizontalDivider()
             }
@@ -370,6 +388,8 @@ fun ReservationDetail(
  * @param userName (entrants) name of campsite owner. (owner) name of entrant who made reservation
  * @param bookingPeriod formatted dates i.e Nov 1 - Nov 3
  * @param onCancelClick
+ * @param rateLabel text of the rate button ("Rate"/"Edit Rating"), or null to hide it
+ * @param onRateClick called when the rate button is pressed
  */
 @Composable
 fun ReservationRow(
@@ -380,7 +400,9 @@ fun ReservationRow(
     onCancelClick: () -> Unit = {},
     buttonLabel: String = "Cancel",
     showButton: Boolean = true,
-    onClick: (() -> Unit)? = null) {
+    onClick: (() -> Unit)? = null,
+    rateLabel: String? = null,
+    onRateClick: () -> Unit = {}) {
 
     Row(
         modifier = Modifier.fillMaxWidth().let { if (onClick != null) it.clickable { onClick() } else it },
@@ -401,6 +423,13 @@ fun ReservationRow(
         }
 
         Spacer(modifier = Modifier.width(8.dp))
+
+        if (rateLabel != null) {
+            Button(onClick = onRateClick, modifier = Modifier.testTag("rateButton")) {
+                Text(rateLabel)
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+        }
 
         if (showButton) Button(onClick = { onCancelClick() }, modifier = Modifier.testTag("removeReservation")) {
             Text(buttonLabel)
