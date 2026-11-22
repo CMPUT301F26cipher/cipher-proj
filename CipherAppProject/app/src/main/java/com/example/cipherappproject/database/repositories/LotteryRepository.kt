@@ -263,9 +263,9 @@ class LotteryRepository {
 
 
     /**
-     * Get a list of Lottery objects
+     * Get a list of Lottery objects the owner created or was added to as co-owner
      *
-     * @param ownerId
+     * @param ownerId, string
      * @return List<Lottery>
      */
     fun getLotteriesFromListByOwnerId(ownerId: String): List<Lottery> {
