@@ -36,6 +36,7 @@ object AppRoutes {
 
     // Owner
     const val OWNER_CAMPSITES = "owner/campsites"
+    const val OWNER_REGISTER_CAMPSITE = "owner/campsites/register"
     const val OWNER_LOTTERIES = "owner/lotteries"
     const val OWNER_RESERVATIONS = "owner/reservations"
     const val OWNER_NOTIFICATIONS = "owner/notifications"

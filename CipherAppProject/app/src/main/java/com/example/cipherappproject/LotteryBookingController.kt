@@ -21,6 +21,7 @@ import java.time.LocalDate
  * start and end dates are both inclusive, so a stay is "first selected date" to
  * "last selected date", and the dates must be consecutive.
  */
+
 class LotteryBookingController {
     // Shared instances (see Database_Documentation.md): never create new repositories here
     private val availabilityRepository get() = RepositoryDatabase.campsiteAvailabilityRepository

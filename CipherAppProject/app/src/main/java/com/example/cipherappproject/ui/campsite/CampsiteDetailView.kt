@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.WaitlistController
 import com.example.cipherappproject.database.models.Campsite
@@ -118,7 +119,8 @@ fun CampsiteLotterySection(
                 availableLottery = null
                 message = ""
             },
-            label = { Text("Start Date (yyyy-MM-dd)") }
+            label = { Text("Start Date (yyyy-MM-dd)") },
+            modifier = Modifier.testTag("lotteryStartDate")
         )
 
         OutlinedTextField(
@@ -128,7 +130,8 @@ fun CampsiteLotterySection(
                 availableLottery = null
                 message = ""
             },
-            label = { Text("End Date (yyyy-MM-dd)") }
+            label = { Text("End Date (yyyy-MM-dd)") },
+            modifier = Modifier.testTag("lotteryEndDate")
         )
 
         Button(
@@ -165,7 +168,8 @@ fun CampsiteLotterySection(
                         }
                     }
                 }
-            }
+            },
+            modifier = Modifier.testTag("checkLotteryButton")
         ) {
             Text("Check Lottery Availability")
         }
@@ -181,23 +185,36 @@ fun CampsiteLotterySection(
                     controller.joinWaitlist(
                         lotteryId = availableLottery!!.lotteryId,
                         userId = entrantId
-                    ) { success ->
+                    ) { outcome ->
                         joining = false
 
-                        message = if (success) {
-                            "Successfully joined the waiting list!"
-                        } else {
-                            "Unable to join the waiting list."
+                        message = when (outcome) {
+                            WaitlistController.JoinResult.JOINED ->
+                                "Successfully joined the waiting list! See My Lotteries."
+                            WaitlistController.JoinResult.ALREADY_JOINED ->
+                                "You have already joined this lottery."
+                            WaitlistController.JoinResult.FULL ->
+                                "This lottery's waiting list is full."
+                            WaitlistController.JoinResult.NOT_READY ->
+                                "Still loading. Please try again in a moment."
+                            WaitlistController.JoinResult.FAILED ->
+                                "Unable to join the waiting list."
+                        }
+                        if (outcome == WaitlistController.JoinResult.JOINED ||
+                            outcome == WaitlistController.JoinResult.ALREADY_JOINED
+                        ) {
+                            availableLottery = null
                         }
                     }
-                }
+                },
+                modifier = Modifier.testTag("joinWaitlistButton")
             ) {
                 Text("Join Waitlist")
             }
         }
 
         if (message.isNotEmpty()) {
-            Text(message)
+            Text(message, modifier = Modifier.testTag("lotteryMessage"))
         }
     }
 }

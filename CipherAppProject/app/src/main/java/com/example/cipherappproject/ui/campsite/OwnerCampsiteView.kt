@@ -16,6 +16,11 @@ Show campsite image (campsite.imagePath), show location on a map
  */
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import com.example.cipherappproject.database.enums.LotteryStatus
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -38,7 +43,8 @@ import com.example.cipherappproject.ui.lottery.LoadingIndicator
 fun OwnerCampsiteView(
     campsiteId: String,
     ownerId: String,
-    onEditClick: () -> Unit
+    onEditClick: () -> Unit,
+    onLotteryClick: (String) -> Unit = {}
 ) {
     val campsiteRepository = RepositoryDatabase.campsiteRepository
 
@@ -66,5 +72,26 @@ fun OwnerCampsiteView(
             isOwner = true,
             onEditClick = onEditClick
         )
+
+        // active lotteries for this campsite; tapping one opens its waitlist (US 02.09.01)
+        val activeLotteries = RepositoryDatabase.lotteryRepository.lotteries.value.filter {
+            campsiteId in it.campsiteIds && it.status == LotteryStatus.OPEN.name
+        }
+        Text(
+            "Active lotteries",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 16.dp)
+        )
+        if (activeLotteries.isEmpty()) {
+            Text("No active lotteries for this campsite.", modifier = Modifier.testTag("noActiveLotteries"))
+        }
+        activeLotteries.forEach { lottery ->
+            OutlinedButton(
+                onClick = { onLotteryClick(lottery.lotteryId) },
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).testTag("activeLottery_${lottery.lotteryId}")
+            ) {
+                Text("Lottery ${lottery.startDate} to ${lottery.endDate} - view waitlist")
+            }
+        }
     }
 }

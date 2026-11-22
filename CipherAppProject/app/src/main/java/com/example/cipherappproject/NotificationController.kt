@@ -34,6 +34,10 @@ data class SentNotificationGroup(
  */
 
 class NotificationController {
+    companion object {
+        const val RESERVATION_CONFIRMATION_TITLE = "RESERVATION CONFIRMATION"
+    }
+
     private val notificationRepository get() = RepositoryDatabase.notificationRepository
     private val profileRepository get() = RepositoryDatabase.profileRepository
     private val entryRepository get() = RepositoryDatabase.lotteryEntryRepository
@@ -185,27 +189,63 @@ class NotificationController {
         campsiteRepository.getCampsiteFromListById(campsiteId)?.campsiteName ?: "your campsite"
 
     /**
-     * Tell the entrant their reservation was made, with the dates and the total price
+     * Text of the confirmation notification (US 01.06.01):
+     * "[Campsite name] [Date reserved for] [Reservation ID]", under the title below.
+     */
+    fun reservationConfirmedMessage(campsiteName: String, reservation: Reservation): String {
+        val dates = if (reservation.bookStartDate == reservation.bookEndDate) reservation.bookStartDate
+        else "${reservation.bookStartDate} to ${reservation.bookEndDate}"
+        return "$campsiteName $dates ${reservation.reservationId}"
+    }
+
+    /**
+     * Tell the entrant their reservation was confirmed. The entrant can open Reservations
+     * from the notification to view it and download a CSV.
      */
     fun notifyReservationConfirmed(reservation: Reservation) {
-        val total = String.format(Locale.US, "%.2f", reservation.totalPrice)
         send(reservation.userId, reservation.reservationId, NotificationEventType.RESERVATION,
-            "Reservation confirmed",
-            "${campsiteName(reservation.campsiteId)} from ${reservation.bookStartDate} to " +
-                    "${reservation.bookEndDate}. Total: $$total. " +
-                    "You can download a CSV copy from Reservations.")
+            RESERVATION_CONFIRMATION_TITLE,
+            reservationConfirmedMessage(campsiteName(reservation.campsiteId), reservation))
     }
 
     /**
      * Tells the entrant their reservation was cancelled
      * Must be called by the cancel feature, once a resrvation's status is set to CANCELLED
      */
-    fun notifyReservationCancelled(reservation: Reservation) {
+    fun notifyReservationCancelled(reservation: Reservation, refund: Double = 0.0) {
+        val refundText = if (refund > 0.0)
+            " A refund of $${String.format(Locale.US, "%.2f", refund)} applies."
+        else " No refund applies under the campsite's policy."
         send(reservation.userId, reservation.reservationId, NotificationEventType.RESERVATION,
             "Reservation cancelled",
             "Your reservation at ${campsiteName(reservation.campsiteId)} " +
-                    "(${reservation.bookStartDate} to ${reservation.bookEndDate}) was cancelled. " +
-                    "You can download a CSV confirmation from Reservations.")
+                    "(${reservation.bookStartDate} to ${reservation.bookEndDate}) was cancelled." +
+                    refundText)
+    }
+
+    /** Tells the entrant the owner rejected their reservation, and what refund applies. */
+    fun notifyReservationRejected(reservation: Reservation, refund: Double = 0.0) {
+        val refundText = if (refund > 0.0)
+            " A refund of $${String.format(Locale.US, "%.2f", refund)} applies."
+        else " No refund applies under the campsite's policy."
+        val ownerId = campsiteRepository.getCampsiteFromListById(reservation.campsiteId)?.ownerId ?: ""
+        send(reservation.userId, reservation.reservationId, NotificationEventType.RESERVATION,
+            "Reservation rejected",
+            "Your reservation at ${campsiteName(reservation.campsiteId)} " +
+                    "(${reservation.bookStartDate} to ${reservation.bookEndDate}) was rejected by the owner." +
+                    refundText,
+            fromUserId = ownerId)
+    }
+
+    /** Tells the campsite's owner that an entrant cancelled, so the dates are open again. */
+    fun notifyOwnerReservationCancelled(reservation: Reservation) {
+        val campsite = campsiteRepository.getCampsiteFromListById(reservation.campsiteId) ?: return
+        send(campsite.ownerId, reservation.reservationId, NotificationEventType.RESERVATION,
+            "Reservation cancelled",
+            "A reservation at ${campsite.campsiteName} " +
+                    "(${reservation.bookStartDate} to ${reservation.bookEndDate}) was cancelled by the entrant. " +
+                    "Those dates can be booked again.",
+            fromUserId = reservation.userId)
     }
 
     // notifications sent to this user, newest first

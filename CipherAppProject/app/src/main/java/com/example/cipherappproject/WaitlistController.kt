@@ -86,22 +86,23 @@ class WaitlistController {
         result(match)
     }
 
+    /** Why a join attempt succeeded or failed (shown to the entrant by the campsite page). */
+    enum class JoinResult { JOINED, ALREADY_JOINED, FULL, NOT_READY, FAILED }
+
     /**
      * Register an entrant on a lottery's waiting list.
-     * Fails (false) if blank ids or the user has already joined.
+     * Reports ALREADY_JOINED if they are on it, FULL if the owner's capacity is reached,
+     * NOT_READY if data hasn't loaded yet or an id is blank.
      */
     fun joinWaitlist(
         lotteryId: String,
         userId: String,
-        result: (Boolean) -> Unit
+        result: (JoinResult) -> Unit
     ) {
-        if (lotteryId.isBlank() || userId.isBlank()) {
-            result(false)
-            return
-        }
-
-        if (!entryRepository.isLotteriesEntriesLoaded.value) {
-            result(false)
+        if (lotteryId.isBlank() || userId.isBlank() ||
+            !entryRepository.isLotteriesEntriesLoaded.value
+        ) {
+            result(JoinResult.NOT_READY)
             return
         }
 
@@ -109,15 +110,27 @@ class WaitlistController {
         val existingEntry = entryRepository
             .getLotteryEntryFromListByLotteryIdAndUserId(lotteryId, userId)
 
-        if (existingEntry != null) {
-            result(false)
+        // A withdrawn entry doesn't count as joined: the entrant may rejoin (re-registers it)
+        if (existingEntry != null && existingEntry.status != LotteryEntryStatus.WITHDRAWN.name) {
+            result(JoinResult.ALREADY_JOINED)
             return
         }
 
         // Respect the owner's optional waitlist capacity (US 02.04.07)
         val lottery = lotteryRepository.getLotteryFromListById(lotteryId)
-        if (lottery == null || LotteryController().isWaitlistFull(lottery)) {
-            result(false)
+        if (lottery == null) {
+            result(JoinResult.NOT_READY)
+            return
+        }
+        if (LotteryController().isWaitlistFull(lottery)) {
+            result(JoinResult.FULL)
+            return
+        }
+
+        if (existingEntry != null) {
+            entryRepository.updateLotteryEntry(
+                existingEntry.copy(status = LotteryEntryStatus.REGISTERED.name)
+            ) { r -> result(if (r.isSuccess) JoinResult.JOINED else JoinResult.FAILED) }
             return
         }
 
@@ -127,7 +140,22 @@ class WaitlistController {
             status = LotteryEntryStatus.REGISTERED.name,
             positionLottery = -1
         ) { addResult ->
-            result(addResult.isSuccess)
+            result(if (addResult.isSuccess) JoinResult.JOINED else JoinResult.FAILED)
         }
+    }
+
+    /**
+     * Take an entrant off a lottery's waiting list (US 01.01.07).
+     * Only allowed while the entry is still REGISTERED, i.e. before the draw. The entry is
+     * marked WITHDRAWN, which frees a spot if the owner capped the waitlist.
+     */
+    fun leaveWaitlist(entry: LotteryEntry, result: (Boolean) -> Unit) {
+        if (entry.status != LotteryEntryStatus.REGISTERED.name) {
+            result(false)
+            return
+        }
+        entryRepository.updateLotteryEntry(
+            entry.copy(status = LotteryEntryStatus.WITHDRAWN.name)
+        ) { r -> result(r.isSuccess) }
     }
 }
