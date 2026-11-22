@@ -12,6 +12,7 @@ Modification History:
 Date        Person     CSR#     Description
 2026-11-05  Hye Sung   1.01     Modifying to fit DB variables
 2026-11-20  Madison    1.02     Loads owner's campsite by id, shared form with location, shared repository, price fix
+2026-11-21  Nethmini   1.03     Saves rules and policies
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -131,7 +132,9 @@ fun EditCampsiteView(
                             maxGuests = input.maxGuests,
                             pricePerNight = input.pricePerNight,
                             imagePath = input.imagePath,
-                            tags = input.tags.toMutableList()
+                            tags = input.tags.toMutableList(),
+                            rules = input.rules.toMutableList(),
+                            policies = input.policies.toMutableList()
                         )
 
                         campsiteRepository.updateCampsite(updatedCampsite) { saveResult ->

@@ -3,9 +3,12 @@ package com.example.cipherappproject.ui.lottery
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.example.cipherappproject.AppRoutes
 import com.example.cipherappproject.LotteryBookingController
 import com.example.cipherappproject.database.enums.LotteryEntryStatus
 import com.example.cipherappproject.database.provider.RepositoryDatabase
+import com.example.cipherappproject.reservations.ReservationConfirmedView
 
 /**
  * Entrant screen for one lottery.
@@ -51,8 +54,18 @@ fun LotteryResultScreen(
         currentEntry.status == LotteryEntryStatus.DECLINED.name ->
             CenteredMessage("You declined this offer. Your spot has been passed on.")
 
+        // US 01.05.01: the entrant sees their reservation confirmed, with its details
         currentEntry.status == LotteryEntryStatus.ACCEPTED.name ->
-            CenteredMessage("You've already reserved through this lottery.")
+            ReservationConfirmedView(
+                lotteryId = lotteryId,
+                entrantId = entrantId,
+                onViewReservations = {
+                    navController.navigate(AppRoutes.ENTRANT_RESERVATIONS) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                    }
+                }
+            )
 
         currentEntry.status == LotteryEntryStatus.WITHDRAWN.name ->
             CenteredMessage("You left the waiting list for this lottery.")

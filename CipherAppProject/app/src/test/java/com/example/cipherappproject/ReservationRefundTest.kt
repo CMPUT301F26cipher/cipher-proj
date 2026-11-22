@@ -23,6 +23,22 @@ class ReservationRefundTest {
     }
 
     @Test fun noRefundPolicyWins() {
-        assertEquals(0.0, ReservationController.refundFor(r, listOf("No refunds after check-in"), today), 0.0)
+        assertEquals(0.0, ReservationController.refundFor(r, listOf("No refunds"), today), 0.0)
+    }
+
+    @Test fun noRefundsAfterCheckIn_stillRefundsWellBeforeStay() {
+        assertEquals(150.0, ReservationController.refundFor(r, listOf("No refunds after check-in"), today), 0.0)
+    }
+
+    @Test fun noRefundsAfterCheckIn_givesNothingOnceStayIsClose() {
+        assertEquals(0.0, ReservationController.refundFor(r, listOf("No refunds after check-in"), LocalDate.of(2026, 12, 2)), 0.0)
+    }
+
+    @Test fun forbidsRefunds_onlyForBlanketPolicies() {
+        assertEquals(true, ReservationController.forbidsRefunds("No refunds."))
+        assertEquals(true, ReservationController.forbidsRefunds("NO REFUND on deposits"))
+        assertEquals(false, ReservationController.forbidsRefunds("No refunds after check-in"))
+        assertEquals(false, ReservationController.forbidsRefunds("No refunds within 48 hours of arrival"))
+        assertEquals(false, ReservationController.forbidsRefunds("Quiet hours after 10pm"))
     }
 }
