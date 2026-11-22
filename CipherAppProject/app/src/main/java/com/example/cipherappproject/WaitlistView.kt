@@ -16,15 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.example.cipherappproject.database.models.LotteryEntry
 import com.example.cipherappproject.database.provider.RepositoryDatabase
 import com.example.cipherappproject.WaitlistController
 /*
@@ -40,6 +36,7 @@ Modification History:
 Date        Person     CSR#     Description
 2026-11-05  Hye Sung   1.01     Initial Implementation
 2026-11-06  Hye Sung   1.02     Update after implementing WaitlistController
+2026-11-21  Nethmini   1.03     Live list of everyone who joined, readable statuses
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -52,40 +49,15 @@ fun WaitlistView(
 ) {
     val controller = remember { WaitlistController() }
 
-    var waitlist by remember(lotteryId) {
-        mutableStateOf<List<LotteryEntry>>(emptyList())
-    }
-
-    var isLoading by remember(lotteryId) {
-        mutableStateOf(true)
-    }
-
-    var hasError by remember(lotteryId) {
-        mutableStateOf(false)
-    }
-
-    // Retrieve entrants when the lottery changes
-    LaunchedEffect(lotteryId) {
-
-        isLoading = true
-        hasError = false
-
-        controller.getWaitlist(lotteryId) { entries ->
-
-            if (entries != null) {
-                waitlist = entries
-            } else {
-                hasError = true
-            }
-
-            isLoading = false
-        }
-    }
+    // live list: updates as entrants join or leave, and shows draw results once drawn
+    val loaded = controller.isEntriesLoaded()
+    val waitlist = controller.getJoinedEntrants(lotteryId)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(20.dp)
+            .testTag("waitlistView")
     ) {
 
         TextButton(onClick = onBackClick) {
@@ -102,24 +74,20 @@ fun WaitlistView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Entrants registered before the lottery draw",
+            text = "Entrants who joined this lottery's waiting list",
             style = MaterialTheme.typography.bodyMedium
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         when {
-            isLoading -> {
+            !loaded -> {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
-            }
-
-            hasError -> {
-                Text("Failed to retrieve the waitlist.")
             }
 
             waitlist.isEmpty() -> {
@@ -130,7 +98,8 @@ fun WaitlistView(
 
                 Text(
                     text = "Total Entrants: ${waitlist.size}",
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.testTag("waitlistTotal")
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -162,7 +131,7 @@ fun WaitlistView(
                                 )
 
                                 Text(
-                                    text = "Status: ${entry.status}"
+                                    text = "Status: ${controller.statusLabel(entry)}"
                                 )
                             }
                         }

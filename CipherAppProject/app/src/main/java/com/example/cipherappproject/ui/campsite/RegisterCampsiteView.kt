@@ -11,10 +11,11 @@ Modification History:
 Date        Person     CSR#     Description
 2026-11-20  Madison    1.01     Built
 2026-11-21  Hye Sung   1.02     Booking period (US 02.01.02) set at registration, saved as availability
+2026-11-21  Nethmini   1.03     Saves rules and policies; checks details before booking period
 --------------------------------------------------------------------------------------
 Future Enhancements
-QR code, rules and policies have not been fully added. addCampsite requires them, so
-they are saved empty until those features are built.
+QR code has not been fully added. addCampsite requires it, so it is saved empty until
+that feature is built.
  */
 
 import androidx.compose.foundation.layout.Arrangement
@@ -100,9 +101,11 @@ fun RegisterCampsiteView(
             Button(
                 onClick = {
                     var bookingPeriod: BookingPeriod? = null
+                    // campsite details are checked first, then the booking period
                     val input = try {
+                        val details = formState.toInput()
                         bookingPeriod = formState.toBookingPeriod()
-                        formState.toInput()
+                        details
                     } catch (e: IllegalArgumentException) {
                         null.also { errorMessage = e.message ?: "Please check your input." }
                     }
@@ -124,8 +127,8 @@ fun RegisterCampsiteView(
                             // required by addCampsite, but not yet built. saved empty (the Campsite defaults) until built
                             qrCodeImagePath = "",
                             status = CampsiteStatus.ACTIVE.name,
-                            rules = mutableListOf(),
-                            policies = mutableListOf()
+                            rules = input.rules.toMutableList(),
+                            policies = input.policies.toMutableList()
                         ) { result ->
                             val campsiteId = result.getOrNull()
                             if (campsiteId == null) {

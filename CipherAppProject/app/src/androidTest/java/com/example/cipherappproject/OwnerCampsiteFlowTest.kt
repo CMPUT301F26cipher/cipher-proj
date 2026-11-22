@@ -45,13 +45,19 @@ class OwnerCampsiteFlowTest {
 
     /** a new owner id for each test so nothing else's data is touched */
     private val ownerId = "test-owner-${UUID.randomUUID()}"
+    private val bookingStart = java.time.LocalDate.now().plusDays(30).toString()
+    private val bookingEnd = java.time.LocalDate.now().plusDays(60).toString()
 
     @After
     fun cleanUp() {
         createdIds.forEach { Tasks.await(campsitesRef.document(it).delete(), 15, TimeUnit.SECONDS) }
         // campsites saved through the register screen
         repository.campsites.value.filter { it.ownerId == ownerId }.forEach {
-            Tasks.await(campsitesRef.document(it.campsiteId).delete(), 15, TimeUnit.SECONDS)
+            // the booking period is saved in the campsite's availability subcollection
+            val ref = campsitesRef.document(it.campsiteId)
+            Tasks.await(ref.collection("availability").get(), 15, TimeUnit.SECONDS)
+                .documents.forEach { doc -> Tasks.await(doc.reference.delete(), 15, TimeUnit.SECONDS) }
+            Tasks.await(ref.delete(), 15, TimeUnit.SECONDS)
         }
     }
 
@@ -132,8 +138,8 @@ class OwnerCampsiteFlowTest {
         }
         composeRule.onNodeWithTag("registerCampsiteButton").performScrollTo().performClick()
 
-        composeRule.onNodeWithTag("registerCampsiteError").assertIsDisplayed()
-        composeRule.onNodeWithText("Campsite name cannot be empty.").assertIsDisplayed()
+        composeRule.onNodeWithTag("registerCampsiteError").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Campsite name cannot be empty.").performScrollTo().assertIsDisplayed()
         assertTrue(!saved)
     }
 
@@ -148,7 +154,7 @@ class OwnerCampsiteFlowTest {
         type("campsitePriceField", "10")
         composeRule.onNodeWithTag("registerCampsiteButton").performScrollTo().performClick()
 
-        composeRule.onNodeWithText("Maximum guests must be a whole number above 0.").assertIsDisplayed()
+        composeRule.onNodeWithText("Maximum guests must be a whole number above 0.").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -177,6 +183,10 @@ class OwnerCampsiteFlowTest {
         type("campsitePriceField", "45.50")
         type("campsiteImageField", "img/owl.jpg")
         type("campsiteTagsField", "lake, quiet")
+        type("campsiteRulesField", "No smoking\nQuiet after 10pm, please")
+        type("campsitePoliciesField", "No refunds after check-in")
+        type("campsiteBookingStartField", bookingStart)
+        type("campsiteBookingEndField", bookingEnd)
         composeRule.onNodeWithTag("registerCampsiteButton").performScrollTo().performClick()
 
         composeRule.waitUntil(15_000) { saved }
@@ -191,6 +201,37 @@ class OwnerCampsiteFlowTest {
         assertEquals(45.5, campsite.pricePerNight, 0.0)
         assertEquals("img/owl.jpg", campsite.imagePath)
         assertEquals(listOf("lake", "quiet"), campsite.tags)
+        // US 02.11.01: one rule/policy per line, commas kept
+        assertEquals(listOf("No smoking", "Quiet after 10pm, please"), campsite.rules)
+        assertEquals(listOf("No refunds after check-in"), campsite.policies)
+
+        // US 02.04.04: the booking period is saved as the campsite's availability
+        val availability = RepositoryDatabase.campsiteAvailabilityRepository
+        composeRule.waitUntil(15_000) {
+            availability.getCampsiteAvailabilitiesFromListByCampsiteId(campsite.campsiteId).isNotEmpty()
+        }
+        val period = availability.getCampsiteAvailabilitiesFromListByCampsiteId(campsite.campsiteId).single()
+        assertEquals(bookingStart, period.startDate)
+        assertEquals(bookingEnd, period.endDate)
+    }
+
+    @Test
+    fun register_bookingPeriodEndingBeforeStart_showsError() {
+        var saved = false
+        composeRule.setContent { RegisterCampsiteView(ownerId = ownerId, onSaveSuccess = { saved = true }) }
+        type("campsiteNameField", "Backwards Camp")
+        type("campsiteLocationField", "Banff, AB")
+        type("campsiteLatitudeField", "51.17")
+        type("campsiteLongitudeField", "-115.57")
+        type("campsiteMaxGuestsField", "2")
+        type("campsitePriceField", "10")
+        type("campsiteBookingStartField", bookingEnd)
+        type("campsiteBookingEndField", bookingStart)
+        composeRule.onNodeWithTag("registerCampsiteButton").performScrollTo().performClick()
+
+        composeRule.onNodeWithText("Booking period can't end before it starts.").performScrollTo().assertIsDisplayed()
+        assertTrue(!saved)
+        assertTrue(repository.getCampsiteFromListByOwnerId(ownerId).isEmpty())
     }
 
     @Test
@@ -205,6 +246,8 @@ class OwnerCampsiteFlowTest {
         type("campsiteLongitudeField", "-115.57")
         type("campsiteMaxGuestsField", "2")
         type("campsitePriceField", "0")
+        type("campsiteBookingStartField", bookingStart)
+        type("campsiteBookingEndField", bookingEnd)
         composeRule.onNodeWithTag("registerCampsiteButton").performScrollTo().performClick()
 
         composeRule.waitUntil(15_000) { saved }
@@ -287,6 +330,27 @@ class OwnerCampsiteFlowTest {
     }
 
     @Test
+    fun edit_rulesAndPolicies_areSaved() {
+        val seeded = seed("Rules Camp")
+        var saved = false
+        composeRule.setContent {
+            EditCampsiteView(campsiteId = seeded.campsiteId, ownerId = ownerId, onSaveSuccess = { saved = true })
+        }
+        composeRule.waitUntil(15_000) { repository.isCampsitesLoaded.value }
+
+        replace("campsiteRulesField", "Pack out trash\n\n  Pets on leash  ")
+        replace("campsitePoliciesField", "Full refund 7 days before arrival")
+        composeRule.onNodeWithTag("saveCampsiteButton").performScrollTo().performClick()
+
+        composeRule.waitUntil(15_000) { saved }
+        composeRule.waitUntil(15_000) {
+            repository.getCampsiteFromListById(seeded.campsiteId)?.rules == listOf("Pack out trash", "Pets on leash")
+        }
+        assertEquals(listOf("Full refund 7 days before arrival"),
+            repository.getCampsiteFromListById(seeded.campsiteId)!!.policies)
+    }
+
+    @Test
     fun edit_invalidChange_showsErrorAndDoesNotSave() {
         val seeded = seed("Keep Me")
         var saved = false
@@ -298,7 +362,7 @@ class OwnerCampsiteFlowTest {
         replace("campsiteMaxGuestsField", "0")
         composeRule.onNodeWithTag("saveCampsiteButton").performScrollTo().performClick()
 
-        composeRule.onNodeWithText("Maximum guests must be a whole number above 0.").assertIsDisplayed()
+        composeRule.onNodeWithText("Maximum guests must be a whole number above 0.").performScrollTo().assertIsDisplayed()
         assertTrue(!saved)
         assertEquals(4, repository.getCampsiteFromListById(seeded.campsiteId)!!.maxGuests)
     }

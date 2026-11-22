@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.DateUtils
+import com.example.cipherappproject.database.enums.ReservationStatus
 import com.example.cipherappproject.ratings.RatingRules
 import com.example.cipherappproject.reservations.ReservationList.Status
 import kotlinx.coroutines.delay
@@ -55,7 +56,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-05  Shira      1.01     Modifying to fit DB variables
-2026-
+2026-11-21  Nethmini   1.02     Cancel only on active stays, rejected shown in cancelled tab
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -191,7 +192,7 @@ fun DisplayListContent(
 
     val reservations = when (status) {
         "active" -> if (isOwner) ReservationList.newestFirst(reservationsList.getActiveReservations())
-                    else reservationsList.getActiveReservations()
+                    else ReservationList.soonestFirst(reservationsList.getActiveReservations())
         "past" -> reservationsList.getPastReservations()
         "cancelled" -> reservationsList.getCancelledReservations()
         else -> emptyList()
@@ -276,18 +277,19 @@ fun DisplayListContent(
                     helpers.getCampsiteImg(),
                     helpers.formattedCampsiteName(),
                     helpers.formattedUserName(),
-                    if (isCancelledTab) helpers.formattedBookingPeriod() + " (cancelled " +
+                    if (isCancelledTab) helpers.formattedBookingPeriod() +
+                            (if (reservation.status == ReservationStatus.REJECTED.name) " (rejected " else " (cancelled ") +
                             DateUtils.display(
                                 java.time.Instant.ofEpochSecond(ReservationList.cancellationTime(reservation).seconds)
                                     .atZone(ZoneId.systemDefault()).toLocalDate()
                             ) + ")"
                     else helpers.formattedBookingPeriod(),
-                    // owners open the reservation to see its details and reject it
-                    showButton = !isCancelledTab && !isOwner,
+                    // only upcoming stays can be cancelled; owners open the reservation to reject it
+                    showButton = !isOwner && status == "active",
                     onClick = if (isOwner && status == "active") ({ selected = reservation }) else null,
                     // entrants remove an active reservation (asks for confirmation first)
                     onCancelClick = { toCancel = reservation },
-                    buttonLabel = if (!isOwner && status == "active") "Remove" else "Cancel",
+                    buttonLabel = "Cancel",
                     // entrants can rate past stays (US 01.13.01, 01.13.02)
                     rateLabel = if (!isOwner && status == "past" && RatingRules.canRate(reservation, userID)) {
                         val existing = RatingRules.existingRating(
@@ -347,7 +349,7 @@ fun ConfirmDialog(title: String, text: String, confirmTag: String, onConfirm: ()
         confirmButton = {
             TextButton(onClick = onConfirm, modifier = Modifier.testTag(confirmTag)) { Text("Confirm") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Back") } }
+        dismissButton = { TextButton(onClick = onDismiss, modifier = Modifier.testTag("dismissDialog")) { Text("Back") } }
     )
 }
 
