@@ -28,6 +28,7 @@ import com.example.cipherappproject.DateUtils
 import com.example.cipherappproject.database.enums.ReservationStatus
 import com.example.cipherappproject.database.models.Reservation
 import com.example.cipherappproject.database.provider.RepositoryDatabase
+import com.google.firebase.Timestamp
 import java.time.LocalDate
 import java.util.Date
 
@@ -51,6 +52,27 @@ class ReservationList(
 
     ////////////////////////////////////// UI STATE //////////////////////////////////////////
     enum class Status {ACTIVE, CANCELLED, PAST}
+
+    companion object {
+        const val PAGE_SIZE = 10
+
+        /** Reservations by the date reserved for (start date), newest first. */
+        fun newestFirst(list: List<Reservation>): List<Reservation> =
+            list.sortedByDescending { it.bookStartDate } // yyyy-MM-dd sorts correctly as text
+
+        /** When the reservation was cancelled, falling back to when it was made. */
+        fun cancellationTime(r: Reservation): Timestamp = r.cancelledAt ?: r.createdAt
+
+        /** Number of pages for [itemCount] items (at least 1, so an empty list is "page 1 of 1"). */
+        fun pageCount(itemCount: Int, pageSize: Int = PAGE_SIZE): Int =
+            maxOf(1, (itemCount + pageSize - 1) / pageSize)
+
+        /** The items on [page] (0-based); out-of-range pages are clamped to the last page. */
+        fun <T> pageOf(items: List<T>, page: Int, pageSize: Int = PAGE_SIZE): List<T> {
+            val p = page.coerceIn(0, pageCount(items.size, pageSize) - 1)
+            return items.drop(p * pageSize).take(pageSize)
+        }
+    }
 
 
     ////////////////////////////////////// UPDATING LISTS //////////////////////////////////////////
@@ -85,11 +107,19 @@ class ReservationList(
     }
     private val _pastReservations by derivedStateOf {
         lastTimeChecked
-        reservations.filter { it.status == ReservationStatus.PAST.name || (it.status != ReservationStatus.CANCELED.name && DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked)) }
+        reservations.filter { it.status == ReservationStatus.PAST.name || (it.status != ReservationStatus.CANCELED.name && it.status != ReservationStatus.REJECTED.name && DateUtils.parse(it.bookEndDate)!!.isBefore(lastTimeChecked)) }
     }
 
     private val _nextExpiry by derivedStateOf { _activeReservations.minOfOrNull { DateUtils.parse(it.bookEndDate)!! } }
     fun getNextExpiry(): LocalDate? = _nextExpiry
+
+    // cancelled reservations, newest cancellation first (older ones without a cancel date use createdAt)
+    private val _cancelledReservations by derivedStateOf {
+        reservations
+            .filter { it.status == ReservationStatus.CANCELED.name }
+            .sortedByDescending { cancellationTime(it) }
+    }
+    fun getCancelledReservations() = _cancelledReservations
 
     fun getActiveReservations() = _activeReservations
     fun getPastReservations() = _pastReservations

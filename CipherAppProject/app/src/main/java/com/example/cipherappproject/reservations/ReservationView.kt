@@ -1,5 +1,6 @@
 package com.example.cipherappproject.reservations
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.cipherappproject.DateUtils
 import com.example.cipherappproject.reservations.ReservationList.Status
 import kotlinx.coroutines.delay
 import java.time.ZoneId
@@ -90,6 +93,12 @@ fun ReservationScreen(userID: String, isOwner: Boolean) {
     }
     // END oF AI GEN SECTION
 
+    var showCalendar by remember { mutableStateOf(false) }
+    if (isOwner && showCalendar) {
+        OwnerBookingCalendar(ownerId = userID, onBack = { showCalendar = false })
+        return
+    }
+
     //col so button will sit above the list
     Column( modifier = Modifier.testTag("reservationsMenu")) {
         Spacer(modifier = Modifier.height(8.dp))
@@ -97,6 +106,14 @@ fun ReservationScreen(userID: String, isOwner: Boolean) {
             controller.currentStatus,
             onStatusSelected = { newStatus -> controller.currentStatus = newStatus}
         )
+
+        // owners can see how full their campsites are, day by day
+        if (isOwner && controller.currentStatus == Status.ACTIVE) {
+            OutlinedButton(
+                onClick = { showCalendar = true },
+                modifier = Modifier.padding(horizontal = 8.dp).testTag("viewBookedCalendar")
+            ) { Text("View booked dates") }
+        }
 
         // entrants can download their active (confirmed) reservations as a CSV
         if (!isOwner && controller.currentStatus == Status.ACTIVE) {
@@ -162,20 +179,66 @@ fun DisplayListContent(
 ) {
     var toCancel by remember { mutableStateOf<Reservation?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
+    var selected by remember { mutableStateOf<Reservation?>(null) }
+    var toReject by remember { mutableStateOf<Reservation?>(null) }
     val context = LocalContext.current
 
 
     val reservations = when (status) {
-        "active" -> reservationsList.getActiveReservations()
+        "active" -> if (isOwner) ReservationList.newestFirst(reservationsList.getActiveReservations())
+                    else reservationsList.getActiveReservations()
         "past" -> reservationsList.getPastReservations()
+        "cancelled" -> reservationsList.getCancelledReservations()
         else -> emptyList()
+    }
+
+    // cancelled reservations are shown a page at a time; start over on page 1 when the tab changes
+    var page by remember(status) { mutableStateOf(0) }
+    val isCancelledTab = status == "cancelled"
+    val pageCount = ReservationList.pageCount(reservations.size)
+    val safePage = page.coerceIn(0, pageCount - 1)
+    val shown = if (isCancelledTab) ReservationList.pageOf(reservations, safePage) else reservations
+
+    // owner opened a reservation: show its details with the reject button
+    selected?.let { target ->
+        ReservationDetail(
+            reservation = target,
+            helpers = remember(target) { ReservationListHelpers(target, true) },
+            onReject = { toReject = target },
+            onBack = { selected = null }
+        )
+        toReject?.let { rejecting ->
+            ConfirmDialog(
+                title = "Reject reservation?",
+                text = "Reject the reservation at ${campsiteRepoName(rejecting)}? The entrant will be notified and any refund follows the campsite's policy.",
+                confirmTag = "confirmReject",
+                onConfirm = {
+                    toReject = null
+                    selected = null
+                    controller.reject(rejecting) { result ->
+                        val text = result.fold(
+                            onSuccess = { refund ->
+                                if (refund > 0.0) "Reservation rejected. Refund: $" + String.format(java.util.Locale.US, "%.2f", refund)
+                                else "Reservation rejected. No refund applies."
+                            },
+                            onFailure = { "Could not reject: ${it.message}" }
+                        )
+                        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+                    }
+                },
+                onDismiss = { toReject = null }
+            )
+        }
+        return
     }
 
     toCancel?.let { target ->
         // owners have no cancel action yet (nothing happens for them)
         if (!isOwner) {
-            ConfirmCancelDialog(
-                campsiteName = campsiteRepoName(target),
+            ConfirmDialog(
+                title = "Cancel reservation?",
+                text = "Do you want to cancel your reservation at ${campsiteRepoName(target)}? Any refund depends on the campsite's policy.",
+                confirmTag = "confirmCancel",
                 onConfirm = {
                     toCancel = null
                     controller.cancel(target) { result ->
@@ -199,16 +262,24 @@ fun DisplayListContent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (reservations.isNotEmpty()) {
+        if (shown.isNotEmpty()) {
             // goes through list of reservations that
-            items(reservations) { reservation ->
+            items(shown) { reservation ->
                 val helpers = remember(reservation) { ReservationListHelpers(reservation, isOwner) }
 
                 ReservationRow(
                     helpers.getCampsiteImg(),
                     helpers.formattedCampsiteName(),
                     helpers.formattedUserName(),
-                    helpers.formattedBookingPeriod(),
+                    if (isCancelledTab) helpers.formattedBookingPeriod() + " (cancelled " +
+                            DateUtils.display(
+                                java.time.Instant.ofEpochSecond(ReservationList.cancellationTime(reservation).seconds)
+                                    .atZone(ZoneId.systemDefault()).toLocalDate()
+                            ) + ")"
+                    else helpers.formattedBookingPeriod(),
+                    // owners open the reservation to see its details and reject it
+                    showButton = !isCancelledTab && !isOwner,
+                    onClick = if (isOwner && status == "active") ({ selected = reservation }) else null,
                     // entrants remove an active reservation (asks for confirmation first)
                     onCancelClick = { toCancel = reservation },
                     buttonLabel = if (!isOwner && status == "active") "Remove" else "Cancel"
@@ -218,6 +289,27 @@ fun DisplayListContent(
         } else {
             item { Text("No reservations") }
         }
+        if (isCancelledTab && pageCount > 1) {
+            item {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    TextButton(
+                        onClick = { page = safePage - 1 },
+                        enabled = safePage > 0,
+                        modifier = Modifier.testTag("prevPage")
+                    ) { Text("Previous") }
+                    Text("Page ${safePage + 1} of $pageCount", modifier = Modifier.testTag("pageLabel"))
+                    TextButton(
+                        onClick = { page = safePage + 1 },
+                        enabled = safePage < pageCount - 1,
+                        modifier = Modifier.testTag("nextPage")
+                    ) { Text("Next") }
+                }
+            }
+        }
     }
 }
 
@@ -226,19 +318,47 @@ private fun campsiteRepoName(reservation: Reservation): String =
         ?: "this campsite"
 
 /**
- * Asks the entrant to confirm removing a reservation.
+ * Asks the user to confirm an action (cancelling or rejecting a reservation).
  */
 @Composable
-fun ConfirmCancelDialog(campsiteName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun ConfirmDialog(title: String, text: String, confirmTag: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Cancel reservation?") },
-        text = { Text("Do you want to cancel your reservation at $campsiteName? Any refund depends on the campsite's policy.") },
+        title = { Text(title) },
+        text = { Text(text) },
         confirmButton = {
-            TextButton(onClick = onConfirm, modifier = Modifier.testTag("confirmCancel")) { Text("Confirm") }
+            TextButton(onClick = onConfirm, modifier = Modifier.testTag(confirmTag)) { Text("Confirm") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Keep reservation") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Back") } }
     )
+}
+
+/**
+ * Details of one reservation for the owner, with the reject button.
+ */
+@Composable
+fun ReservationDetail(
+    reservation: Reservation,
+    helpers: ReservationListHelpers,
+    onReject: () -> Unit,
+    onBack: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("reservationDetail"),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text("Reservation details", style = MaterialTheme.typography.headlineSmall)
+        Text("Campsite: ${helpers.formattedCampsiteName()}")
+        Text("Entrant: ${helpers.formattedUserName()}")
+        Text("Dates: ${helpers.formattedBookingPeriod()}")
+        Text("Price per night: $" + String.format(java.util.Locale.US, "%.2f", reservation.pricePerNight))
+        Text("Total: $" + String.format(java.util.Locale.US, "%.2f", reservation.totalPrice))
+        Text("Reservation ID: ${reservation.reservationId}")
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            TextButton(onClick = onBack, modifier = Modifier.testTag("detailBack")) { Text("Back") }
+            Button(onClick = onReject, modifier = Modifier.testTag("rejectReservation")) { Text("Reject reservation") }
+        }
+    }
 }
 
 /**
@@ -258,10 +378,12 @@ fun ReservationRow(
     userName: String,
     bookingPeriod: String,
     onCancelClick: () -> Unit = {},
-    buttonLabel: String = "Cancel") {
+    buttonLabel: String = "Cancel",
+    showButton: Boolean = true,
+    onClick: (() -> Unit)? = null) {
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().let { if (onClick != null) it.clickable { onClick() } else it },
         verticalAlignment = Alignment.CenterVertically
     ) {
         //TODO: Display image of campsite
@@ -280,7 +402,7 @@ fun ReservationRow(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        Button(onClick = { onCancelClick() }, modifier = Modifier.testTag("removeReservation")) {
+        if (showButton) Button(onClick = { onCancelClick() }, modifier = Modifier.testTag("removeReservation")) {
             Text(buttonLabel)
         }
     }

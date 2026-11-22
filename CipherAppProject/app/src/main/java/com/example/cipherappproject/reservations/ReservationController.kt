@@ -10,6 +10,7 @@ import com.example.cipherappproject.database.exceptions.OperationException
 import com.example.cipherappproject.database.models.Reservation
 import com.example.cipherappproject.database.provider.RepositoryDatabase
 import com.example.cipherappproject.reservations.ReservationList.Status
+import com.google.firebase.Timestamp
 import java.time.LocalDate
 
 /*
@@ -52,6 +53,29 @@ class ReservationController {
     }
 
     /**
+     * Owner rejects an active reservation: marks it REJECTED (its dates open up again), then
+     * notifies the entrant with the refund the campsite's policy gives. Like cancel, the refund
+     * is calculated and reported only; no payment system exists yet.
+     */
+    fun reject(reservation: Reservation, onResult: (Result<Double>) -> Unit) {
+        if (reservation.status != ReservationStatus.ACTIVE.name) {
+            onResult(Result.failure(OperationException("Only active reservations can be rejected.")))
+            return
+        }
+        val policies = campsiteRepository.getCampsiteFromListById(reservation.campsiteId)?.policies ?: emptyList()
+        val refund = refundFor(reservation, policies)
+        val rejected = reservation.copy(status = ReservationStatus.REJECTED.name)
+        reservationRepository.updateReservation(rejected) { result ->
+            result
+                .onSuccess {
+                    notificationController.notifyReservationRejected(rejected, refund)
+                    onResult(Result.success(refund))
+                }
+                .onFailure { onResult(Result.failure(it)) }
+        }
+    }
+
+    /**
      * Cancels an entrant's active reservation: marks it CANCELED in the database (the live
      * lists and calendars update from that), then tells the entrant and the campsite owner.
      * No payment system exists yet, so the refund is calculated and reported, not paid out.
@@ -63,7 +87,7 @@ class ReservationController {
         }
         val policies = campsiteRepository.getCampsiteFromListById(reservation.campsiteId)?.policies ?: emptyList()
         val refund = refundFor(reservation, policies)
-        val cancelled = reservation.copy(status = ReservationStatus.CANCELED.name)
+        val cancelled = reservation.copy(status = ReservationStatus.CANCELED.name, cancelledAt = Timestamp.now())
         reservationRepository.updateReservation(cancelled) { result ->
             result
                 .onSuccess {

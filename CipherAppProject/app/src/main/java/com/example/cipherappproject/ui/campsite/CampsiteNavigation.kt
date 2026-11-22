@@ -14,6 +14,7 @@ Date        Person     CSR#     Description
 Future Enhancements
 NA
  */
+import com.example.cipherappproject.ui.lottery.LotteryRoutes
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -52,7 +53,8 @@ fun NavGraphBuilder.ownerCampsiteScreens(
         OwnerCampsiteView(
             campsiteId = campsiteId,
             ownerId = currentUserId,
-            onEditClick = { navController.navigate(CampsiteRoutes.edit(campsiteId)) }
+            onEditClick = { navController.navigate(CampsiteRoutes.edit(campsiteId)) },
+            onLotteryClick = { navController.navigate(LotteryRoutes.waitlist(it)) }
         )
     }
     composable(CampsiteRoutes.EDIT) { backStackEntry ->

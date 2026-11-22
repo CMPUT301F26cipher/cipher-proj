@@ -223,6 +223,20 @@ class NotificationController {
                     refundText)
     }
 
+    /** Tells the entrant the owner rejected their reservation, and what refund applies. */
+    fun notifyReservationRejected(reservation: Reservation, refund: Double = 0.0) {
+        val refundText = if (refund > 0.0)
+            " A refund of $${String.format(Locale.US, "%.2f", refund)} applies."
+        else " No refund applies under the campsite's policy."
+        val ownerId = campsiteRepository.getCampsiteFromListById(reservation.campsiteId)?.ownerId ?: ""
+        send(reservation.userId, reservation.reservationId, NotificationEventType.RESERVATION,
+            "Reservation rejected",
+            "Your reservation at ${campsiteName(reservation.campsiteId)} " +
+                    "(${reservation.bookStartDate} to ${reservation.bookEndDate}) was rejected by the owner." +
+                    refundText,
+            fromUserId = ownerId)
+    }
+
     /** Tells the campsite's owner that an entrant cancelled, so the dates are open again. */
     fun notifyOwnerReservationCancelled(reservation: Reservation) {
         val campsite = campsiteRepository.getCampsiteFromListById(reservation.campsiteId) ?: return
