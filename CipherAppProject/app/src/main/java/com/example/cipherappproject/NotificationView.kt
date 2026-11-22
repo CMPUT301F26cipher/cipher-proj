@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.example.cipherappproject.database.enums.NotificationEventType
 import com.example.cipherappproject.database.models.Lottery
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -32,7 +33,7 @@ import java.text.DateFormat
 private fun formatTime(time: Timestamp): String =
     DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(time.toDate())
 @Composable
-fun NotificationView(currentUserId: String) {
+fun NotificationView(currentUserId: String, onViewReservations: () -> Unit = {}) {
     val controller = remember { NotificationController() }
     val notifications = controller.getReceived(currentUserId)
     LazyColumn(
@@ -50,7 +51,11 @@ fun NotificationView(currentUserId: String) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { controller.markAsRead(n) }
+                    .clickable {
+                        controller.markAsRead(n)
+                        // a reservation notification opens the entrant's reservations
+                        if (n.eventType == NotificationEventType.RESERVATION.name) onViewReservations()
+                    }
                     .testTag("notification_${n.notificationId}")
             ) {
                 Column(Modifier.padding(12.dp)) {
@@ -61,6 +66,15 @@ fun NotificationView(currentUserId: String) {
                     )
                     Text(n.message, style = MaterialTheme.typography.bodyMedium)
                     Text(formatTime(n.createdAt), style = MaterialTheme.typography.labelSmall)
+                    if (n.eventType == NotificationEventType.RESERVATION.name) {
+                        TextButton(
+                            onClick = {
+                                controller.markAsRead(n)
+                                onViewReservations()
+                            },
+                            modifier = Modifier.testTag("viewReservations_${n.notificationId}")
+                        ) { Text("View reservations") }
+                    }
                 }
             }
         }

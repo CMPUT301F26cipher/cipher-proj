@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.database.models.Campsite
+import java.time.LocalDate
 
 /**
  * Checked campsite values from the form, ready to save.
@@ -99,6 +100,33 @@ data class CampsiteInput(
 }
 
 /**
+ * The dates entrants can book a campsite, both days included (US 02.01.02).
+ * Dates are yyyy-MM-dd, the format the availability database uses.
+ */
+data class BookingPeriod(val startDate: String, val endDate: String) {
+    companion object {
+        /**
+         * Checks the typed dates and builds a BookingPeriod.
+         *
+         * @throws IllegalArgumentException with a message to show the owner if the period is invalid
+         */
+        fun fromText(start: String, end: String, today: LocalDate = LocalDate.now()): BookingPeriod {
+            val startDate = runCatching { LocalDate.parse(start.trim()) }.getOrNull()
+                ?: throw IllegalArgumentException("Booking period start must be a date like 2026-12-01.")
+            val endDate = runCatching { LocalDate.parse(end.trim()) }.getOrNull()
+                ?: throw IllegalArgumentException("Booking period end must be a date like 2026-12-31.")
+            if (endDate.isBefore(startDate)) {
+                throw IllegalArgumentException("Booking period can't end before it starts.")
+            }
+            if (endDate.isBefore(today)) {
+                throw IllegalArgumentException("Booking period can't be entirely in the past.")
+            }
+            return BookingPeriod(startDate.toString(), endDate.toString())
+        }
+    }
+}
+
+/**
  * The text in each box of the campsite form. Starts empty, or filled in from campsite
  * when editing.
  */
@@ -113,6 +141,12 @@ class CampsiteFormState(campsite: Campsite? = null) {
     var pricePerNight by mutableStateOf(campsite?.pricePerNight?.toString() ?: "")
     var imagePath by mutableStateOf(campsite?.imagePath ?: "")
     var tags by mutableStateOf(campsite?.tags?.joinToString(", ") ?: "")
+
+    // booking period is only asked for when registering a campsite
+    var bookingStart by mutableStateOf("")
+    var bookingEnd by mutableStateOf("")
+
+    fun toBookingPeriod(): BookingPeriod = BookingPeriod.fromText(bookingStart, bookingEnd)
 
     fun toInput(): CampsiteInput {
         return CampsiteInput.fromText(
@@ -149,6 +183,21 @@ fun CampsiteFormFields(
         FormField("Price Per Night", state.pricePerNight, { state.pricePerNight = it }, enabled, "campsitePriceField", KeyboardType.Decimal)
         FormField("Image Path (optional)", state.imagePath, { state.imagePath = it }, enabled, "campsiteImageField")
         FormField("Tags (comma separated)", state.tags, { state.tags = it }, enabled, "campsiteTagsField")
+    }
+}
+
+/**
+ * The booking period boxes: the dates entrants can book. Shown when registering a campsite.
+ */
+@Composable
+fun BookingPeriodFields(
+    state: CampsiteFormState,
+    enabled: Boolean = true,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Booking period: the dates entrants can book (both days included)")
+        FormField("Booking period start (yyyy-MM-dd)", state.bookingStart, { state.bookingStart = it }, enabled, "campsiteBookingStartField")
+        FormField("Booking period end (yyyy-MM-dd)", state.bookingEnd, { state.bookingEnd = it }, enabled, "campsiteBookingEndField")
     }
 }
 

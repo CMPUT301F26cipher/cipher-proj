@@ -256,7 +256,10 @@ fun CampsiteApp(){
                             MessageView()
                         }
                         composable(AppRoutes.ENTRANT_NOTIFICATIONS) {
-                            NotificationView(currentUserId)
+                            NotificationView(
+                                currentUserId,
+                                onViewReservations = { navigateToTab(navController, AppRoutes.ENTRANT_RESERVATIONS) }
+                            )
                         }
                         composable(AppRoutes.SCAN_QR) {
                             QRScanView()

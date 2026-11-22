@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -73,8 +75,15 @@ fun LotteryWinScreen(
         Pair(id, name ?: "Campsite")
     }
 
+    // rules and policies of the campsite being reserved, shown before the entrant confirms
+    val selectedCampsite = selectedCampsiteId?.let {
+        RepositoryDatabase.campsiteRepository.getCampsiteFromListById(it)
+    }
+
     LotteryWinView(
         campsiteChoices = campsiteChoices,
+        campsiteRules = selectedCampsite?.rules ?: emptyList(),
+        campsitePolicies = selectedCampsite?.policies ?: emptyList(),
         selectedCampsiteId = selectedCampsiteId,
         onCampsiteSelected = { campsiteId ->
             if (campsiteId != selectedCampsiteId) {
@@ -145,9 +154,25 @@ fun LotteryWinView(
     message: String?,
     onReserve: () -> Unit,
     onDecline: () -> Unit,
-    isWorking: Boolean = false
+    isWorking: Boolean = false,
+    campsiteRules: List<String> = emptyList(),
+    campsitePolicies: List<String> = emptyList()
 ) {
     var showDeclineDialog by remember { mutableStateOf(false) }
+    // true while the entrant is reading the rules and policies, before the reservation is confirmed
+    var showRules by remember { mutableStateOf(false) }
+
+    if (showRules) {
+        RulesAcceptanceView(
+            rules = campsiteRules,
+            policies = campsitePolicies,
+            isWorking = isWorking,
+            message = message,
+            onConfirm = onReserve,
+            onBack = { showRules = false }
+        )
+        return
+    }
 
     Column(
         modifier = Modifier
@@ -188,7 +213,7 @@ fun LotteryWinView(
         }
 
         Button(
-            onClick = onReserve,
+            onClick = { showRules = true },
             enabled = selectedDates.isNotEmpty() && !isWorking,
             modifier = Modifier
                 .fillMaxWidth()
@@ -229,6 +254,74 @@ fun LotteryWinView(
                 }
             }
         )
+    }
+}
+
+/**
+ * Shows the campsite's rules and policies. The entrant must tick the box at the bottom, saying
+ * they have read and understood them, before the reservation can be confirmed.
+ */
+@Composable
+fun RulesAcceptanceView(
+    rules: List<String>,
+    policies: List<String>,
+    isWorking: Boolean,
+    message: String?,
+    onConfirm: () -> Unit,
+    onBack: () -> Unit
+) {
+    var accepted by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .testTag("rulesAcceptanceView"),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // the text scrolls; the checkbox and buttons stay at the bottom of the page
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Campsite rules and policies", style = MaterialTheme.typography.headlineMedium)
+            Text("Rules", style = MaterialTheme.typography.titleMedium)
+            if (rules.isEmpty()) Text("This campsite has no listed rules.")
+            rules.forEach { Text("• $it") }
+            Text("Policies", style = MaterialTheme.typography.titleMedium)
+            if (policies.isEmpty()) Text("This campsite has no listed policies.")
+            policies.forEach { Text("• $it") }
+        }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = accepted,
+                onCheckedChange = { accepted = it },
+                enabled = !isWorking,
+                modifier = Modifier.testTag("rulesCheckbox")
+            )
+            Text("I have read and understand all the campsite rules and policies.")
+        }
+        if (message != null) {
+            Text(text = message, color = MaterialTheme.colorScheme.error)
+        }
+        Button(
+            onClick = onConfirm,
+            enabled = accepted && !isWorking,
+            modifier = Modifier.fillMaxWidth().testTag("confirmReservationButton")
+        ) {
+            Text(if (isWorking) "Reserving..." else "Confirm reservation")
+        }
+        OutlinedButton(
+            onClick = onBack,
+            enabled = !isWorking,
+            modifier = Modifier.fillMaxWidth().testTag("rulesBackButton")
+        ) {
+            Text("Back")
+        }
     }
 }
 

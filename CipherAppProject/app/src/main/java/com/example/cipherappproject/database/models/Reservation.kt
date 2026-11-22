@@ -38,6 +38,7 @@ NA
  * @property bookEndDate the end date for the campsite reservation
  * @property pricePerNight the price per night for the campsite
  * @property totalPrice the total price for the campsite
+ * @property cancelledAt when the reservation was cancelled, null if it never was
  *
  *
  */
@@ -52,4 +53,5 @@ data class Reservation (
     val bookEndDate: String = "",
     var pricePerNight: Double = 0.0,
     var totalPrice: Double = 0.0,
+    val cancelledAt: Timestamp? = null, // set when the entrant cancels; null for older cancellations
 )

@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.database.models.LotteryEntry
+import com.example.cipherappproject.database.provider.RepositoryDatabase
 import com.example.cipherappproject.WaitlistController
 /*
 --------------------------------------------------------------------------------------
@@ -152,7 +153,7 @@ fun WaitlistView(
                             ) {
 
                                 Text(
-                                    text = "Entrant: ${entry.userId}",
+                                    text = "Entrant: ${RepositoryDatabase.profileRepository.getProfileFromListById(entry.userId)?.name ?: entry.userId}",
                                     style = MaterialTheme.typography.titleMedium
                                 )
 

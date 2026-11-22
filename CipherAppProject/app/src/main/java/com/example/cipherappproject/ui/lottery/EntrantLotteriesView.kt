@@ -7,7 +7,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.example.cipherappproject.WaitlistController
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +47,9 @@ fun EntrantLotteriesView(
         LoadingIndicator()
         return
     }
+    val waitlistController = remember { WaitlistController() }
+    var entryToRemove by remember { mutableStateOf<LotteryEntry?>(null) }
+    var message by remember { mutableStateOf("") }
     val myEntries = entryRepository.getLotteryEntriesFromListByUserId(entrantId)
 
     Column(
@@ -48,6 +60,8 @@ fun EntrantLotteriesView(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(text = "My Lotteries", style = MaterialTheme.typography.headlineMedium)
+
+        if (message.isNotEmpty()) Text(message, modifier = Modifier.testTag("leaveMessage"))
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (myEntries.isEmpty()) {
@@ -64,10 +78,35 @@ fun EntrantLotteriesView(
                     entry = entry,
                     campsiteNames = campsiteNames,
                     dates = if (lottery != null) "${lottery.startDate} to ${lottery.endDate}" else "",
-                    onClick = { navController.navigate(LotteryRoutes.result(entry.lotteryId)) }
+                    onClick = { navController.navigate(LotteryRoutes.result(entry.lotteryId)) },
+                    onRemoveClick = { entryToRemove = entry }
                 )
             }
         }
+    }
+
+    entryToRemove?.let { entry ->
+        AlertDialog(
+            modifier = Modifier.testTag("leaveDialog"),
+            onDismissRequest = { entryToRemove = null },
+            title = { Text("Leave waiting list?") },
+            text = { Text("You will be removed from this lottery's waiting list.") },
+            confirmButton = {
+                Button(
+                    modifier = Modifier.testTag("confirmLeave"),
+                    onClick = {
+                        entryToRemove = null
+                        waitlistController.leaveWaitlist(entry) { ok ->
+                            message = if (ok) "You left the waiting list."
+                            else "Couldn't leave the waiting list."
+                        }
+                    }
+                ) { Text("Confirm") }
+            },
+            dismissButton = {
+                TextButton(onClick = { entryToRemove = null }) { Text("Cancel") }
+            }
+        )
     }
 }
 
@@ -77,7 +116,8 @@ private fun EntryRow(
     entry: LotteryEntry,
     campsiteNames: List<String>,
     dates: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onRemoveClick: () -> Unit
 ) {
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -89,6 +129,13 @@ private fun EntryRow(
                 Text("Registration: $dates")
             }
             Text("Status: ${entryStatusText(entry.status)}")
+            // Leaving is only possible on the initial waiting list, before the draw
+            if (entry.status == LotteryEntryStatus.REGISTERED.name) {
+                OutlinedButton(
+                    onClick = onRemoveClick,
+                    modifier = Modifier.testTag("removeEntry_${entry.lotteryEntryId}")
+                ) { Text("Remove") }
+            }
         }
     }
 }
