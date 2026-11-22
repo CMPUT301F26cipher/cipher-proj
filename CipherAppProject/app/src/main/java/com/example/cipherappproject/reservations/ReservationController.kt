@@ -26,6 +26,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-06  Shira      1.01     Moved button Status related code from ReservationList.kt
+2026-11-21  Nethmini   1.02     Block ended stays, timestamp rejections, refund policy fix
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -41,12 +42,24 @@ class ReservationController {
         const val FULL_REFUND_DAYS = 7L
 
         /**
+         * True if a policy rules out refunds altogether, e.g. "No refunds". A policy that only
+         * limits them in time ("No refunds after check-in") doesn't: the [FULL_REFUND_DAYS]
+         * rule below already gives nothing once the stay is close or has started.
+         */
+        fun forbidsRefunds(policy: String): Boolean {
+            val text = policy.lowercase()
+            return text.contains("no refund") &&
+                    listOf("after", "within", "once", "less than").none { text.contains(it) }
+        }
+
+        /**
          * Refund owed for cancelling [reservation] on [today], from the campsite's policies.
-         * A policy saying "no refund(s)" means nothing is refunded; otherwise the whole total is
-         * refunded when cancelling at least [FULL_REFUND_DAYS] days before the stay, else nothing.
+         * A policy ruling out refunds ([forbidsRefunds]) means nothing is refunded; otherwise the
+         * whole total is refunded when cancelling at least [FULL_REFUND_DAYS] days before the
+         * stay, else nothing.
          */
         fun refundFor(reservation: Reservation, policies: List<String>, today: LocalDate = LocalDate.now()): Double {
-            if (policies.any { it.contains("no refund", ignoreCase = true) }) return 0.0
+            if (policies.any { forbidsRefunds(it) }) return 0.0
             val start = DateUtils.parse(reservation.bookStartDate) ?: return 0.0
             return if (!today.plusDays(FULL_REFUND_DAYS).isAfter(start)) reservation.totalPrice else 0.0
         }
@@ -58,13 +71,14 @@ class ReservationController {
      * is calculated and reported only; no payment system exists yet.
      */
     fun reject(reservation: Reservation, onResult: (Result<Double>) -> Unit) {
-        if (reservation.status != ReservationStatus.ACTIVE.name) {
+        if (!ReservationList.isActive(reservation, LocalDate.now())) {
             onResult(Result.failure(OperationException("Only active reservations can be rejected.")))
             return
         }
         val policies = campsiteRepository.getCampsiteFromListById(reservation.campsiteId)?.policies ?: emptyList()
         val refund = refundFor(reservation, policies)
-        val rejected = reservation.copy(status = ReservationStatus.REJECTED.name)
+        // cancelledAt records when it was rejected, for the cancelled list's ordering and label
+        val rejected = reservation.copy(status = ReservationStatus.REJECTED.name, cancelledAt = Timestamp.now())
         reservationRepository.updateReservation(rejected) { result ->
             result
                 .onSuccess {
@@ -81,7 +95,8 @@ class ReservationController {
      * No payment system exists yet, so the refund is calculated and reported, not paid out.
      */
     fun cancel(reservation: Reservation, onResult: (Result<Double>) -> Unit) {
-        if (reservation.status != ReservationStatus.ACTIVE.name) {
+        // a stay that has already ended is a past reservation and can't be cancelled
+        if (!ReservationList.isActive(reservation, LocalDate.now())) {
             onResult(Result.failure(OperationException("Only active reservations can be cancelled.")))
             return
         }

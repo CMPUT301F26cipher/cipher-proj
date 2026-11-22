@@ -53,8 +53,8 @@ class JoinWaitlistTest {
                         lotteryId = lotteryId,
                         ownerId = "test-owner",
                         campsiteIds = mutableListOf(campsiteId),
-                        startDate = "2026-01-01",
-                        endDate = "2026-12-31",
+                        startDate = java.time.LocalDate.now().minusDays(1).toString(),
+                        endDate = java.time.LocalDate.now().plusDays(7).toString(),
                         status = LotteryStatus.OPEN.name
                     )
                 ), 15, TimeUnit.SECONDS
@@ -64,14 +64,8 @@ class JoinWaitlistTest {
                         RepositoryDatabase.lotteryEntryRepository.isLotteriesEntriesLoaded.value
             }
 
-            // The campsite page finds this lottery for dates inside its period
-            var found: Lottery? = null
-            controller.findAvailableLottery(
-                campsiteId,
-                java.time.LocalDate.of(2026, 6, 1),
-                java.time.LocalDate.of(2026, 6, 5)
-            ) { found = it }
-            assertEquals(lotteryId, found?.lotteryId)
+            // The campsite page lists this lottery: its registration period covers today
+            assertEquals(true, controller.getOpenLotteries(campsiteId).any { it.lotteryId == lotteryId })
 
             assertEquals(JoinResult.JOINED, join(lotteryId, userId))
 

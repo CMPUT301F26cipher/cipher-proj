@@ -14,6 +14,7 @@ Date        Person     CSR#     Description
 2026-11-02  Bailey      1.01     Built
 2026-11-6   Madison     1.02     Integrated registration
 2026-11-19  Justin      1.03     Not provided
+2026-11-21  Nethmini    1.04     Re-tapping the current tab returns to its first screen
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -211,7 +212,7 @@ fun CampsiteApp(){
                                 NavigationBarItem(
                                     // startsWith so e.g. "owner/lotteries/create" still highlights Lotteries
                                     selected = currentRoute?.startsWith(destination.route) == true,
-                                    onClick = { navigateToTab(navController, destination.route) },
+                                    onClick = { navigateToTab(navController, destination.route, tabs.map { it.route }) },
                                     icon = {
                                         Icon(
                                             destination.icon,
@@ -292,7 +293,7 @@ fun CampsiteApp(){
                                 role = role,
                                 onOpen = { route ->
                                     if (tabs.any { it.route == route }) {
-                                        navigateToTab(navController, route)
+                                        navigateToTab(navController, route, tabs.map { it.route })
                                     } else {
                                         navController.navigate(route)
                                     }
@@ -330,7 +331,18 @@ fun CampsiteApp(){
     }
 }
 
-private fun navigateToTab(navController: NavController, route: String) {
+private fun navigateToTab(navController: NavController, route: String, tabRoutes: List<String> = emptyList()) {
+    // Tapping the tab you are already in, from a screen opened inside it (e.g. a campsite's
+    // waitlist), goes back to the tab's first screen. Navigating again would restore the tab's
+    // saved stack and leave you on the inner screen.
+    val currentTab = navController.currentBackStack.value
+        .lastOrNull { it.destination.route in tabRoutes }?.destination?.route
+    if (currentTab == route) {
+        if (navController.currentDestination?.route != route) {
+            navController.popBackStack(route, inclusive = false)
+        }
+        return
+    }
     navController.navigate(route) {
         popUpTo(navController.graph.findStartDestination().id) {
             saveState = true

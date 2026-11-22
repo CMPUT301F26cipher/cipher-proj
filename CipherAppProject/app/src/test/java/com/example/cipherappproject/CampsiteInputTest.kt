@@ -111,4 +111,24 @@ class CampsiteInputTest {
     fun zeroPrice_accepted() {
         assertEquals(0.0, build(price = "0").pricePerNight, 0.0)
     }
+
+    // ---------- rules and policies (US 02.11.01) ----------
+
+    @Test
+    fun rulesAndPolicies_onePerLine_keepCommas() {
+        val input = CampsiteInput.fromText(
+            "Camp", "Jasper", "52.8", "-118.0", "", "", "4", "40", "", "",
+            rules = "No smoking\n\n  Quiet after 10pm, please  \n",
+            policies = "No refunds after check-in"
+        )
+        assertEquals(listOf("No smoking", "Quiet after 10pm, please"), input.rules)
+        assertEquals(listOf("No refunds after check-in"), input.policies)
+    }
+
+    @Test
+    fun rulesAndPolicies_areOptional() {
+        val input = CampsiteInput.fromText("Camp", "Jasper", "52.8", "-118.0", "", "", "4", "40", "", "")
+        assertEquals(emptyList<String>(), input.rules)
+        assertEquals(emptyList<String>(), input.policies)
+    }
 }

@@ -10,6 +10,7 @@ Modification History:
 --------------------------------------------------------------------------------------
 Date        Person     CSR#     Description
 2026-11-20  Madison    1.01     Built
+2026-11-21  Nethmini   1.02     Rules and policies fields (US 02.11.01)
 --------------------------------------------------------------------------------------
 Future Enhancements
 Pick an image from the device instead of typing a path (needs image storage)
@@ -47,11 +48,14 @@ data class CampsiteInput(
     val pricePerNight: Double,
     val imagePath: String,
     val tags: List<String>,
+    val rules: List<String> = emptyList(),
+    val policies: List<String> = emptyList(),
 ) {
     companion object {
         /**
          * Checks the text the owner typed and builds a CampsiteInput.
-         * Amenities and tags are comma separated. Image path is optional.
+         * Amenities and tags are comma separated. Rules and policies are optional, one per line
+         * (they can contain commas). Image path is optional.
          *
          * @throws IllegalArgumentException with a message to show the owner if any input is invalid
          */
@@ -66,6 +70,8 @@ data class CampsiteInput(
             pricePerNight: String,
             imagePath: String,
             tags: String,
+            rules: String = "",
+            policies: String = "",
         ): CampsiteInput {
             if (campsiteName.isBlank()) {
                 throw IllegalArgumentException("Campsite name cannot be empty.")
@@ -91,7 +97,14 @@ data class CampsiteInput(
                 pricePerNight = price,
                 imagePath = imagePath.trim(),
                 tags = splitCommaList(tags),
+                rules = splitLines(rules),
+                policies = splitLines(policies),
             )
+        }
+
+        /** One entry per non-blank line. */
+        fun splitLines(text: String): List<String> {
+            return text.lines().map { it.trim() }.filter { it.isNotEmpty() }
         }
         private fun splitCommaList(text: String): List<String> {
             return text.split(",").map { it.trim() }.filter { it.isNotEmpty() }
@@ -141,6 +154,8 @@ class CampsiteFormState(campsite: Campsite? = null) {
     var pricePerNight by mutableStateOf(campsite?.pricePerNight?.toString() ?: "")
     var imagePath by mutableStateOf(campsite?.imagePath ?: "")
     var tags by mutableStateOf(campsite?.tags?.joinToString(", ") ?: "")
+    var rules by mutableStateOf(campsite?.rules?.joinToString("\n") ?: "")
+    var policies by mutableStateOf(campsite?.policies?.joinToString("\n") ?: "")
 
     // booking period is only asked for when registering a campsite
     var bookingStart by mutableStateOf("")
@@ -151,7 +166,7 @@ class CampsiteFormState(campsite: Campsite? = null) {
     fun toInput(): CampsiteInput {
         return CampsiteInput.fromText(
             campsiteName, locationName, latitude, longitude, description,
-            amenities, maxGuests, pricePerNight, imagePath, tags
+            amenities, maxGuests, pricePerNight, imagePath, tags, rules, policies
         )
     }
 }
@@ -183,6 +198,9 @@ fun CampsiteFormFields(
         FormField("Price Per Night", state.pricePerNight, { state.pricePerNight = it }, enabled, "campsitePriceField", KeyboardType.Decimal)
         FormField("Image Path (optional)", state.imagePath, { state.imagePath = it }, enabled, "campsiteImageField")
         FormField("Tags (comma separated)", state.tags, { state.tags = it }, enabled, "campsiteTagsField")
+        // entrants must confirm these before reserving (US 02.11.01)
+        FormField("Rules (one per line)", state.rules, { state.rules = it }, enabled, "campsiteRulesField", singleLine = false)
+        FormField("Policies, e.g. refunds (one per line)", state.policies, { state.policies = it }, enabled, "campsitePoliciesField", singleLine = false)
     }
 }
 
