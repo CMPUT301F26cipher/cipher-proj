@@ -57,6 +57,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.cipherappproject.database.enums.ProfileRole
 import com.example.cipherappproject.reservations.OwnerOverview
+import com.example.cipherappproject.ratings.RatingRoutes
+import com.example.cipherappproject.ratings.ratingScreens
 import com.example.cipherappproject.ui.campsite.EntrantCampsiteView
 import com.example.cipherappproject.ui.campsite.CampsiteRoutes
 import com.example.cipherappproject.ui.campsite.ownerCampsiteScreens
@@ -241,7 +243,11 @@ fun CampsiteApp(){
                             EntrantCampsiteView(campsiteId, currentUserId)
                         }
                         composable(AppRoutes.ENTRANT_RESERVATIONS) {
-                            ReservationScreen(userID = currentUserId, isOwner = false)
+                            ReservationScreen(
+                                userID = currentUserId,
+                                isOwner = false,
+                                onRateClick = { navController.navigate(RatingRoutes.rate(it.reservationId)) }
+                            )
                         }
                         composable(AppRoutes.ENTRANT_LOTTERIES) {
                             EntrantLotteriesView(navController, currentUserId)
@@ -298,6 +304,7 @@ fun CampsiteApp(){
 
                         lotteryScreens(navController = navController, currentUserId = currentUserId)
                         ownerCampsiteScreens(navController = navController, currentUserId = currentUserId)
+                        ratingScreens(navController = navController, currentUserId = currentUserId)
 
                         //TODO: implement Admin navigation
                     }

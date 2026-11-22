@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.WaitlistController
 import com.example.cipherappproject.database.models.Campsite
 import com.example.cipherappproject.database.models.Lottery
+import com.example.cipherappproject.ratings.CampsiteReviewsSection
 import java.time.LocalDate
 import java.util.Locale
 
@@ -83,6 +84,8 @@ fun CampsiteDetailView(
                 Text("Edit Campsite")
             }
         }
+
+        CampsiteReviewsSection(campsite.campsiteId)
     }
 }
 
