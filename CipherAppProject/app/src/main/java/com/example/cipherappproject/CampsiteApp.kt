@@ -1,4 +1,24 @@
 package com.example.cipherappproject
+/*
+--------------------------------------------------------------------------------------
+Program Name: CampsiteApp.kt
+Date Written: Nov 2 2026
+Author: Bailey Parrish
+Purpose: Origin of all navigation, handles persistence of nav-bar and title bar
+The user's role (entrant/owner) comes from their Profile, loaded by device ID on startup.
+Devices without a profile are sent to registration first.
+--------------------------------------------------------------------------------------
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-02  Bailey      1.01     Built
+2026-11-6   Madison     1.02     Integrated registration
+2026-11-19  Justin      1.03     Not provided
+2026-11-21  Nethmini    1.04     Re-tapping the current tab returns to its first screen
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+ */
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +58,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.cipherappproject.database.enums.ProfileRole
 import com.example.cipherappproject.reservations.OwnerOverview
+import com.example.cipherappproject.ratings.RatingRoutes
+import com.example.cipherappproject.ratings.ratingScreens
 import com.example.cipherappproject.ui.campsite.EntrantCampsiteView
+import com.example.cipherappproject.ui.campsite.CampsiteRoutes
+import com.example.cipherappproject.ui.campsite.ownerCampsiteScreens
 import com.example.cipherappproject.ui.lottery.EntrantLotteriesView
 import com.example.cipherappproject.ui.lottery.OwnerLotteriesView
 import com.example.cipherappproject.ui.lottery.lotteryScreens
@@ -46,21 +70,6 @@ import com.example.cipherappproject.reservations.ReservationScreen
 import com.example.cipherappproject.ui.registration.AccountErrorView
 import com.example.cipherappproject.ui.registration.Registration
 import com.example.cipherappproject.database.provider.RepositoryDatabase
-
-
-/**
- * Origin of all navigation, handles persistence of nav-bar and title bar
- *
- * The user's role (entrant/owner) comes from their Profile, loaded by device ID on startup.
- * Devices without a profile are sent to registration first.
- */
-/*
- * Built by Bailey Nov 2 2026
- * Updates:
- * Updated By Madison Nov 6 2026 - integrated registration
- * Updated Nov 6 2026 - removed temporary role switch button, pass current user id to screens
- * Updated by Justin on November 19th, 2026
- */
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,7 +96,7 @@ fun CampsiteApp(){
     }
 
 
-    // It should draw any lottery whose registration period has ended, and also 
+    // It should draw any lottery whose registration period has ended, and also
     // once lotteries and entries have loaded from Firestore
 
     val drawController = remember { LotteryDrawController() }
@@ -203,7 +212,7 @@ fun CampsiteApp(){
                                 NavigationBarItem(
                                     // startsWith so e.g. "owner/lotteries/create" still highlights Lotteries
                                     selected = currentRoute?.startsWith(destination.route) == true,
-                                    onClick = { navigateToTab(navController, destination.route) },
+                                    onClick = { navigateToTab(navController, destination.route, tabs.map { it.route }) },
                                     icon = {
                                         Icon(
                                             destination.icon,
@@ -235,7 +244,11 @@ fun CampsiteApp(){
                             EntrantCampsiteView(campsiteId, currentUserId)
                         }
                         composable(AppRoutes.ENTRANT_RESERVATIONS) {
-                            ReservationScreen(userID = currentUserId, isOwner = false)
+                            ReservationScreen(
+                                userID = currentUserId,
+                                isOwner = false,
+                                onRateClick = { navController.navigate(RatingRoutes.rate(it.reservationId)) }
+                            )
                         }
                         composable(AppRoutes.ENTRANT_LOTTERIES) {
                             EntrantLotteriesView(navController, currentUserId)
@@ -244,7 +257,10 @@ fun CampsiteApp(){
                             MessageView()
                         }
                         composable(AppRoutes.ENTRANT_NOTIFICATIONS) {
-                            NotificationView()
+                            NotificationView(
+                                currentUserId,
+                                onViewReservations = { navigateToTab(navController, AppRoutes.ENTRANT_RESERVATIONS) }
+                            )
                         }
                         composable(AppRoutes.SCAN_QR) {
                             QRScanView()
@@ -252,7 +268,11 @@ fun CampsiteApp(){
 
                         // Owner
                         composable(AppRoutes.OWNER_CAMPSITES) {
-                            OwnerOverview(ownerId = currentUserId)
+                            OwnerOverview(
+                                ownerId = currentUserId,
+                                onRegisterClick = { navController.navigate(CampsiteRoutes.REGISTER) },
+                                onCampsiteClick = { navController.navigate(CampsiteRoutes.detail(it.campsiteId)) }
+                            )
                         }
                         composable(AppRoutes.OWNER_LOTTERIES) {
                             OwnerLotteriesView(navController, currentUserId)
@@ -261,7 +281,10 @@ fun CampsiteApp(){
                             ReservationScreen(userID = currentUserId, isOwner = true)
                         }
                         composable(AppRoutes.OWNER_NOTIFICATIONS) {
-                            SentNotificationView()
+                            SentNotificationView(currentUserId)
+                        }
+                        composable(AppRoutes.PROFILE_SETTINGS) { // profile settings, including the notifications on/off switch
+                            ProfileSettingsView(currentUserId)
                         }
 
                         // Shared
@@ -270,7 +293,7 @@ fun CampsiteApp(){
                                 role = role,
                                 onOpen = { route ->
                                     if (tabs.any { it.route == route }) {
-                                        navigateToTab(navController, route)
+                                        navigateToTab(navController, route, tabs.map { it.route })
                                     } else {
                                         navController.navigate(route)
                                     }
@@ -284,6 +307,8 @@ fun CampsiteApp(){
                         // FEATURE SUB SCREENS ADD UNDER HERE
 
                         lotteryScreens(navController = navController, currentUserId = currentUserId)
+                        ownerCampsiteScreens(navController = navController, currentUserId = currentUserId)
+                        ratingScreens(navController = navController, currentUserId = currentUserId)
 
                         //TODO: implement Admin navigation
                     }
@@ -306,7 +331,18 @@ fun CampsiteApp(){
     }
 }
 
-private fun navigateToTab(navController: NavController, route: String) {
+private fun navigateToTab(navController: NavController, route: String, tabRoutes: List<String> = emptyList()) {
+    // Tapping the tab you are already in, from a screen opened inside it (e.g. a campsite's
+    // waitlist), goes back to the tab's first screen. Navigating again would restore the tab's
+    // saved stack and leave you on the inner screen.
+    val currentTab = navController.currentBackStack.value
+        .lastOrNull { it.destination.route in tabRoutes }?.destination?.route
+    if (currentTab == route) {
+        if (navController.currentDestination?.route != route) {
+            navController.popBackStack(route, inclusive = false)
+        }
+        return
+    }
     navController.navigate(route) {
         popUpTo(navController.graph.findStartDestination().id) {
             saveState = true

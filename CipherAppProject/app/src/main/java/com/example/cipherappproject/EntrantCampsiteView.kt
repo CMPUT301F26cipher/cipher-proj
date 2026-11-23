@@ -1,12 +1,25 @@
 package com.example.cipherappproject.ui.campsite
 
+/*
+--------------------------------------------------------------------------------------
+Program Name: EntrantCampsiteView.kt
+Date Written: 2026-11-18
+Author: Madison
+Purpose: Screen. Loads a campsite by id and shows its details and lottery section to an entrant.
+Modification History:
+--------------------------------------------------------------------------------------
+Date        Person     CSR#     Description
+2026-11-18  Madison     1.02    Replaced placeholder
+--------------------------------------------------------------------------------------
+Future Enhancements
+NA
+*/
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -19,10 +32,9 @@ import com.example.cipherappproject.ui.lottery.LoadingIndicator
 
 /**
  * Campsite details screen for entrants (opened from search), with the lottery
- * join section (US 01.01.06 / 01.02.01).
  *
- * The campsite comes from the shared CampsiteRepository's local list (Compose State), so
- * it appears once the campsites have loaded.
+ * @param campsiteId id of the campsite to show
+ * @param entrantId the current entrant, used to join the lottery
  */
 @Composable
 fun EntrantCampsiteView(campsiteId: String, entrantId: String) {
@@ -50,16 +62,6 @@ fun EntrantCampsiteView(campsiteId: String, entrantId: String) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         CampsiteDetailView(campsite = campsite, isOwner = false, onEditClick = {})
-
-        if (campsite.amenities.isNotEmpty()) {
-            Text("Amenities: ${campsite.amenities.joinToString(", ")}")
-        }
-        if (campsite.mapLocation.size >= 2) {
-            Text("Location: ${campsite.mapLocation[0]}, ${campsite.mapLocation[1]}")
-        }
-        if (campsite.tags.isNotEmpty()) {
-            Text("Tags: ${campsite.tags.joinToString(", ")}")
-        }
 
         CampsiteLotterySection(
             campsiteId = campsiteId,
