@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.cipherappproject.SendNotificationDialog
 import com.example.cipherappproject.database.enums.LotteryStatus
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.provider.RepositoryDatabase
@@ -47,6 +48,9 @@ fun OwnerLotteriesView(
 
     // null = show every status
     var statusFilter by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // The lottery whose otify waitlist dialog is open, or null when its closed.
+    var notifyLottery by remember { mutableStateOf<Lottery?>(null)}
 
     if (!lotteryRepository.isLotteriesLoaded.value) {
         LoadingIndicator()
@@ -95,8 +99,12 @@ fun OwnerLotteriesView(
                     canEdit = controller.canEdit(lottery),
                     campsiteNames = campsiteNames,
                     onEdit = { navController.navigate(LotteryRoutes.edit(lottery.lotteryId)) },
+                    onNotify = {notifyLottery = lottery}
                 )
             }
+        }
+        notifyLottery?.let {lottery ->
+            SendNotificationDialog(lottery, senderId = ownerId, onDismiss = { notifyLottery = null})
         }
     }
 }
@@ -108,7 +116,8 @@ private fun LotteryRow(
     statusText: String,
     canEdit: Boolean,
     campsiteNames: List<String>,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
+    onNotify: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -126,6 +135,10 @@ private fun LotteryRow(
                     modifier = Modifier.testTag("editLottery_${lottery.lotteryId}")
                 ) { Text("Edit") }
             }
+            TextButton(
+                onClick = onNotify,
+                modifier = Modifier.testTag("notifyLottery_${lottery.lotteryId}")
+            ) { Text("Notify Waitlist")}
         }
     }
 }
