@@ -15,6 +15,7 @@ Date        Person     CSR#     Description
 2026-11-6   Madison     1.02     Integrated registration
 2026-11-19  Justin      1.03     Not provided
 2026-11-21  Nethmini    1.04     Re-tapping the current tab returns to its first screen
+2026-11-24  Justin      1.05     Meeting rest of US 02.05.01
 --------------------------------------------------------------------------------------
 Future Enhancements
 NA
@@ -36,6 +37,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
@@ -45,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -70,6 +73,9 @@ import com.example.cipherappproject.reservations.ReservationScreen
 import com.example.cipherappproject.ui.registration.AccountErrorView
 import com.example.cipherappproject.ui.registration.Registration
 import com.example.cipherappproject.database.provider.RepositoryDatabase
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.runtime.saveable.rememberSaveable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -103,8 +109,11 @@ fun CampsiteApp(){
     val lotteriesLoaded = RepositoryDatabase.lotteryRepository.isLotteriesLoaded.value
     val entriesLoaded = RepositoryDatabase.lotteryEntryRepository.isLotteriesEntriesLoaded.value
 
+    // Profiles are needed for the opt-out check, and campsite for the names in the message
+    val profilesReady = RepositoryDatabase.profileRepository.isProfilesLoaded.value
+    val campsitesReady = RepositoryDatabase.campsiteRepository.isCampsitesLoaded.value
     LaunchedEffect(lotteriesLoaded, entriesLoaded) {
-        if (lotteriesLoaded && entriesLoaded) {
+        if (lotteriesLoaded && entriesLoaded && profilesReady && campsitesReady) {
             drawController.drawExpiredLotteries()
         }
     }
@@ -281,7 +290,16 @@ fun CampsiteApp(){
                             ReservationScreen(userID = currentUserId, isOwner = true)
                         }
                         composable(AppRoutes.OWNER_NOTIFICATIONS) {
-                            SentNotificationView(currentUserId)
+                            // Now, owners should receive draw results and cancellations. And also see what they send
+                            var showSent by rememberSaveable { mutableStateOf(false) }
+                            Column {
+                                TabRow(selectedTabIndex = if (showSent) 1 else 0) {
+                                    Tab(selected = !showSent, onClick = { showSent = false }, text = {Text("Received") })
+                                    Tab(selected = showSent, onClick = { showSent = true}, text = { Text("Sent")})
+                                }
+                                if (showSent) SentNotificationView(currentUserId)
+                                else NotificationView(currentUserId)
+                            }
                         }
                         composable(AppRoutes.PROFILE_SETTINGS) { // profile settings, including the notifications on/off switch
                             ProfileSettingsView(currentUserId)

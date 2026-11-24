@@ -19,6 +19,7 @@ Date        Person     CSR#     Description
 2026-11-08  Sofia      1.07     added queries using the list
 2026-11-12  Sofia      1.08     deleted created at and added state boolean for list local queries.
 2026-11-15  Sofia      1.09     added custom exceptions
+2026-11-24  Justin     1.10     Adding coOwner Parameters.
 --------------------------------------------------------------------------------------
 Future Enhancements
 More secure measures/validation if needed????
@@ -88,8 +89,8 @@ class LotteryRepository {
         endDate: String,
         maxParticipants: Int?,
         status: String,
+        coOwnerIds: MutableList<String> = mutableListOf(),
         result: (Result<String>) -> Unit
-
     ) {
         // create a reference and id to the new profile
         val lotteryRef = lotteriesRef.document()
@@ -104,6 +105,7 @@ class LotteryRepository {
             endDate = endDate,
             maxParticipants = maxParticipants,
             status = status,
+            coOwnerIds = coOwnerIds
         )
         //Tasks.await(lotteryRef.set(lottery))
         // save the object in the firebase

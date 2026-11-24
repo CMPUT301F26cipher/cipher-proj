@@ -1,5 +1,6 @@
 package com.example.cipherappproject.ui.lottery
 
+import android.R.id.input
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,7 +23,9 @@ fun CreateLotteryView(
 ) {
     val controller = remember { LotteryController() }
     // Shared repository; its list is Compose State, so this recomposes once Firestore has loaded
-    val ownerCampsites = RepositoryDatabase.campsiteRepository.getCampsiteFromListByOwnerId(ownerId)
+    // val ownerCampsites = RepositoryDatabase.campsiteRepository.getCampsiteFromListByOwnerId(ownerId)
+    val campsites = controller.campsitesForOwners(ownerId, input.coOwnerIds)
+    val coOwners = input.coOwnerIds.mapNotNull { RepositoryDatabase.profileRepository.getProfileFromListById(it) }
 
     var input by remember { mutableStateOf(LotteryFormInput()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -31,9 +34,16 @@ fun CreateLotteryView(
 
     LotteryForm(
         title = "Create Lottery",
-        campsites = ownerCampsites,
+        campsites = campsites,
         input = input,
         onInputChange = { input = it },
+        coOwners = coOwners,
+        onAddCoOwner = { email ->
+            controller.addCoOwner(input, email, ownerId)
+                .onSuccess { input = it; errorMessage = null}
+                .onFailure { errorMessage = it.message}
+        },
+        onRemoveCoOwner = { input = controller.removeCoOwner(input, it)},
         errorMessage = errorMessage,
         saveLabel = "Publish Lottery",
         isSaving = isSaving,

@@ -28,7 +28,7 @@ data class SentNotificationGroup(
 
 /**
  * This class works to create and read in-app notifications, stored in firestore
- * Meets US 01.03.01, 01.03.02, 01.05.02, 01.07.02, 01.10.01, 02.10.01, 02.10.02
+ * Meets US 01.03.01, 01.03.02, 01.05.02, 01.07.02, 01.10.01, 02.10.01, 02.10.02, 02.05.01
  *
  * Every notification goes through "send", which skips the users who opted out.
  */
@@ -122,7 +122,15 @@ class NotificationController {
             val (title, message) = resultMessage(entry, names) ?: continue
             send(entry.userId, lottery.lotteryId, NotificationEventType.LOTTERY, title, message)
         }
-    }
+        val winners = drawnEntries.count {it.status == LotteryEntryStatus.WINNER.name }
+        for (ownerId in (listOf(lottery.ownerId) + lottery.coOwnerIds).distinct()) {
+            send(
+                ownerId, lottery.lotteryId, NotificationEventType.LOTTERY,
+                "Lottery Drawn",
+                "Your lottery for $names has been drawn: $winners winner(s) out of ${drawnEntries.size} entrant(s)"
+            )
+        }
+     }
 
     /**
      * Check an owners mesage before sending, validation check.

@@ -23,6 +23,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.cipherappproject.LotteryFormInput
 import com.example.cipherappproject.database.models.Campsite
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.example.cipherappproject.database.models.Profile
 
 /**
  * The lottery form shared by CreateLotteryView and EditLotteryView.
@@ -35,6 +41,9 @@ fun LotteryForm(
     campsites: List<Campsite>,
     input: LotteryFormInput,
     onInputChange: (LotteryFormInput) -> Unit,
+    coOwners: List<Profile> = emptyList(),
+    onAddCoOwner: (String) -> Unit = {},
+    onRemoveCoOwner: (String) -> Unit = {},
     errorMessage: String?,
     saveLabel: String,
     onSave: () -> Unit,
@@ -48,11 +57,36 @@ fun LotteryForm(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(text = title, style = MaterialTheme.typography.headlineMedium)
+        /*
+        * Need to add co owners, as their campsites can be added to this lottery as well.
+        *
+        * */
 
+        Text(text = "Co-owners", style = MaterialTheme.typography.titleMedium)
+        var coOwnerEmail by remember { mutableStateOf("") }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = coOwnerEmail,
+                onValueChange = { coOwnerEmail = it },
+                label = { Text("Co-owner email") },
+                singleLine = true,
+                modifier = Modifier.weight(1f).testTag("coOwnerEmail")
+            )
+            TextButton(
+                onClick = { onAddCoOwner(coOwnerEmail); coOwnerEmail = "" },
+                modifier = Modifier.testTag("addCoOwnerButton")
+            ) { Text("Add") }
+        }
+        for (coOwner in coOwners) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Text(coOwner.name.ifBlank { coOwner.email }, modifier = Modifier.weight(1f))
+                TextButton(onClick = { onRemoveCoOwner(coOwner.profileId) }) { Text("Remove") }
+            }
+        }
         // Campsites (one or more)
         Text(text = "Campsites in this lottery", style = MaterialTheme.typography.titleMedium)
         if (campsites.isEmpty()) {
-            Text("You have no campsites registered yet.")
+            Text("No campsites registered yet.")
         }
         for (campsite in campsites) {
             val isChecked = campsite.campsiteId in input.campsiteIds

@@ -28,6 +28,9 @@ fun EditLotteryView(
 
     var original by remember { mutableStateOf<Lottery?>(null) }
     var input by remember { mutableStateOf(LotteryFormInput()) }
+    val mainOwnerId = original?.ownerId ?: ownerId
+    val campsites = controller.campsitesForOwners(mainOwnerId, input.coOwnerIds)
+    val coOwners = input.coOwnerIds.mapNotNull { RepositoryDatabase.profileRepository.getProfileFromListById(it) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var loadFailed by remember { mutableStateOf(false) }
     var isSaving by remember { mutableStateOf(false) }
@@ -47,14 +50,22 @@ fun EditLotteryView(
     when {
         loadFailed -> CenteredMessage("Could not load this lottery.")
         lottery == null -> LoadingIndicator()
-        lottery.ownerId != ownerId -> CenteredMessage("You can only edit your own lotteries.")
+        ownerId != lottery.ownerId && ownerId !in lottery.coOwnerIds ->
+            CenteredMessage("You can only edit lotteries you own or co-own.")
         !controller.canEdit(lottery) ->
             CenteredMessage("This lottery has already been drawn and can no longer be edited.")
         else -> LotteryForm(
             title = "Edit Lottery",
-            campsites = ownerCampsites,
+            campsites = campsites,
             input = input,
             onInputChange = { input = it },
+            coOwners = coOwners,
+            onAddCoOwner = { email ->
+                controller.addCoOwner(input, email, mainOwnerId)
+                    .onSuccess { input = it; errorMessage = null }
+                    .onFailure { errorMessage = it.message }
+            },
+            onRemoveCoOwner = { input = controller.removeCoOwner(input, it) },
             errorMessage = errorMessage,
             saveLabel = "Save Changes",
             isSaving = isSaving,

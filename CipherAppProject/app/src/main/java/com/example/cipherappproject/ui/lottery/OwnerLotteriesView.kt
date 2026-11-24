@@ -56,7 +56,7 @@ fun OwnerLotteriesView(
         LoadingIndicator()
         return
     }
-    val allMyLotteries = lotteryRepository.getLotteriesFromListByOwnerId(ownerId)
+    val allMyLotteries = lotteryRepository.getLotteriesFromListByAnyOwnerId(ownerId)
     val myLotteries = controller.filterByStatus(allMyLotteries, statusFilter)
 
     Column(

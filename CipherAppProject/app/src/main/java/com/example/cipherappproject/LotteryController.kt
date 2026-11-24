@@ -6,10 +6,12 @@ import com.example.cipherappproject.database.exceptions.PermissionException
 import com.example.cipherappproject.database.exceptions.ValidationException
 import com.example.cipherappproject.database.models.Lottery
 import com.example.cipherappproject.database.provider.RepositoryDatabase
+import com.example.cipherappproject.database.enums.ProfileRole
+import com.example.cipherappproject.database.models.Campsite
 import java.time.LocalDate
 
 /**
- * Handles owner lottery creation and validation for US 02.04.01, 02.04.05, 02.04.07 and 02.04.08
+ * Handles owner lottery creation and validation for US 02.04.01, 02.04.05, 02.04.07, 02.04.08, and 02.05.01
  * Outstanding issues: implement logic and connect shared ownership/persistence
  * interfaces. Date semantics and capacity rules require team agreement.
  */
@@ -26,7 +28,8 @@ class LotteryController {
         startDate: String,
         endDate: String,
         numberOfWinners: Int,
-        capacity: Int? = null
+        capacity: Int? = null,
+        coOwnerIds: List<String> = emptyList()
     ): Lottery {
         require(ownerId.isNotBlank()) { "Missing owner" }
         require(campsiteIds.isNotEmpty()) { "Select at least one campsite" }
@@ -41,7 +44,8 @@ class LotteryController {
             startDate = startDate.trim(),
             endDate = endDate.trim(),
             maxParticipants = capacity ?: LotteryConstants.UNLIMITED_PARTICIPANTS,
-            status = LotteryStatus.OPEN.name
+            status = LotteryStatus.OPEN.name,
+            coOwnerIds = coOwnerIds.toMutableList()
         )
     }
 
@@ -76,7 +80,8 @@ class LotteryController {
                 startDate = input.registrationStart,
                 endDate = input.registrationEnd,
                 numberOfWinners = input.numWinners.trim().toInt(),
-                capacity = parseCapacity(input.capacity)
+                capacity = parseCapacity(input.capacity),
+                coOwnerIds = input.coOwnerIds.toList()
             )
         } catch (error: IllegalArgumentException) {
             onFailure(error.message ?: "Invalid lottery settings.")
@@ -146,6 +151,7 @@ class LotteryController {
 
         return LotteryFormInput(
             campsiteIds = lottery.campsiteIds.toSet(),
+            coOwnerIds = lottery.coOwnerIds.toSet(),
             registrationStart = lottery.startDate,
             registrationEnd = lottery.endDate,
             numWinners = lottery.numWinners.toString(),
@@ -159,7 +165,8 @@ class LotteryController {
             startDate = input.registrationStart.trim(),
             endDate = input.registrationEnd.trim(),
             numWinners = input.numWinners.trim().toInt(),
-            maxParticipants = parseCapacity(input.capacity) ?: LotteryConstants.UNLIMITED_PARTICIPANTS
+            maxParticipants = parseCapacity(input.capacity) ?: LotteryConstants.UNLIMITED_PARTICIPANTS,
+            coOwnerIds = input.coOwnerIds.toMutableList()
         )
     }
 
@@ -177,20 +184,48 @@ class LotteryController {
      */
 
     // TODO (US 02.04.08): also accept campsites owned by lottery.coOwnerIds
-    fun checkCampsiteOwnership(ownerId: String, campsiteIds: Collection<String>): Result<Unit> {
+
+    /*
+    Campsites the owner and co-owners can put in this lottery
+     */
+    fun campsitesForOwners(ownerId: String, coOwnerIds: Collection<String>): List<Campsite> =
+        (listOf(ownerId) + coOwnerIds).distinct()
+            .flatMap { campsiteRepository.getCampsiteFromListByOwnerId(it) }
+
+    // Add a owner with email as a co-owner, or fials with a message to show.
+    fun addCoOwner(input: LotteryFormInput, email: String, ownerId: String): Result<LotteryFormInput> {
+        val profile = RepositoryDatabase.profileRepository.getProfileFromListByEmail(email.trim())
+            ?: return Result.failure(ValidationException("No account uses that email"))
+        return when {
+            profile.profileId == ownerId ->
+                Result.failure(ValidationException("You already own this lottery"))
+            ProfileRole.OWNER.name !in profile.role ->
+                Result.failure(ValidationException("That user is not a campsite owner"))
+            else -> Result.success(input.copy(coOwnerIds = input.coOwnerIds + profile.profileId))
+        }
+    }
+
+    /** Removes a co-owner and unticks their campsites. */
+    fun removeCoOwner(input: LotteryFormInput, coOwnerId: String): LotteryFormInput {
+        val theirs = campsiteRepository.getCampsiteFromListByOwnerId(coOwnerId).map { it.campsiteId }.toSet()
+        return input.copy(coOwnerIds = input.coOwnerIds - coOwnerId, campsiteIds = input.campsiteIds - theirs)
+    }
+
+    fun checkCampsiteOwnership(ownerId: String, campsiteIds: Collection<String>, coOwnerIds: Collection<String> = emptyList()): Result<Unit> {
         if (!campsiteRepository.isCampsitesLoaded.value) {
             return Result.failure(ValidationException("Campsites are still loading. Please try again."))
         }
+        val owners = setOf(ownerId) + coOwnerIds
         val allOwned = campsiteIds.all { id ->
-            campsiteRepository.getCampsiteFromListById(id)?.ownerId == ownerId
+            campsiteRepository.getCampsiteFromListById(id)?.ownerId in owners
         }
         return if (allOwned) Result.success(Unit)
-        else Result.failure(PermissionException("You can only list your own campsites."))
+        else Result.failure(PermissionException("You can only list your own campsites owned by you or your co-owners."))
     }
 
     /** Saves a new lottery after checking campsite ownership. Result holds the new lottery id. */
     fun saveNewLottery(lottery: Lottery, onResult: (Result<String>) -> Unit = {}) {
-        val ownership = checkCampsiteOwnership(lottery.ownerId, lottery.campsiteIds)
+        val ownership = checkCampsiteOwnership(lottery.ownerId, lottery.campsiteIds, lottery.coOwnerIds)
         if (ownership.isFailure) {
             onResult(Result.failure(ownership.exceptionOrNull()!!))
             return
@@ -204,6 +239,7 @@ class LotteryController {
             endDate = lottery.endDate,
             maxParticipants = lottery.maxParticipants ?: LotteryConstants.UNLIMITED_PARTICIPANTS,
             status = lottery.status,
+            coOwnerIds= lottery.coOwnerIds.toMutableList(),
             result = onResult
         )
     }
@@ -241,7 +277,7 @@ class LotteryController {
         val error = validate(input)
         if (error != null) return error
 
-        val ownership = checkCampsiteOwnership(original.ownerId, input.campsiteIds)
+        val ownership = checkCampsiteOwnership(original.ownerId, input.campsiteIds, input.coOwnerIds)
         if (ownership.isFailure) return ownership.exceptionOrNull()?.message
 
         val capacityError = checkCapacityFitsWaitlist(original.lotteryId, parseCapacity(input.capacity))
@@ -326,5 +362,6 @@ data class LotteryFormInput(
     val registrationStart: String = "",
     val registrationEnd: String = "",
     val numWinners: String = "",
-    val capacity: String = ""
+    val capacity: String = "",
+    val coOwnerIds: Set<String> = emptySet()
 )
