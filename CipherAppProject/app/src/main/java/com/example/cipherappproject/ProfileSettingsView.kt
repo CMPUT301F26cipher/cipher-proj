@@ -37,16 +37,24 @@ fun ProfileSettingsView(currentUserId: String) {
             Text("Loading profile...")
             return@Column
         }
-        Switch(
-            checked = profile.notificationsEnabled,
-            onCheckedChange = {enabled ->
-                profileRepository.updateProfile(profile.copy(notificationsEnabled = enabled)) { result ->
-                    result.onFailure {
-                        Toast.makeText(context, "Could not save setting", Toast.LENGTH_SHORT).show()
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("Notifications", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+
+            Switch(
+                checked = profile.notificationsEnabled,
+                onCheckedChange = {enabled ->
+                    profileRepository.updateProfile(profile.copy(notificationsEnabled = enabled)) { result ->
+                        result.onFailure {
+                            Toast.makeText(context, "Could not save setting", Toast.LENGTH_SHORT).show()
+                        }
                     }
-                }
-            },
-            modifier = Modifier.testTag("notificationsSwitch")
-        )
+                },
+                modifier = Modifier.testTag("notificationsSwitch")
+            )
+        }
     }
 }
