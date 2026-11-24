@@ -259,7 +259,8 @@ class LotteryController {
             startDate = input.registrationStart,
             endDate = input.registrationEnd,
             numberOfWinners = input.numWinners.trim().toInt(),
-            capacity = parseCapacity(input.capacity)
+            capacity = parseCapacity(input.capacity),
+            coOwnerIds = input.coOwnerIds.toList()
         )
         saveNewLottery(lottery, onResult)
         return null

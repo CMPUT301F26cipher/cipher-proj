@@ -74,9 +74,6 @@ import com.example.cipherappproject.ui.registration.AccountErrorView
 import com.example.cipherappproject.ui.registration.Registration
 import com.example.cipherappproject.database.provider.RepositoryDatabase
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.runtime.saveable.rememberSaveable
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampsiteApp(){

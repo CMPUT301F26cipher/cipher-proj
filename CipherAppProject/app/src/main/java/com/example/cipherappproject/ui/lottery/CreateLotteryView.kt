@@ -24,10 +24,10 @@ fun CreateLotteryView(
     val controller = remember { LotteryController() }
     // Shared repository; its list is Compose State, so this recomposes once Firestore has loaded
     // val ownerCampsites = RepositoryDatabase.campsiteRepository.getCampsiteFromListByOwnerId(ownerId)
+    var input by remember { mutableStateOf(LotteryFormInput()) }
     val campsites = controller.campsitesForOwners(ownerId, input.coOwnerIds)
     val coOwners = input.coOwnerIds.mapNotNull { RepositoryDatabase.profileRepository.getProfileFromListById(it) }
 
-    var input by remember { mutableStateOf(LotteryFormInput()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     // Blocks repeat taps while a save is in flight, so one tap = one lottery
     var isSaving by remember { mutableStateOf(false) }
