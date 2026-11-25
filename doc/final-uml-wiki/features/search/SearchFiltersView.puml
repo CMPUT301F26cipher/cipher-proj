@@ -1,0 +1,7 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class SearchFiltersView {
+    +SearchFiltersView(searchFilter: SearchFilter, onSearch: (SearchFilter) -> Unit)
+}
+@enduml

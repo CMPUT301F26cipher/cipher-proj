@@ -1,0 +1,12 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class ReservationView {
+    +ReservationScreen(userID: String, isOwner: Boolean, onRateClick: Reservation)
+    +ReservationStatusSelector(selectedStatus: Status, onStatusSelected: Status)
+    +DisplayListContent(reservationsList: ReservationList, status: String, isOwner: Boolean, \ncontroller: ReservationController, userID: String, onRateClick: (Reservation) -> Unit)
+    +ConfirmDialog(title: String, text: String, confirmTag: String, \nonConfirm: () -> Unit, onDismiss: () -> Unit)
+    +ReservationDetail(reservation: Reservation, helpers: ReservationListHelpers, \nonReject: () -> Unit, onBack: () -> Unit)
+    +ReservationRow(imagePath: String, campsiteName: String, userName: String, bookingPeriod: String, \nonCancelClick: () -> Unit, buttonLabel: String, showButton: Boolean, \nonClick: () -> Unit, rateLabel: String, onRateClick: () -> Unit)
+}
+@enduml

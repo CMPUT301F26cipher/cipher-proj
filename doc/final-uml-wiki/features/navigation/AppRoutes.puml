@@ -1,0 +1,13 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+enum UserRole {
+    ENTRANT
+    OWNER
+}
+
+object AppRoutes {
+    +campsite(campsiteId: String): String
+    +notificationsFor(role: UserRole): String
+}
+@enduml

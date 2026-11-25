@@ -1,0 +1,14 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+enum LotteryEntryStatus {
+    REGISTERED
+    WINNER
+    OFFER_PENDING
+    NOT_SELECTED
+    ACCEPTED
+    DECLINED
+    EXPIRED
+    WITHDRAWN
+}
+@enduml

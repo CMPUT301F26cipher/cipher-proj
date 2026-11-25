@@ -1,8 +1,32 @@
 @startuml profile
-!import doc/final-uml-wiki/style.puml
+!include doc/final-uml-wiki/style.puml
 
-!include_once doc/final-uml-wiki/classes/profile/AccountController.puml
-!include_once doc/final-uml-wiki/classes/profile/ProfileMenuView.puml
-!include_once doc/final-uml-wiki/classes/profile/ProfileSettingsView.puml
+!include_once doc/final-uml-wiki/features/profile/AccountController.puml
+!include_once doc/final-uml-wiki/features/profile/ProfileMenuView.puml
+!include_once doc/final-uml-wiki/features/profile/ProfileSettingsView.puml
+
+!include_once doc/final-uml-wiki/database/models/Profile.puml
+!include_once doc/final-uml-wiki/database/models/Device.puml
+
+!include_once doc/final-uml-wiki/database/enums/ProfileRole.puml
+!include_once doc/final-uml-wiki/database/enums/ProfileStatus.puml
+
+!include_once doc/final-uml-wiki/database/repositories/ProfileRepository.puml
+
+ProfileMenuView -left- ProfileMenuItem
+ProfileMenuView -- ProfileSettingsView
+ProfileSettingsView -- AccountController
+
+Profile -- ProfileRole
+Profile -- ProfileStatus
+Profile -- Device
+
+ProfileRepository -- Profile
+
+AccountController -- Profile
+AccountController -- ProfileRepository
+AccountController -- Device
+ProfileMenuView -- Profile
+ProfileSettingsView -- Profile
 
 @enduml

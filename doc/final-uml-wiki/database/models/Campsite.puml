@@ -1,0 +1,29 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class Campsite {
+    +campsiteId: String
+    +ownerId: String
+    +campsiteName: String
+    +mapLocation: List<String>
+    +description: String
+    +amenities: MutableList<String>
+    +maxGuests: Int
+    +pricePerNight: Double
+    +imagePath: String
+    +tags: MutableList<String>
+    +qrCodeImagePath: String
+    +status: String
+    +rules: MutableList<String>
+    +policies: MutableList<String>
+    +createdAt: Timestamp
+    +addCampsiteRule(rule: String)
+    +removeCampsiteRule(rule: String)
+    +addCampsitePolicy(policy: String)
+    +removeCampsitePolicy(policy: String)
+    +addCampsiteAmenity(amenity: String)
+    +removeCampsiteAmenity(amenity: String)
+    +addCampsiteTag(tag: String)
+    +removeCampsiteTag(tag: String)
+}
+@enduml

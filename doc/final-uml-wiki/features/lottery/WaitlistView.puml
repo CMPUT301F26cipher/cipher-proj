@@ -1,0 +1,7 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class WaitlistView {
+    +WaitlistView(lotteryId: String, onBackClick: () -> Unit)
+}
+@enduml

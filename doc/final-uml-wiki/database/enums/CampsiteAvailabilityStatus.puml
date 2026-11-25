@@ -1,0 +1,8 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+enum CampsiteAvailabilityStatus {
+    ACTIVE
+    INACTIVE
+}
+@enduml

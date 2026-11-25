@@ -1,0 +1,18 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class NotificationRepository {
+    +notifications: State<List<Notification>>
+    +isNotificationsLoaded: State<Boolean>
+    +addNotification(eventId: String, eventType: String, toUserId: String, \ntitle: String, message: String, fromUserId: String, result: (Result<String>) -> Unit)
+    +getNotificationById(notificationId: String, result: (Result<Notification>) -> Unit)
+    +updateNotification(notification: Notification, result: (Result<Unit>) -> Unit)
+    +getNotificationFromListById(notificationId: String): Notification
+    +getNotificationsFromListByUserId(userId: String): List<Notification>
+    +getNotificationsFromListBySenderId(senderId: String): List<Notification>
+    +getNotificationsFromListByReadStatus(isRead: Boolean): List<Notification>
+    +getUnreadNotificationsFromListByUserId(userId: String): List<Notification>
+    +getNotificationsFromListByEventId(eventId: String): List<Notification>
+    +getNotificationsFromListByEventType(eventType: String): List<Notification>
+}
+@enduml

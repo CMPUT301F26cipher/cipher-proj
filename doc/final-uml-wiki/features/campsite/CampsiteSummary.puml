@@ -1,0 +1,9 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class CampsiteSummaryView {
+    +averageRating(ratings: List<Rating>): Double
+    +ratingText(ratings: List<Rating>): String
+    +CampsiteSummary(onClick: () -> Unit, campsite: Campsite)
+}
+@enduml

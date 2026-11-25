@@ -1,0 +1,11 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class CampsiteAvailability {
+    +campsiteAvailabilityId: String
+    +campsiteId: String
+    +startDate: String
+    +endDate: String
+    +status: String
+}
+@enduml

@@ -1,0 +1,20 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class LotteryEntryRepository {
+    +lotteries: State<List<LotteryEntry>>
+    +isLotteriesEntriesLoaded: State<Boolean>
+    +addLotteryEntry(lotteryId: String, userId: String, status: String, \npositionLottery: Int, result: (Result<String>) -> Unit)
+    +updateLotteryEntry(lotteryEntry: LotteryEntry, result: (Result<Unit>) -> Unit)
+    +getLotteryEntryById(lotteryEntryId: String, lotteryId: String, \nresult: (Result<LotteryEntry>) -> Unit)
+    +getLotteryEntriesByLotteryId(lotteryId: String, result: (Result<List<LotteryEntry>>) -> Unit)
+    +getLotteryEntryFromListById(lotteryId: String, lotteryEntryId: String): LotteryEntry
+    +getLotteryEntriesFromListByLotteryId(lotteryId: String): List<LotteryEntry>
+    +getLotteryEntriesFromListByUserId(userId: String): List<LotteryEntry>
+    +getLotteryEntriesFromListByStatus(status: String): List<LotteryEntry>
+    +getLotteryEntryFromListByLotteryIdAndUserId(lotteryId: String, userId: String): LotteryEntry
+    +getLotteryEntriesFromListByLotteryIdAndStatus(lotteryId: String, status: String): List<LotteryEntry>
+    +getLotteryEntryFromListByLotteryIdAndPosition(lotteryId: String, position: Int): LotteryEntry
+    +getLotteryEntriesFromListByLotteryIdOrderedByPosition(lotteryId: String): List<LotteryEntry>
+}
+@enduml

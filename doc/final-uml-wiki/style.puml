@@ -6,6 +6,9 @@ hide circle
 skinparam linetype ortho
 hide empty members
 
-' spacing
+' spacing between
 skinparam nodesep 60
-skinparam Ranksep 40
+skinparam Ranksep 80
+
+' spacing within blocks
+skinparam padding 8

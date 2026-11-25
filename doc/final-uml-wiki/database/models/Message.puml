@@ -1,0 +1,12 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class Message {
+    +messageId: String
+    +conversationId: String
+    +fromUserId: String
+    +message: String
+    +createdAt: Timestamp
+    +status: String
+}
+@enduml

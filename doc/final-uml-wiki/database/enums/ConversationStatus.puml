@@ -1,0 +1,10 @@
+cat << 'EOF' > doc/final-uml-wiki/database/enums/ConversationStatus.puml
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+enum ConversationStatus {
+    OPEN
+    CLOSED
+}
+@enduml
+EOF

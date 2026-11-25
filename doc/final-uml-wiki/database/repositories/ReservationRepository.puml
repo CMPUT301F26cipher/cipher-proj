@@ -1,0 +1,18 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class ReservationRepository {
+    +reservations: State<List<Reservation>>
+    +isReservationsLoaded: State<Boolean>
+    +createReservation(userId: String, campsiteId: String, lotteryId: String, \nstatus: String, bookStartDate: String, bookEndDate: String, \npricePerNight: Double, totalPrice: Double, result: (Result<String>) -> Unit)
+    +updateReservation(reservation: Reservation, result: (Result<Unit>) -> Unit)
+    +getReservationById(reservationId: String, result: (Result<Reservation>) -> Unit)
+    +getReservationFromListById(reservationId: String): Reservation
+    +getReservationFromListByUserId(userId: String): List<Reservation>
+    +getReservationsFromListByUserIdAndCampsiteId(userId: String, campsiteId: String): List<Reservation>
+    +getReservationsFromListByCampsiteId(campsiteId: String): List<Reservation>
+    +getReservationsFromListByLotteryId(lotteryId: String): List<Reservation>
+    +getReservationsFromListByStatus(status: String): List<Reservation>
+    +getReservationsFromListActiveOnDate(date: LocalDate): List<Reservation>
+}
+@enduml

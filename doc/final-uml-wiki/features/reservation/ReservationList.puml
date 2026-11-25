@@ -1,0 +1,32 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class ReservationList {
+    +ReservationList(userID: String, isOwner: Boolean)
+    +newestFirst(list: List<Reservation>): List<Reservation>
+    +soonestFirst(list: List<Reservation>): List<Reservation>
+    +cancellationTime(r: Reservation): Timestamp
+    +hasEnded(r: Reservation, today: LocalDate): Boolean
+    +isActive(r: Reservation, today: LocalDate): Boolean
+    +isPast(r: Reservation, today: LocalDate): Boolean
+    +isCancelled(r: Reservation): Boolean
+    +activeOf(list: List<Reservation>, today: LocalDate): List<Reservation>
+    +pastOf(list: List<Reservation>, today: LocalDate): List<Reservation>
+    +cancelledOf(list: List<Reservation>): List<Reservation>
+    +pageCount(itemCount: Int, pageSize: Int): Int
+    +pageOf(items: List<T>, page: Int, pageSize: Int): List<T>
+    +refreshTime()
+    +getNextExpiry(): LocalDate
+    +getCancelledReservations(): List<Reservation>
+    +getActiveReservations(): List<Reservation>
+    +getPastReservations(): List<Reservation>
+}
+
+class ReservationListHelpers {
+    +ReservationListHelpers(reservation: Reservation, isOwner: Boolean)
+    +formattedBookingPeriod(): String
+    +formattedUserName(): String
+    +formattedCampsiteName(): String
+    +getCampsiteImg(): String
+}
+@enduml

@@ -1,0 +1,7 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class SearchException {
+    +SearchException(message: String)
+}
+@enduml

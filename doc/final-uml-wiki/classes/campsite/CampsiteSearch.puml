@@ -1,7 +1,0 @@
-@startuml
-!import doc/final-uml-wiki/style.puml
-
-class CampsiteSearchView {
-    +CampsiteSearch(onNavigateToCampsite: (Campsite) -> Unit)
-}
-@enduml

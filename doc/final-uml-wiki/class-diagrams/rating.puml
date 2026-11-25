@@ -1,9 +1,47 @@
 @startuml rating
-!import doc/final-uml-wiki/style.puml
+!include doc/final-uml-wiki/style.puml
 
-!include_once doc/final-uml-wiki/classes/rating/RateCampsiteView.puml
-!include_once doc/final-uml-wiki/classes/rating/RatingController.puml
-!include_once doc/final-uml-wiki/classes/rating/RatingRoutes.puml
-!include_once doc/final-uml-wiki/classes/rating/RatingRules.puml
+!include_once doc/final-uml-wiki/features/rating/RateCampsiteView.puml
+!include_once doc/final-uml-wiki/features/rating/RatingController.puml
+!include_once doc/final-uml-wiki/features/rating/RatingRoutes.puml
+!include_once doc/final-uml-wiki/features/rating/RatingRules.puml
+
+!include_once doc/final-uml-wiki/database/models/Rating.puml
+!include_once doc/final-uml-wiki/database/models/Campsite.puml
+!include_once doc/final-uml-wiki/database/models/Reservation.puml
+!include_once doc/final-uml-wiki/database/models/Profile.puml
+
+!include_once doc/final-uml-wiki/database/enums/RatingStatus.puml
+!include_once doc/final-uml-wiki/database/enums/ReservationStatus.puml
+
+!include_once doc/final-uml-wiki/database/repositories/RatingRepository.puml
+!include_once doc/final-uml-wiki/database/repositories/CampsiteRepository.puml
+!include_once doc/final-uml-wiki/database/repositories/ReservationRepository.puml
+!include_once doc/final-uml-wiki/database/repositories/ProfileRepository.puml
+
+RatingRoutes -- RatingRoutesView
+RatingRoutesView -left- RateCampsiteView
+RateCampsiteView -left- RatingController
+RateCampsiteView -- RatingRules
+RatingController -- RatingRules
+
+Rating -- RatingStatus
+Rating -- Campsite
+Rating -- Reservation
+Rating -- Profile
+Reservation -- ReservationStatus
+
+RatingRepository -- Rating
+CampsiteRepository -- Campsite
+ReservationRepository -- Reservation
+ProfileRepository -- Profile
+
+RatingController -- Rating
+RatingController -- RatingRepository
+RatingController -- CampsiteRepository
+RatingController -- ReservationRepository
+RateCampsiteView -- Rating
+RateCampsiteView -- Campsite
+RateCampsiteView -- Reservation
 
 @enduml

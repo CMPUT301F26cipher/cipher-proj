@@ -1,0 +1,12 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class SearchFilter {
+    +name: String
+    +location: String
+    +guests: Int
+    +checkIn: LocalDate
+    +checkOut: LocalDate
+    +fromInput(name: String, location: String, guests: String, checkIn: String, checkOut: String): SearchFilter
+}
+@enduml

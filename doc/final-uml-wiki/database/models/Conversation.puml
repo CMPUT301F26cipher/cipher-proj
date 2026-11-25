@@ -1,0 +1,15 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class Conversation {
+    +conversationId: String
+    +campsiteId: String
+    +reservationId: String
+    +ownerId: String
+    +userId: String
+    +createdAt: Timestamp
+    +lastMessage: String
+    +updatedAt: Timestamp
+    +status: String
+}
+@enduml

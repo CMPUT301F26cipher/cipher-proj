@@ -1,0 +1,36 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class LotteryController {
+    +createLottery(ownerId: String, campsiteIds: List<String>, startDate: String, endDate: String, numberOfWinners: Int, capacity: Int): Lottery
+    +createAndSaveLottery(ownerId: String, input: LotteryFormInput, onSuccess: (String) -> Unit, onFailure: (String) -> Unit)
+    +isValidRegistrationPeriod(startDate: String, endDate: String): Boolean
+    +isValidWinnerCount(numberOfWinners: Int): Boolean
+    +isValidCapacity(capacity: Int, numberOfWinners: Int): Boolean
+    +validate(input: LotteryFormInput, today: LocalDate): String
+    +parseCapacity(capacityText: String): Int
+    +canEdit(lottery: Lottery): Boolean
+    +toFormInput(lottery: Lottery): LotteryFormInput
+    +applyChanges(original: Lottery, input: LotteryFormInput): Lottery
+    +loadLottery(lotteryId: String, onResult: (Result<Lottery>) -> Unit)
+    +checkCampsiteOwnership(ownerId: String, campsiteIds: Collection<String>): Result<Unit>
+    +saveNewLottery(lottery: Lottery, onResult: (Result<String>) -> Unit)
+    +createFromForm(ownerId: String, input: LotteryFormInput, onResult: (Result<String>) -> Unit): String
+    +updateLottery(original: Lottery, input: LotteryFormInput, onResult: (Result<Unit>) -> Unit): String
+    +getWaitlistSize(lotteryId: String): Int
+    +isFull(capacity: Int, waitlistSize: Int): Boolean
+    +isWaitlistFull(lottery: Lottery): Boolean
+    +checkCapacityFitsWaitlist(lotteryId: String, capacity: Int): String
+    +capacityBelowWaitlistError(capacity: Int, waitlistSize: Int): String
+    +filterByStatus(lotteries: List<Lottery>, status: String): List<Lottery>
+    +statusText(status: String): String
+}
+
+class LotteryFormInput {
+    +campsiteIds: Set<String>
+    +registrationStart: String
+    +registrationEnd: String
+    +numWinners: String
+    +capacity: String
+}
+@enduml

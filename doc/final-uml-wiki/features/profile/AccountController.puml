@@ -1,0 +1,12 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class AccountController {
+    +isProfilesLoaded(): Boolean
+    +getAccountId(result: (String) -> Unit)
+    +findProfile(deviceId: String): Profile
+    +createEntrantAccount(entrantDetails: EntrantDetails, deviceId: String, result: (Result<String>) -> Unit)
+    +createOwnerAccount(ownerDetails: OwnerDetails, deviceId: String, result: (Result<String>) -> Unit)
+    -createAccount(name: String, email: String, phoneNumber: String, role: ProfileRole, deviceId: String, result: (Result<String>) -> Unit)
+}
+@enduml

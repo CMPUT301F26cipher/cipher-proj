@@ -1,0 +1,9 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+enum RatingStatus {
+    ACTIVE
+    HIDDEN
+    REMOVED
+}
+@enduml

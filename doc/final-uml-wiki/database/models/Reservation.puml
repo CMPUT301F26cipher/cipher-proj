@@ -1,0 +1,17 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class Reservation {
+    +reservationId: String
+    +userId: String
+    +campsiteId: String
+    +lotteryId: String
+    +status: String
+    +createdAt: Timestamp
+    +bookStartDate: String
+    +bookEndDate: String
+    +pricePerNight: Double
+    +totalPrice: Double
+    +cancelledAt: Timestamp
+}
+@enduml

@@ -1,0 +1,32 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class SentNotificationGroup {
+    +eventId: String
+    +title: String
+    +message: String
+    +sentAt: Timestamp
+    +recipientCount: Int
+}
+
+class NotificationController {
+    +RESERVATION_CONFIRMATION_TITLE: String
+    +canNotify(userId: String): Boolean
+    -send(toUserId: String, eventId: String, eventType: NotificationEventType, title: String, message: String, fromUserId: String): Boolean
+    +campsiteNames(lottery: Lottery): String
+    +resultMessage(entry: LotteryEntry, campsiteNames: String): Pair<String, String>
+    +notifyLotteryResults(lottery: Lottery, drawnEntries: List<LotteryEntry>)
+    +validateMessage(title: String, message: String): String
+    +notifyWaitlist(lottery: Lottery, title: String, message: String, senderId: String): Int
+    +getSentNotifications(ownerId: String): List<SentNotificationGroup>
+    +groupSent(sent: List<Notification>): List<SentNotificationGroup>
+    -campsiteName(campsiteId: String): String
+    +reservationConfirmedMessage(campsiteName: String, reservation: Reservation): String
+    +notifyReservationConfirmed(reservation: Reservation)
+    +notifyReservationCancelled(reservation: Reservation, refund: Double)
+    +notifyReservationRejected(reservation: Reservation, refund: Double)
+    +notifyOwnerReservationCancelled(reservation: Reservation)
+    +getReceived(userId: String): List<Notification>
+    +markAsRead(notification: Notification)
+}
+@enduml

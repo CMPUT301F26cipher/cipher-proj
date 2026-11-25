@@ -1,0 +1,13 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class ProfileMenuItem {
+    +label: String
+    +route: String
+}
+
+class ProfileMenuView {
+    +profileMenuItemsFor(role: UserRole): List<ProfileMenuItem>
+    +ProfileMenuView(role: UserRole, onOpen: (String) -> Unit)
+}
+@enduml

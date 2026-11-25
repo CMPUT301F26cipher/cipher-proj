@@ -1,7 +1,20 @@
 @startuml navigation
-!import doc/final-uml-wiki/style.puml
+!include doc/final-uml-wiki/style.puml
 
-!include_once doc/final-uml-wiki/classes/navigation/AppRoutes.puml
-!include_once doc/final-uml-wiki/classes/navigation/BottomBarDestinations.puml
+!include_once doc/final-uml-wiki/features/navigation/AppRoutes.puml
+!include_once doc/final-uml-wiki/features/navigation/BottomBarDestinations.puml
+
+!include_once doc/final-uml-wiki/database/models/Profile.puml
+!include_once doc/final-uml-wiki/database/enums/ProfileRole.puml
+!include_once doc/final-uml-wiki/database/repositories/ProfileRepository.puml
+
+Profile -- ProfileRole
+ProfileRepository -- Profile
+
+AppRoutes -- UserRole
+AppRoutes -- ProfileRole
+BottomBarDestinations -- UserRole
+BottomBarDestinations -- ProfileRole
+BottomBarDestinations -- AppRoutes
 
 @enduml

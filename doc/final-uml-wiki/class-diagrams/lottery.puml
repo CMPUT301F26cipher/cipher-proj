@@ -1,11 +1,81 @@
 @startuml lottery
-!import doc/final-uml-wiki/style.puml
+!include doc/final-uml-wiki/style.puml
 
-!include_once doc/final-uml-wiki/classes/lottery/LotteryBookingController.puml
-!include_once doc/final-uml-wiki/classes/lottery/LotteryConstants.puml
-!include_once doc/final-uml-wiki/classes/lottery/LotteryController.puml
-!include_once doc/final-uml-wiki/classes/lottery/LotteryDrawController.puml
-!include_once doc/final-uml-wiki/classes/lottery/WaitlistController.puml
-!include_once doc/final-uml-wiki/classes/lottery/WaitlistView.puml
+!include_once doc/final-uml-wiki/features/lottery/LotteryBookingController.puml
+!include_once doc/final-uml-wiki/features/lottery/LotteryConstants.puml
+!include_once doc/final-uml-wiki/features/lottery/LotteryController.puml
+!include_once doc/final-uml-wiki/features/lottery/LotteryDrawController.puml
+!include_once doc/final-uml-wiki/features/lottery/WaitlistController.puml
+!include_once doc/final-uml-wiki/features/lottery/WaitlistView.puml
+
+!include_once doc/final-uml-wiki/database/models/Lottery.puml
+!include_once doc/final-uml-wiki/database/models/LotteryEntry.puml
+!include_once doc/final-uml-wiki/database/models/Campsite.puml
+!include_once doc/final-uml-wiki/database/models/CampsiteAvailability.puml
+!include_once doc/final-uml-wiki/database/models/Reservation.puml
+!include_once doc/final-uml-wiki/database/models/Notification.puml
+!include_once doc/final-uml-wiki/database/models/Profile.puml
+
+!include_once doc/final-uml-wiki/database/enums/LotteryStatus.puml
+!include_once doc/final-uml-wiki/database/enums/LotteryEntryStatus.puml
+!include_once doc/final-uml-wiki/database/enums/ReservationStatus.puml
+!include_once doc/final-uml-wiki/database/enums/NotificationEventType.puml
+
+!include_once doc/final-uml-wiki/database/repositories/LotteryRepository.puml
+!include_once doc/final-uml-wiki/database/repositories/LotteryEntryRepository.puml
+!include_once doc/final-uml-wiki/database/repositories/CampsiteRepository.puml
+!include_once doc/final-uml-wiki/database/repositories/ReservationRepository.puml
+!include_once doc/final-uml-wiki/database/repositories/NotificationRepository.puml
+!include_once doc/final-uml-wiki/database/repositories/ProfileRepository.puml
+
+WaitlistView -- WaitlistController
+WaitlistController -right- JoinResult
+WaitlistController -- LotteryController
+LotteryController -- LotteryFormInput
+LotteryController -- LotteryConstants
+
+Lottery -- LotteryStatus
+Lottery -- LotteryEntry
+LotteryEntry -- LotteryEntryStatus
+Lottery -- Campsite
+Campsite -- CampsiteAvailability
+Lottery -- Reservation
+Reservation -- ReservationStatus
+Notification -- NotificationEventType
+
+LotteryRepository -- Lottery
+LotteryEntryRepository -- LotteryEntry
+CampsiteRepository -- Campsite
+ReservationRepository -- Reservation
+NotificationRepository -- Notification
+ProfileRepository -- Profile
+
+LotteryController -- Lottery
+LotteryController -- LotteryRepository
+
+LotteryDrawController -- Lottery
+LotteryDrawController -- LotteryEntry
+LotteryDrawController -- LotteryRepository
+LotteryDrawController -- LotteryEntryRepository
+LotteryDrawController -- NotificationRepository
+LotteryDrawController -- LotteryConstants
+
+LotteryBookingController -- Lottery
+LotteryBookingController -- LotteryEntry
+LotteryBookingController -- Reservation
+LotteryBookingController -- CampsiteAvailability
+LotteryBookingController -- LotteryEntryRepository
+LotteryBookingController -- ReservationRepository
+LotteryBookingController -- CampsiteRepository
+
+WaitlistController -- Lottery
+WaitlistController -- LotteryEntry
+WaitlistController -- Profile
+WaitlistController -- LotteryRepository
+WaitlistController -- LotteryEntryRepository
+WaitlistController -- ProfileRepository
+
+WaitlistView -- LotteryEntry
+WaitlistView -- Profile
 
 @enduml

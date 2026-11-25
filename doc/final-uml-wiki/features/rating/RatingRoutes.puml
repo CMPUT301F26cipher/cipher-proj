@@ -1,0 +1,11 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+object RatingRoutes {
+    +rate(reservationId: String): String
+}
+
+class RatingRoutesView {
+    +ratingScreens(navController: NavController, currentUserId: String)
+}
+@enduml

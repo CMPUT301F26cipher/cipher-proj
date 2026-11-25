@@ -1,0 +1,15 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class Notification {
+    +notificationId: String
+    +eventId: String
+    +eventType: String
+    +toUserId: String
+    +fromUserId: String
+    +title: String
+    +message: String
+    +createdAt: Timestamp
+    +isRead: Boolean
+}
+@enduml

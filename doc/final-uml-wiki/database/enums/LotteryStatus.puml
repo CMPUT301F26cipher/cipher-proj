@@ -1,0 +1,10 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+enum LotteryStatus {
+    OPEN
+    CANCELLED
+    COMPLETED
+    PROCESSING
+}
+@enduml

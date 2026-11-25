@@ -1,7 +1,7 @@
 citations for final uml wiki
 
 Google, Gemini Hydrogen, "using template i made, i will give you code for a file. please compile it in the same way @startuml
-!import doc/final-uml-wiki/style.puml
+!include doc/final-uml-wiki/style.puml
 
 class reservationView {
     +ReservationScreen(userID: String, isOwner: Boolean, onRateClick: Reservation)

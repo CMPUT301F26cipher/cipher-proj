@@ -1,6 +1,0 @@
-@startuml policy
-!import doc/final-uml-wiki/style.puml
-
-!include_once doc/final-uml-wiki/classes/policy/PolicyView.puml
-
-@enduml

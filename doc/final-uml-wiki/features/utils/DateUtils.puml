@@ -1,0 +1,11 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+object DateUtils {
+    +parse(text: String): LocalDate
+    +display(date: LocalDate): String
+    +toUtcMillis(date: LocalDate): Long
+    +fromUtcMillis(millis: Long): LocalDate
+    +nightsBetween(start: LocalDate, end: LocalDate): List<LocalDate>
+}
+@enduml

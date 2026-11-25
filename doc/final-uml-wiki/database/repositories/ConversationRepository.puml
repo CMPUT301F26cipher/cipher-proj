@@ -1,0 +1,20 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class ConversationRepository {
+    +conversations: State<List<Conversation>>
+    +isConversationsLoaded: State<Boolean>
+    +addConversation(campsiteId: String, reservationId: String, ownerId: String, \nuserId: String, lastMessage: String, status: String, result: (Result<String>) -> Unit)
+    +getConversationById(conversationId: String, result: (Result<Conversation>) -> Unit)
+    +updateConversation(conversation: Conversation, result: (Result<Unit>) -> Unit)
+    +getConversationFromListById(conversationId: String): Conversation
+    +getConversationFromListByReservationId(reservationId: String): Conversation
+    +getConversationsFromListByCampsiteId(campsiteId: String): List<Conversation>
+    +getConversationsFromListByOwnerId(ownerId: String): List<Conversation>
+    +getConversationsFromListByUserId(userId: String): List<Conversation>
+    +getConversationsFromListByStatus(status: String): List<Conversation>
+    +getOpenConversationsFromListByUserId(userId: String): List<Conversation>
+    +getOpenConversationsFromListByOwnerId(ownerId: String): List<Conversation>
+    +getConversationsFromListByUserIdSorted(userId: String): List<Conversation>
+}
+@enduml

@@ -1,0 +1,19 @@
+@startuml
+!include doc/final-uml-wiki/style.puml
+
+class CampsiteAvailabilityRepository {
+    +campsitesAvailability: State<List<CampsiteAvailability>>
+    +isCampsiteAvailabilitiesLoaded: State<Boolean>
+    +CampsiteAvailabilityRepository(reservationRepository: ReservationRepository)
+    +createCampsiteAvailability(campsiteId: String, startDate: String, endDate: String, status: String, result: (Result<String>) -> Unit)
+    +updateCampsiteAvailability(campsiteAvailability: CampsiteAvailability, result: (Result<Unit>) -> Unit)
+    +getCampsiteAvailabilityById(campsiteAvailabilityId: String, campsiteId: String, result: (Result<CampsiteAvailability>) -> Unit)
+    +getAvailabilitiesByCampsiteId(campsiteId: String, result: (Result<List<CampsiteAvailability>>) -> Unit)
+    +getCampsiteAvailabilityFromListById(campsiteId: String, campsiteAvailabilityId: String): CampsiteAvailability
+    +getCampsiteAvailabilitiesFromListByCampsiteId(campsiteId: String): List<CampsiteAvailability>
+    +getCampsiteAvailabilitiesFromListActiveOnDate(date: LocalDate): List<CampsiteAvailability>
+    +getCampsiteAvailabilitiesFromListByStatus(status: String): List<CampsiteAvailability>
+    +getCampsiteAvailabilitiesFromListByCampsiteIdAndStatus(campsiteId: String, status: String): List<CampsiteAvailability>
+    +getAvailableBookingDates(campsiteId: String): List<LocalDate>
+}
+@enduml
