@@ -1,0 +1,17 @@
+@startuml
+!include ../../style.puml
+
+class RatingRepository {
+    +ratings: State<List<Rating>>
+    +isRatingsLoaded: State<Boolean>
+    +addRating(userId: String, campsiteId: String, reservationId: String, \nreview: String, rating: Double, status: String, result: (Result<String>) -> Unit)
+    +getRatingById(ratingId: String, result: (Result<Rating>) -> Unit)
+    +updateRating(rating: Rating, result: (Result<Unit>) -> Unit)
+    +getRatingFromListById(ratingId: String): Rating
+    +getRatingsFromListByCampsiteId(campsiteId: String): List<Rating>
+    +getRatingsFromListByReservationId(reservationId: String): List<Rating>
+    +getRatingsFromListByUserId(userId: String): List<Rating>
+    +getRatingsFromListByStatus(status: String): List<Rating>
+    +getRatingsFromListByCampsiteIdSorted(campsiteId: String): List<Rating>
+}
+@enduml

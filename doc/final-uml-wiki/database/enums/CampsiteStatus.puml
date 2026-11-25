@@ -1,0 +1,8 @@
+@startuml
+!include ../../style.puml
+
+enum CampsiteStatus {
+    ACTIVE
+    INACTIVE
+}
+@enduml

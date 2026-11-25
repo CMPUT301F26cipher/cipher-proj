@@ -1,0 +1,16 @@
+@startuml
+!include ../../style.puml
+
+class Profile {
+    +profileId: String
+    +name: String
+    +email: String
+    +role: List<String>
+    +imageProfilePath: String
+    +deviceId: String
+    +status: String
+    +phoneNumber: String
+    +notificationsEnabled: Boolean
+    +createdAt: Timestamp
+}
+@enduml

@@ -1,0 +1,18 @@
+@startuml
+!include ../../style.puml
+
+class Lottery {
+    +lotteryId: String
+    +ownerId: String
+    +coOwnerIds: MutableList<String>
+    +campsiteIds: MutableList<String>
+    +numWinners: Int
+    +startDate: String
+    +endDate: String
+    +maxParticipants: Int
+    +status: String
+    +createdAt: Timestamp
+    +addCampsiteIds(campsiteId: String)
+    +removeCampsiteIds(campsiteId: String)
+}
+@enduml

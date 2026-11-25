@@ -1,0 +1,10 @@
+@startuml
+!include ../../style.puml
+
+enum NotificationEventType {
+    CAMPSITE
+    RESERVATION
+    LOTTERY
+    SYSTEM
+}
+@enduml

@@ -1,0 +1,7 @@
+@startuml
+!include ../../style.puml
+
+class ProfileSettingsView {
+    +ProfileSettingsView(currentUserId: String)
+}
+@enduml

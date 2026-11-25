@@ -1,0 +1,32 @@
+@startuml notification
+!include ../style.puml
+
+!include_once ../features/notification/NotificationController.puml
+!include_once ../features/notification/NotificationView.puml
+
+!include_once ../database/models/Notification.puml
+!include_once ../database/models/Device.puml
+!include_once ../database/models/Profile.puml
+
+!include_once ../database/enums/NotificationEventType.puml
+
+!include_once ../database/repositories/NotificationRepository.puml
+!include_once ../database/repositories/ProfileRepository.puml
+
+Notification -- NotificationEventType
+Profile -- Device
+
+NotificationRepository -- Notification
+ProfileRepository -- Profile
+
+NotificationView -- NotificationController
+NotificationController -- SentNotificationGroup
+NotificationView -- SentNotificationGroup
+
+NotificationController -- Notification
+NotificationController -- NotificationRepository
+NotificationController -- ProfileRepository
+NotificationController -- Device
+NotificationView -- Notification
+
+@enduml

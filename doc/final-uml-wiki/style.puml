@@ -1,0 +1,14 @@
+' make it show plain +, -, # attributes
+skinparam ClassAttributeIconSize 0
+' hide C
+hide circle
+' make right angle lines
+skinparam linetype ortho
+hide empty members
+
+' spacing between
+skinparam nodesep 60
+skinparam Ranksep 80
+
+' spacing within blocks
+skinparam padding 8

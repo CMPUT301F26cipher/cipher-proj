@@ -1,0 +1,27 @@
+@startuml
+!include ../../style.puml
+
+class LotteryBookingController {
+    +canBook(entry: LotteryEntry): Boolean
+    +getCampsiteChoices(lottery: Lottery): List<String>
+    +selectCampsite(lottery: Lottery, campsiteId: String)
+    +isAvailabilityLoaded(): Boolean
+    +getAvailableDates(campsiteId: String, today: LocalDate): List<String>
+    +validateSelection(lottery: Lottery): String
+    +validateSelection(lottery: Lottery, available: List<String>): String
+    +selectDate(date: String): Boolean
+    +selectDate(date: String, available: List<String>): Boolean
+    +deselectDate(date: String): Boolean
+    +selectRange(start: String, end: String): String
+    +selectRange(start: String, end: String, available: List<String>): String
+    +getSelectedCampsiteId(): String
+    +getSelectedDates(): Set<String>
+    +clearSelectedDates()
+    -isNextToSelection(date: String): Boolean
+    +getStay(): Pair<String, String>
+    +getLottery(lotteryId: String): Lottery
+    +getEntry(lotteryId: String, entrantId: String): LotteryEntry
+    +declineOffer(entry: LotteryEntry, onResult: (Result<Unit>) -> Unit)
+    +reserve(lottery: Lottery, entry: LotteryEntry, onResult: (Result<Unit>) -> Unit)
+}
+@enduml

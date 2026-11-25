@@ -1,0 +1,47 @@
+@startuml rating
+!include ../style.puml
+
+!include_once ../features/rating/RateCampsiteView.puml
+!include_once ../features/rating/RatingController.puml
+!include_once ../features/rating/RatingRoutes.puml
+!include_once ../features/rating/RatingRules.puml
+
+!include_once ../database/models/Rating.puml
+!include_once ../database/models/Campsite.puml
+!include_once ../database/models/Reservation.puml
+!include_once ../database/models/Profile.puml
+
+!include_once ../database/enums/RatingStatus.puml
+!include_once ../database/enums/ReservationStatus.puml
+
+!include_once ../database/repositories/RatingRepository.puml
+!include_once ../database/repositories/CampsiteRepository.puml
+!include_once ../database/repositories/ReservationRepository.puml
+!include_once ../database/repositories/ProfileRepository.puml
+
+RatingRoutes -- RatingRoutesView
+RatingRoutesView -left- RateCampsiteView
+RateCampsiteView -left- RatingController
+RateCampsiteView -- RatingRules
+RatingController -- RatingRules
+
+Rating -- RatingStatus
+Rating -- Campsite
+Rating -- Reservation
+Rating -- Profile
+Reservation -- ReservationStatus
+
+RatingRepository -- Rating
+CampsiteRepository -- Campsite
+ReservationRepository -- Reservation
+ProfileRepository -- Profile
+
+RatingController -- Rating
+RatingController -- RatingRepository
+RatingController -- CampsiteRepository
+RatingController -- ReservationRepository
+RateCampsiteView -- Rating
+RateCampsiteView -- Campsite
+RateCampsiteView -- Reservation
+
+@enduml

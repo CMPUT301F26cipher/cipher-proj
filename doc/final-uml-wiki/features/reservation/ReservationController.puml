@@ -1,0 +1,10 @@
+@startuml
+!include ../../style.puml
+
+class ReservationController {
+    +forbidsRefunds(policy: String): Boolean
+    +refundFor(reservation: Reservation, policies: List<String>, today: LocalDate): Double
+    +reject(reservation: Reservation, onResult: (Result<Double>) -> Unit)
+    +cancel(reservation: Reservation, onResult: (Result<Double>) -> Unit)
+}
+@enduml

@@ -1,0 +1,11 @@
+@startuml
+!include ../../style.puml
+
+class LotteryEntry {
+    +lotteryEntryId: String
+    +lotteryId: String
+    +userId: String
+    +status: String
+    +positionLottery: Int
+}
+@enduml

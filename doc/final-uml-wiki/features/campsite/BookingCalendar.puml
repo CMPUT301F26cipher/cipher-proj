@@ -1,0 +1,12 @@
+@startuml
+!include ../../style.puml
+
+object BookingCalendar {
+    +bookedCounts(reservations: List<Reservation>, campsiteIds: Set<String>, month: YearMonth): Map<LocalDate, Int>
+}
+
+class BookingCalendarView {
+    +OwnerBookingCalendar(ownerId: String, onBack: () -> Unit)
+    -DayCell(day: Int, booked: Int, total: Int, modifier: Modifier)
+}
+@enduml

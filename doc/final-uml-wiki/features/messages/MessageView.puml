@@ -1,0 +1,7 @@
+@startuml
+!include ../../style.puml
+
+class MessageView {
+    +MessageView()
+}
+@enduml

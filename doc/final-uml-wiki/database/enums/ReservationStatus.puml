@@ -1,0 +1,11 @@
+@startuml
+!include ../../style.puml
+
+enum ReservationStatus {
+    CANCELED
+    PAST
+    ACTIVE
+    PENDING
+    REJECTED
+}
+@enduml

@@ -1,0 +1,7 @@
+@startuml
+!include ../../style.puml
+
+class CampsiteReviewsSectionView {
+    +CampsiteReviewsSection(campsiteId: String)
+}
+@enduml
