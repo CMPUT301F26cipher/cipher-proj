@@ -23,3 +23,13 @@ For QR Code:
 - zebra crossing library (works for java but maybe kotlin)
 - shira, sofia will be working on image integration
 - shira will work on QR Code intergration
+
+TASK DIST.
+- QR code: Shira
+- Image integration: Sofia & Shira
+- Admin: Madison (with some distribution of functionality based on previously assigned features - already done on backlog)
+- Profile final touches: Madison
+- Navigation final touches: Neth
+- Map integration: Neth
+- Messages: Sofia
+- Documentation & UI redesign: Shira
