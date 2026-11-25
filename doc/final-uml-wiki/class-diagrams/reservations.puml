@@ -1,27 +1,27 @@
 @startuml reservations
-!include doc/final-uml-wiki/style.puml
+!include ../style.puml
 
-!include_once doc/final-uml-wiki/features/reservation/ReservationConfirmation.puml
-!include_once doc/final-uml-wiki/features/reservation/ReservationController.puml
-!include_once doc/final-uml-wiki/features/reservation/ReservationCsv.puml
-!include_once doc/final-uml-wiki/features/reservation/ReservationList.puml
-!include_once doc/final-uml-wiki/features/reservation/ReservationView.puml
+!include_once ../features/reservation/ReservationConfirmation.puml
+!include_once ../features/reservation/ReservationController.puml
+!include_once ../features/reservation/ReservationCsv.puml
+!include_once ../features/reservation/ReservationList.puml
+!include_once ../features/reservation/ReservationView.puml
 
-!include_once doc/final-uml-wiki/database/models/Reservation.puml
-!include_once doc/final-uml-wiki/database/models/Campsite.puml
-!include_once doc/final-uml-wiki/database/models/CampsiteAvailability.puml
-!include_once doc/final-uml-wiki/database/models/Profile.puml
-!include_once doc/final-uml-wiki/database/models/Lottery.puml
-!include_once doc/final-uml-wiki/database/models/LotteryEntry.puml
+!include_once ../database/models/Reservation.puml
+!include_once ../database/models/Campsite.puml
+!include_once ../database/models/CampsiteAvailability.puml
+!include_once ../database/models/Profile.puml
+!include_once ../database/models/Lottery.puml
+!include_once ../database/models/LotteryEntry.puml
 
-!include_once doc/final-uml-wiki/database/enums/ReservationStatus.puml
-!include_once doc/final-uml-wiki/database/enums/CampsiteAvailabilityStatus.puml
+!include_once ../database/enums/ReservationStatus.puml
+!include_once ../database/enums/CampsiteAvailabilityStatus.puml
 
-!include_once doc/final-uml-wiki/database/repositories/ReservationRepository.puml
-!include_once doc/final-uml-wiki/database/repositories/CampsiteRepository.puml
-!include_once doc/final-uml-wiki/database/repositories/ProfileRepository.puml
-!include_once doc/final-uml-wiki/database/repositories/LotteryRepository.puml
-!include_once doc/final-uml-wiki/database/repositories/LotteryEntryRepository.puml
+!include_once ../database/repositories/ReservationRepository.puml
+!include_once ../database/repositories/CampsiteRepository.puml
+!include_once ../database/repositories/ProfileRepository.puml
+!include_once ../database/repositories/LotteryRepository.puml
+!include_once ../database/repositories/LotteryEntryRepository.puml
 
 ReservationView -left- ReservationController
 ReservationView -- ReservationList

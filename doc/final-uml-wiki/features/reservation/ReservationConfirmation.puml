@@ -1,5 +1,5 @@
 @startuml
-!include doc/final-uml-wiki/style.puml
+!include ../../style.puml
 
 object ReservationConfirmation {
     +find(reservations: List<Reservation>, userId: String, lotteryId: String): Reservation

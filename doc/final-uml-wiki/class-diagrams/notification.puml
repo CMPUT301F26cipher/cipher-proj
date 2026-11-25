@@ -1,17 +1,17 @@
 @startuml notification
-!include doc/final-uml-wiki/style.puml
+!include ../style.puml
 
-!include_once doc/final-uml-wiki/features/notification/NotificationController.puml
-!include_once doc/final-uml-wiki/features/notification/NotificationView.puml
+!include_once ../features/notification/NotificationController.puml
+!include_once ../features/notification/NotificationView.puml
 
-!include_once doc/final-uml-wiki/database/models/Notification.puml
-!include_once doc/final-uml-wiki/database/models/Device.puml
-!include_once doc/final-uml-wiki/database/models/Profile.puml
+!include_once ../database/models/Notification.puml
+!include_once ../database/models/Device.puml
+!include_once ../database/models/Profile.puml
 
-!include_once doc/final-uml-wiki/database/enums/NotificationEventType.puml
+!include_once ../database/enums/NotificationEventType.puml
 
-!include_once doc/final-uml-wiki/database/repositories/NotificationRepository.puml
-!include_once doc/final-uml-wiki/database/repositories/ProfileRepository.puml
+!include_once ../database/repositories/NotificationRepository.puml
+!include_once ../database/repositories/ProfileRepository.puml
 
 Notification -- NotificationEventType
 Profile -- Device

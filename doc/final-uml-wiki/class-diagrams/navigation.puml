@@ -1,12 +1,12 @@
 @startuml navigation
-!include doc/final-uml-wiki/style.puml
+!include ../style.puml
 
-!include_once doc/final-uml-wiki/features/navigation/AppRoutes.puml
-!include_once doc/final-uml-wiki/features/navigation/BottomBarDestinations.puml
+!include_once ../features/navigation/AppRoutes.puml
+!include_once ../features/navigation/BottomBarDestinations.puml
 
-!include_once doc/final-uml-wiki/database/models/Profile.puml
-!include_once doc/final-uml-wiki/database/enums/ProfileRole.puml
-!include_once doc/final-uml-wiki/database/repositories/ProfileRepository.puml
+!include_once ../database/models/Profile.puml
+!include_once ../database/enums/ProfileRole.puml
+!include_once ../database/repositories/ProfileRepository.puml
 
 Profile -- ProfileRole
 ProfileRepository -- Profile

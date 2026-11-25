@@ -1,17 +1,17 @@
 @startuml search
-!include doc/final-uml-wiki/style.puml
+!include ../style.puml
 
-!include_once doc/final-uml-wiki/features/search/SearchFilter.puml
-!include_once doc/final-uml-wiki/features/search/SearchFiltersView.puml
-!include_once doc/final-uml-wiki/features/exceptions/SearchException.puml
+!include_once ../features/search/SearchFilter.puml
+!include_once ../features/search/SearchFiltersView.puml
+!include_once ../features/exceptions/SearchException.puml
 
-!include_once doc/final-uml-wiki/database/models/Campsite.puml
-!include_once doc/final-uml-wiki/database/models/CampsiteAvailability.puml
+!include_once ../database/models/Campsite.puml
+!include_once ../database/models/CampsiteAvailability.puml
 
-!include_once doc/final-uml-wiki/database/enums/CampsiteStatus.puml
-!include_once doc/final-uml-wiki/database/enums/CampsiteAvailabilityStatus.puml
+!include_once ../database/enums/CampsiteStatus.puml
+!include_once ../database/enums/CampsiteAvailabilityStatus.puml
 
-!include_once doc/final-uml-wiki/database/repositories/CampsiteRepository.puml
+!include_once ../database/repositories/CampsiteRepository.puml
 
 SearchFiltersView -- SearchFilter
 SearchFilter -- SearchException

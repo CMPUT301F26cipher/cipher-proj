@@ -1,32 +1,32 @@
 @startuml campsite
-!include doc/final-uml-wiki/style.puml
+!include ../style.puml
 
-!include_once doc/final-uml-wiki/features/campsite/BookingCalendar.puml
-!include_once doc/final-uml-wiki/features/campsite/CampsiteListFromFilters.puml
-!include_once doc/final-uml-wiki/features/campsite/CampsiteSearch.puml
-!include_once doc/final-uml-wiki/features/campsite/CampsiteSummary.puml
-!include_once doc/final-uml-wiki/features/campsite/EntrantCampsiteView.puml
-!include_once doc/final-uml-wiki/features/campsite/OwnerOverview.puml
+!include_once ../features/campsite/BookingCalendar.puml
+!include_once ../features/campsite/CampsiteListFromFilters.puml
+!include_once ../features/campsite/CampsiteSearch.puml
+!include_once ../features/campsite/CampsiteSummary.puml
+!include_once ../features/campsite/EntrantCampsiteView.puml
+!include_once ../features/campsite/OwnerOverview.puml
 
-!include_once doc/final-uml-wiki/database/models/Campsite.puml
-!include_once doc/final-uml-wiki/database/models/CampsiteAvailability.puml
-!include_once doc/final-uml-wiki/database/models/Rating.puml
-!include_once doc/final-uml-wiki/database/models/Reservation.puml
-!include_once doc/final-uml-wiki/database/models/Lottery.puml
-!include_once doc/final-uml-wiki/database/models/LotteryEntry.puml
+!include_once ../database/models/Campsite.puml
+!include_once ../database/models/CampsiteAvailability.puml
+!include_once ../database/models/Rating.puml
+!include_once ../database/models/Reservation.puml
+!include_once ../database/models/Lottery.puml
+!include_once ../database/models/LotteryEntry.puml
 
-!include_once doc/final-uml-wiki/database/enums/CampsiteStatus.puml
-!include_once doc/final-uml-wiki/database/enums/CampsiteAvailabilityStatus.puml
-!include_once doc/final-uml-wiki/database/enums/RatingStatus.puml
-!include_once doc/final-uml-wiki/database/enums/ReservationStatus.puml
-!include_once doc/final-uml-wiki/database/enums/LotteryStatus.puml
-!include_once doc/final-uml-wiki/database/enums/LotteryEntryStatus.puml
+!include_once ../database/enums/CampsiteStatus.puml
+!include_once ../database/enums/CampsiteAvailabilityStatus.puml
+!include_once ../database/enums/RatingStatus.puml
+!include_once ../database/enums/ReservationStatus.puml
+!include_once ../database/enums/LotteryStatus.puml
+!include_once ../database/enums/LotteryEntryStatus.puml
 
-!include_once doc/final-uml-wiki/database/repositories/CampsiteRepository.puml
-!include_once doc/final-uml-wiki/database/repositories/RatingRepository.puml
-!include_once doc/final-uml-wiki/database/repositories/ReservationRepository.puml
-!include_once doc/final-uml-wiki/database/repositories/LotteryRepository.puml
-!include_once doc/final-uml-wiki/database/repositories/LotteryEntryRepository.puml
+!include_once ../database/repositories/CampsiteRepository.puml
+!include_once ../database/repositories/RatingRepository.puml
+!include_once ../database/repositories/ReservationRepository.puml
+!include_once ../database/repositories/LotteryRepository.puml
+!include_once ../database/repositories/LotteryEntryRepository.puml
 
 BookingCalendarView -- BookingCalendar
 CampsiteSearchView -- CampsiteSummaryView

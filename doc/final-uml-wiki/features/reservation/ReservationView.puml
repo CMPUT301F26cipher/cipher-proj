@@ -1,5 +1,5 @@
 @startuml
-!include doc/final-uml-wiki/style.puml
+!include ../../style.puml
 
 class ReservationView {
     +ReservationScreen(userID: String, isOwner: Boolean, onRateClick: Reservation)

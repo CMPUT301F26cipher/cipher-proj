@@ -1,5 +1,5 @@
 @startuml
-!include doc/final-uml-wiki/style.puml
+!include ../../style.puml
 
 class LotteryController {
     +createLottery(ownerId: String, campsiteIds: List<String>, startDate: String, endDate: String, numberOfWinners: Int, capacity: Int): Lottery

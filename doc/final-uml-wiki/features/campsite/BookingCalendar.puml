@@ -1,5 +1,5 @@
 @startuml
-!include doc/final-uml-wiki/style.puml
+!include ../../style.puml
 
 object BookingCalendar {
     +bookedCounts(reservations: List<Reservation>, campsiteIds: Set<String>, month: YearMonth): Map<LocalDate, Int>
