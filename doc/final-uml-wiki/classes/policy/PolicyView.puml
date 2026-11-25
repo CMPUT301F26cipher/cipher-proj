@@ -1,0 +1,7 @@
+@startuml
+!import doc/final-uml-wiki/style.puml
+
+class PolicyView {
+    +PolicyView()
+}
+@enduml

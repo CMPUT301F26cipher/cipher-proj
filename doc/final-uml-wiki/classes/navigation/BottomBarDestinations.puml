@@ -1,0 +1,14 @@
+@startuml
+!import doc/final-uml-wiki/style.puml
+
+enum BottomBarDestinations {
+    SEARCH
+    PROFILE
+    ENTRANT_RESERVATIONS
+    MESSAGES
+    OWNER_CAMPSITES
+    OWNER_LOTTERIES
+    OWNER_RESERVATIONS
+    +tabsFor(role: UserRole): List<BottomBarDestinations>
+}
+@enduml

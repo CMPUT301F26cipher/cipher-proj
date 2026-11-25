@@ -1,0 +1,10 @@
+@startuml
+!import doc/final-uml-wiki/style.puml
+
+class NotificationView {
+    -formatTime(time: Timestamp): String
+    +NotificationView(currentUserId: String, onViewReservations: () -> Unit)
+    +SentNotificationView(ownerId: String)
+    +SendNotificationDialog(lottery: Lottery, senderId: String, onDismiss: () -> Unit)
+}
+@enduml
