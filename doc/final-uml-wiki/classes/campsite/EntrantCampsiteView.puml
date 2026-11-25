@@ -1,0 +1,7 @@
+@startuml
+!import doc/final-uml-wiki/style.puml
+
+class EntrantCampsiteView {
+    +EntrantCampsiteView(campsiteId: String, entrantId: String)
+}
+@enduml

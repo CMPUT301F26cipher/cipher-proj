@@ -1,0 +1,7 @@
+@startuml
+!import doc/final-uml-wiki/style.puml
+
+class OwnerOverviewView {
+    +OwnerOverview(ownerId: String, onRegisterClick: () -> Unit, onCampsiteClick: (Campsite) -> Unit)
+}
+@enduml
