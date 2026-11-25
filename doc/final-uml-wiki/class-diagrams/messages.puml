@@ -1,0 +1,6 @@
+@startuml messages
+!import doc/final-uml-wiki/style.puml
+
+!include_once doc/final-uml-wiki/classes/messages/MessageView.puml
+
+@enduml

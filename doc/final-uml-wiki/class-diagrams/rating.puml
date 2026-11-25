@@ -1,0 +1,9 @@
+@startuml rating
+!import doc/final-uml-wiki/style.puml
+
+!include_once doc/final-uml-wiki/classes/rating/RateCampsiteView.puml
+!include_once doc/final-uml-wiki/classes/rating/RatingController.puml
+!include_once doc/final-uml-wiki/classes/rating/RatingRoutes.puml
+!include_once doc/final-uml-wiki/classes/rating/RatingRules.puml
+
+@enduml

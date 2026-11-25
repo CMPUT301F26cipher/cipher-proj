@@ -1,0 +1,7 @@
+@startuml notification
+!import doc/final-uml-wiki/style.puml
+
+!include_once doc/final-uml-wiki/classes/notification/NotificationController.puml
+!include_once doc/final-uml-wiki/classes/notification/NotificationView.puml
+
+@enduml

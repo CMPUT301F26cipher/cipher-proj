@@ -1,0 +1,11 @@
+@startuml lottery
+!import doc/final-uml-wiki/style.puml
+
+!include_once doc/final-uml-wiki/classes/lottery/LotteryBookingController.puml
+!include_once doc/final-uml-wiki/classes/lottery/LotteryConstants.puml
+!include_once doc/final-uml-wiki/classes/lottery/LotteryController.puml
+!include_once doc/final-uml-wiki/classes/lottery/LotteryDrawController.puml
+!include_once doc/final-uml-wiki/classes/lottery/WaitlistController.puml
+!include_once doc/final-uml-wiki/classes/lottery/WaitlistView.puml
+
+@enduml

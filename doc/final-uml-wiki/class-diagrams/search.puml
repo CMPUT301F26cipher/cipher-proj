@@ -1,0 +1,8 @@
+@startuml search
+!import doc/final-uml-wiki/style.puml
+
+!include_once doc/final-uml-wiki/classes/search/SearchFilter.puml
+!include_once doc/final-uml-wiki/classes/search/SearchFiltersView.puml
+!include_once doc/final-uml-wiki/classes/exceptions/SearchException.puml
+
+@enduml

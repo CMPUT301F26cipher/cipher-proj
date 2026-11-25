@@ -1,0 +1,7 @@
+@startuml navigation
+!import doc/final-uml-wiki/style.puml
+
+!include_once doc/final-uml-wiki/classes/navigation/AppRoutes.puml
+!include_once doc/final-uml-wiki/classes/navigation/BottomBarDestinations.puml
+
+@enduml

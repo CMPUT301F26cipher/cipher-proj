@@ -1,0 +1,11 @@
+@startuml campsite
+!import doc/final-uml-wiki/style.puml
+
+!include_once doc/final-uml-wiki/classes/campsite/BookingCalendar.puml
+!include_once doc/final-uml-wiki/classes/campsite/CampsiteListFromFilters.puml
+!include_once doc/final-uml-wiki/classes/campsite/CampsiteSearch.puml
+!include_once doc/final-uml-wiki/classes/campsite/CampsitesSummary.puml
+!include_once doc/final-uml-wiki/classes/campsite/EntrantCampsiteView.puml
+!include_once doc/final-uml-wiki/classes/campsite/OwnerOverview.puml
+
+@enduml

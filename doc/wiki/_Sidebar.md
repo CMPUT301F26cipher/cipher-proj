@@ -1,6 +1,16 @@
-* [[home]]
+[[home]]
 
-Meeting Minutes
+
+<details>
+<summary>Scums Meetings</summary>
+<!-- meetings:start (if tue) -->
+
+<!-- meetings:end -->
+
+</details>
+
+<details>
+<summary>Meeting Minutes</summary>
 
 <!-- meetings:start -->
 * [tue, Oct 27 - meeting mins](https://github.com/CMPUT301F26cipher/cipher-proj/blob/uml/doc/meeting-notes/tue%2C%20Oct%2027%20-%20meeting%20mins.md)
@@ -12,10 +22,25 @@ Meeting Minutes
 * [meeting_notes_Oct_20_2026](https://github.com/CMPUT301F26cipher/cipher-proj/blob/uml/doc/meeting-notes/meeting_notes_Oct_20_2026.md)
 <!-- meetings:end -->
 
-Project Part 3
+</details>
+
+<details>
+<summary>Project Part 4</summary>
+
+
+</details>
+
+<details>
+<summary>Project Part 3</summary>
+
 * [[UML]]
 
+</details>
 
-Project Part 2
+<details>
+<summary>Project Part 2</summary>
+
 * [[CRC]]
 * [[Figma]]
+
+</details>
