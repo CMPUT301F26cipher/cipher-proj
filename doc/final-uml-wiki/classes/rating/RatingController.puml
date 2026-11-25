@@ -1,0 +1,8 @@
+@startuml
+!import doc/final-uml-wiki/style.puml
+
+class RatingController {
+    +existingRating(reservationId: String, userId: String): Rating
+    +submit(reservation: Reservation, userId: String, stars: Int, review: String, result: (Result<Unit>) -> Unit)
+}
+@enduml
