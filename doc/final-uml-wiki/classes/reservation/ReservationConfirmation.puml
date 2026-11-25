@@ -1,0 +1,12 @@
+@startuml
+!import doc/final-uml-wiki/style.puml
+
+object ReservationConfirmation {
+    +find(reservations: List<Reservation>, userId: String, lotteryId: String): Reservation
+    +nights(reservation: Reservation): Long
+}
+
+class ReservationConfirmationView {
+    +ReservationConfirmedView(lotteryId: String, entrantId: String, onViewReservations: () -> Unit)
+}
+@enduml

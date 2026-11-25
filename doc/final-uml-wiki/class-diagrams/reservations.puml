@@ -1,0 +1,10 @@
+@startuml reservations
+!import doc/final-uml-wiki/style.puml
+
+!include_once doc/final-uml-wiki/classes/reservation/ReservationConfirmation.puml
+!include_once doc/final-uml-wiki/classes/reservation/ReservationController.puml
+!include_once doc/final-uml-wiki/classes/reservation/ReservationCsv.puml
+!include_once doc/final-uml-wiki/classes/reservation/ReservationList.puml
+!include_once doc/final-uml-wiki/classes/reservation/ReservationView.puml
+
+@enduml
