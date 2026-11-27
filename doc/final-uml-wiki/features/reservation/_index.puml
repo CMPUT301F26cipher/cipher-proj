@@ -1,0 +1,5 @@
+!include_once ReservationConfirmation.puml
+!include_once ReservationController.puml
+!include_once ReservationCsv.puml
+!include_once ReservationList.puml
+!include_once ReservationView.puml

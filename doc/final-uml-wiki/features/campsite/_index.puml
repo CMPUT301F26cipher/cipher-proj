@@ -1,0 +1,6 @@
+!include_once BookingCalendar.puml
+!include_once CampsiteListFromFilters.puml
+!include_once CampsiteSearch.puml
+!include_once CampsiteSummary.puml
+!include_once EntrantCampsiteView.puml
+!include_once OwnerOverview.puml

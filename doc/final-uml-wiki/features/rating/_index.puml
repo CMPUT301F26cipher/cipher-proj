@@ -1,0 +1,4 @@
+!include_once RateCampsiteView.puml
+!include_once RatingController.puml
+!include_once RatingRoutes.puml
+!include_once RatingRules.puml

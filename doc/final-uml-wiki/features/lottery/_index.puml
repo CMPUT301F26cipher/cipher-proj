@@ -1,0 +1,6 @@
+!include_once LotteryBookingController.puml
+!include_once LotteryConstants.puml
+!include_once LotteryController.puml
+!include_once LotteryDrawController.puml
+!include_once WaitlistController.puml
+!include_once WaitlistView.puml

@@ -1,0 +1,10 @@
+!include_once CampsiteAvailabilityRepository.puml
+!include_once CampsiteRepository.puml
+!include_once ConversationRepository.puml
+!include_once LotteryEntryRepository.puml
+!include_once LotteryRepository.puml
+!include_once MessageRepository.puml
+!include_once NotificationRepository.puml
+!include_once ProfileRepository.puml
+!include_once RatingRepository.puml
+!include_once ReservationRepository.puml
