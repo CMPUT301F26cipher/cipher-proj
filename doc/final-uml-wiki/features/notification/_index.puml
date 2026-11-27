@@ -1,0 +1,2 @@
+!include_once NotificationController.puml
+!include_once NotificationView.puml

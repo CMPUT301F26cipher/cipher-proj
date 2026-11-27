@@ -1,0 +1,57 @@
+@startuml campsite
+' A calendar view of availability set by a campsite owner for their campsite.
+' Used by entrants to reserve on a first-come first-served basis.
+
+!include ../style.puml
+
+' Campsite
+!include_once ../features/campsite/_index.puml
+
+' from database
+!include_once ../database/models/Campsite.puml
+!include_once ../database/models/CampsiteAvailability.puml
+
+!include_once ../database/enums/CampsiteStatus.puml
+!include_once ../database/enums/CampsiteAvailabilityStatus.puml
+
+!include_once ../database/repositories/CampsiteRepository.puml
+
+
+' === CampsiteDetailView ===
+CampsiteDetailView -- CampsiteReviewsSectionView
+CampsiteLotterySection -- WaitlistController
+CampsiteLotterySection -- LotteryController
+
+' === CampsiteForm ===
+CampsiteFormFields -- CampsiteFormState
+BookingPeriodFields -- CampsiteFormState
+
+' === CampsiteNavigation ===
+ownerCampsiteScreens -- CampsiteRoutes
+ownerCampsiteScreens -- RegisterCampsiteView
+ownerCampsiteScreens -- OwnerCampsiteView
+ownerCampsiteScreens -- EditCampsiteView
+
+' === EditCampsiteView ===
+EditCampsiteView -- CampsiteFormState
+EditCampsiteView -- CampsiteFormFields
+
+' === OwnerCampsiteView ===
+OwnerCampsiteView -- CampsiteDetailView
+OwnerCampsiteView -- CampsiteRepository
+OwnerCampsiteView -- Campsite
+
+' === RegisterCampsiteView ===
+RegisterCampsiteView -- CampsiteFormState
+RegisterCampsiteView -- CampsiteFormFields
+RegisterCampsiteView -- BookingPeriodFields
+RegisterCampsiteView -- CampsiteRepository
+RegisterCampsiteView -- CampsiteStatus
+RegisterCampsiteView -- CampsiteAvailabilityStatus
+
+
+' ------------------------------------------------------------------------------------------------
+' one shared repo that can be used if created by class on left hand side
+' EditCampsiteView
+
+@enduml

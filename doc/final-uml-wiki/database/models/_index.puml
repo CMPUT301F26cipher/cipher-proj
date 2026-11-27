@@ -1,0 +1,11 @@
+!include_once Campsite.puml
+!include_once CampsiteAvailability.puml
+!include_once Conversation.puml
+!include_once Device.puml
+!include_once Lottery.puml
+!include_once LotteryEntry.puml
+!include_once Message.puml
+!include_once Notification.puml
+!include_once Profile.puml
+!include_once Rating.puml
+!include_once Reservation.puml
