@@ -23,6 +23,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Temporary activity for testing the messaging UI -->
+        <activity
+            android:name=".ui.conversation.preview.MessagingPreviewActivity"
+            android:exported="true" />  <!-- no apps can run just Android Studio if false -->
+
     </application>
 
 </manifest>

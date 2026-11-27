@@ -83,7 +83,7 @@ class MessageRepository {
         db.runTransaction { transaction ->
             val messageSnapshot = transaction.get(conversationRef)
 
-            // Check if the parent lottery exists
+            // Check if the parent Conversation exists
             if (!messageSnapshot.exists()) {
                 throw NotFoundException("Conversation does not exist.")
             }
@@ -162,12 +162,12 @@ class MessageRepository {
 
             val messageSnapshot = transaction.get(messageRef)
 
-            // Check whether lottery entry exists
+            // Check whether Message exists
             if (!messageSnapshot.exists()) {
                 throw NotFoundException("Message entry does not exist.")
             }
 
-            // Check whether entry belongs to the specified lottery
+            // Check whether entry belongs to the specified Conversation
             val storedConversationId = messageSnapshot.getString("conversationId")
 
             if (storedConversationId != conversationId) {
@@ -176,7 +176,7 @@ class MessageRepository {
                 )
             }
 
-            // Update lottery entry
+            // Update message
             transaction.set(messageRef, message)
 
             // We only care whether the operation succeeded
