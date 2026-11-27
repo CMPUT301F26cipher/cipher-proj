@@ -1,0 +1,7 @@
+@startuml
+!include ../../style.puml
+
+object LotteryConstants {
+    +UNLIMITED_PARTICIPANTS: Int
+}
+@enduml

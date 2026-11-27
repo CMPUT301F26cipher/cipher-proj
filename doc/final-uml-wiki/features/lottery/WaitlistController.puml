@@ -1,0 +1,25 @@
+@startuml
+!include ../../style.puml
+
+class WaitlistController {
+    +isEntriesLoaded(): Boolean
+    +getJoinedEntrants(lotteryId: String): List<LotteryEntry>
+    +statusLabel(entry: LotteryEntry): String
+    +joinedOf(entries: List<LotteryEntry>): List<LotteryEntry>
+    +isRegistrationOpen(lottery: Lottery, today: LocalDate): Boolean
+    +openLotteriesFor(lotteries: List<Lottery>, campsiteId: String, today: LocalDate): List<Lottery>
+    +getOpenLotteries(campsiteId: String, today: LocalDate): List<Lottery>
+    +getEntry(lotteryId: String, userId: String): LotteryEntry
+    +joinWaitlist(lotteryId: String, userId: String, result: (JoinResult) -> Unit)
+    +leaveWaitlist(entry: LotteryEntry, result: (Boolean) -> Unit)
+}
+
+enum JoinResult {
+    JOINED
+    ALREADY_JOINED
+    FULL
+    CLOSED
+    NOT_READY
+    FAILED
+}
+@enduml

@@ -1,0 +1,30 @@
+@startuml search
+!include ../style.puml
+
+!include_once ../features/search/SearchFilter.puml
+!include_once ../features/search/SearchFiltersView.puml
+!include_once ../features/exceptions/SearchException.puml
+
+!include_once ../database/models/Campsite.puml
+!include_once ../database/models/CampsiteAvailability.puml
+
+!include_once ../database/enums/CampsiteStatus.puml
+!include_once ../database/enums/CampsiteAvailabilityStatus.puml
+
+!include_once ../database/repositories/CampsiteRepository.puml
+
+SearchFiltersView -- SearchFilter
+SearchFilter -- SearchException
+
+Campsite -- CampsiteStatus
+Campsite -- CampsiteAvailability
+CampsiteAvailability -- CampsiteAvailabilityStatus
+
+CampsiteRepository -- Campsite
+
+SearchFilter -- Campsite
+SearchFilter -- CampsiteAvailability
+SearchFilter -- CampsiteRepository
+SearchFiltersView -- Campsite
+
+@enduml

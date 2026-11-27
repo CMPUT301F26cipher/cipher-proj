@@ -1,0 +1,9 @@
+@startuml
+!include ../../style.puml
+
+enum MessageStatus {
+    SENT
+    READ
+    REMOVED
+}
+@enduml

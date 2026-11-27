@@ -1,0 +1,19 @@
+@startuml
+!include ../../style.puml
+
+class CampsiteRepository {
+    +campsites: State<List<Campsite>>
+    +isCampsitesLoaded: State<Boolean>
+    +addCampsite(ownerId: String, campsiteName: String, mapLocation: List<String>, description: String, \namenities: MutableList<String>, maxGuests: Int, pricePerNight: Double, imagePath: String, \ntags: MutableList<String>, qrCodeImagePath: String, status: String, rules: MutableList<String>, \npolicies: MutableList<String>, result: (Result<String>) -> Unit)
+    +getCampsiteById(campsiteId: String, result: (Result<Campsite>) -> Unit)
+    +updateCampsite(campsite: Campsite, result: (Result<Unit>) -> Unit)
+    +getCampsiteFromListById(campsiteId: String): Campsite
+    +getCampsiteFromListByName(name: String): List<Campsite>
+    +getCampsiteFromListByOwnerId(ownerId: String): List<Campsite>
+    +getCampsiteFromListByStatus(status: String): List<Campsite>
+    +getCampsiteFromListLessThanPrice(pricePerNight: Double): List<Campsite>
+    +getCampsiteFromListMoreThanPrice(pricePerNight: Double): List<Campsite>
+    +getCampsiteFromListBetweenPrice(startPrice: Double, endPrice: Double): List<Campsite>
+    +getCampsitesFromListByAmenities(amenities: List<String>): List<Campsite>
+}
+@enduml

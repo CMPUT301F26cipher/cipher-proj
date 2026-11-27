@@ -1,0 +1,18 @@
+@startuml
+!include ../../style.puml
+
+class LotteryRepository {
+    +lotteries: State<List<Lottery>>
+    +isLotteriesLoaded: State<Boolean>
+    +createLottery(ownerId: String, campsiteIds: MutableList<String>, numWinners: Int, \nstartDate: String, endDate: String, maxParticipants: Int, status: String, result: (Result<String>) -> Unit)
+    +updateLottery(lottery: Lottery, result: (Result<Unit>) -> Unit)
+    +getLotteryById(lotteryId: String, result: (Result<Lottery>) -> Unit)
+    +getLotteryFromListById(lotteryId: String): Lottery
+    +getLotteriesFromListByOwnerId(ownerId: String): List<Lottery>
+    +getLotteriesFromListByAnyOwnerId(ownerId: String): List<Lottery>
+    +getLotteriesFromListByStatus(status: String): List<Lottery>
+    +getLotteriesFromListActiveOnDate(date: LocalDate): List<Lottery>
+    +getLotteriesFromListUpcoming(): List<Lottery>
+    +getLotteriesFromListExpired(): List<Lottery>
+}
+@enduml

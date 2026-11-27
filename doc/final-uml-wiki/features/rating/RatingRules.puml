@@ -1,0 +1,13 @@
+@startuml
+!include ../../style.puml
+
+object RatingRules {
+    +validateStars(stars: Int): String
+    +validateReview(review: String): String
+    +canRate(reservation: Reservation, userId: String, today: LocalDate): Boolean
+    +existingRating(ratings: List<Rating>, reservationId: String, userId: String): Rating
+    +isLocked(rating: Rating): Boolean
+    +visibleReviews(ratings: List<Rating>): List<Rating>
+    +stars(value: Double): String
+}
+@enduml

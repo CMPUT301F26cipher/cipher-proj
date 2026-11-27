@@ -1,0 +1,9 @@
+@startuml
+!include ../../style.puml
+
+class ReservationCsv {
+    +build(reservations: List<Reservation>, campsiteName: (String) -> String): String
+    +escape(value: String): String
+    +DownloadCsvButton(fileName: String, buildCsv: () -> String)
+}
+@enduml

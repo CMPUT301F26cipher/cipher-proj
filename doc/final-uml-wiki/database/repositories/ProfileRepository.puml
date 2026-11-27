@@ -1,0 +1,17 @@
+@startuml
+!include ../../style.puml
+
+class ProfileRepository {
+    +profiles: State<List<Profile>>
+    +isProfilesLoaded: State<Boolean>
+    +addProfile(name: String, email: String, role: List<String>, imageProfilePath: String, \ndeviceId: String, status: String, phoneNumber: String, notificationsEnabled: Boolean, result: (Result<String>) -> Unit)
+    +updateProfile(profile: Profile, result: (Result<Unit>) -> Unit)
+    +getProfileById(profileId: String, result: (Result<Profile>) -> Unit)
+    +getProfileFromListById(profileId: String): Profile
+    +getProfileFromListByDeviceId(deviceId: String): Profile
+    +getProfilesFromListByName(profileName: String): List<Profile>
+    +getProfileFromListByEmail(profileEmail: String): Profile
+    +getProfilesFromListByRole(profileRole: String): List<Profile>
+    +getProfilesFromListByStatus(profileStatus: String): List<Profile>
+}
+@enduml

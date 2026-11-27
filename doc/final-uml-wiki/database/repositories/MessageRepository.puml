@@ -1,0 +1,16 @@
+@startuml
+!include ../../style.puml
+
+class MessageRepository {
+    +messages: State<List<Message>>
+    +isMessagesLoaded: State<Boolean>
+    +addMessage(conversationId: String, fromUserId: String, message: String, \nstatus: String, result: (Result<String>) -> Unit)
+    +updateMessage(message: Message, result: (Result<Unit>) -> Unit)
+    +getMessageById(conversationId: String, messageId: String, \nresult: (Result<Message>) -> Unit)
+    +getMessageFromListById(messageId: String, conversationId: String): Message
+    +getMessagesFromListByConversationId(conversationId: String): List<Message>
+    +getMessagesFromListByConversationIdSorted(conversationId: String): List<Message>
+    +getMessagesFromListBySenderId(conversationId: String, fromUserId: String): List<Message>
+    +getMessagesFromListByStatus(conversationId: String, status: String): List<Message>
+}
+@enduml

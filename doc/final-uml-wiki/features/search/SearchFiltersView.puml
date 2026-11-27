@@ -1,0 +1,7 @@
+@startuml
+!include ../../style.puml
+
+class SearchFiltersView {
+    +SearchFiltersView(searchFilter: SearchFilter, onSearch: (SearchFilter) -> Unit)
+}
+@enduml

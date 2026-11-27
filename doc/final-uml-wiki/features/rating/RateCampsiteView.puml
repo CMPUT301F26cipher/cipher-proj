@@ -1,0 +1,8 @@
+@startuml
+!include ../../style.puml
+
+class RateCampsiteView {
+    +RateCampsiteView(reservationId: String, userId: String, onDone: () -> Unit)
+    +StarPicker(selected: Int, onSelect: (Int) -> Unit)
+}
+@enduml

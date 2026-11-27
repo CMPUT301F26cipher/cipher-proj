@@ -1,0 +1,14 @@
+@startuml
+!include ../../style.puml
+
+class Rating {
+    +ratingId: String
+    +userId: String
+    +campsiteId: String
+    +reservationId: String
+    +review: String
+    +rating: Double
+    +status: String
+    +createdAt: Timestamp
+}
+@enduml

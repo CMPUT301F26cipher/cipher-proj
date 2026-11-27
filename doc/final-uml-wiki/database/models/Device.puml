@@ -1,0 +1,7 @@
+@startuml
+!include ../../style.puml
+
+class Device {
+    +getDeviceId(result: (String) -> Unit)
+}
+@enduml
