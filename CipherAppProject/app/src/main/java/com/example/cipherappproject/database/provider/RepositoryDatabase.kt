@@ -3,6 +3,7 @@ package com.example.cipherappproject.database.provider
 import com.example.cipherappproject.database.repositories.CampsiteAvailabilityRepository
 import com.example.cipherappproject.database.repositories.CampsiteRepository
 import com.example.cipherappproject.database.repositories.ConversationRepository
+import com.example.cipherappproject.database.repositories.ImageRepository
 import com.example.cipherappproject.database.repositories.LotteryEntryRepository
 import com.example.cipherappproject.database.repositories.LotteryRepository
 import com.example.cipherappproject.database.repositories.MessageRepository
@@ -46,6 +47,8 @@ object RepositoryDatabase {
     val messageRepository = MessageRepository()
 
     val conversationRepository = ConversationRepository()
+
+    val imageRepository = ImageRepository()
 
     val profileDeletion = ProfileDeletion(
         profileRepository,

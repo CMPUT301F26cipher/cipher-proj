@@ -61,6 +61,10 @@ class PermissionException(message: String) : Exception(message)
  */
 class OperationException(message: String) : Exception(message)
 
+/**
+* Upload the image failed
+ */
+class ImageUploadException(message: String) : Exception(message)
 
 // maybe but a bit complicated but can be useful
 class DatabaseException(

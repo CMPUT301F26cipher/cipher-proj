@@ -2,6 +2,7 @@ package com.example.cipherappproject.ui.conversation.preview
 
 import com.example.cipherappproject.database.models.Conversation
 import com.example.cipherappproject.database.models.Message
+import com.example.cipherappproject.database.models.Profile
 
 
 object MessagingPreviewData {
@@ -41,6 +42,42 @@ object MessagingPreviewData {
             userId = currentUserId,
             lastMessage = "Thank you for letting me know about the cancellation.",
             status = "CLOSED"
+        )
+    )
+
+
+
+    val entrant01 = Profile(
+        profileId = currentUserId,
+        name = "Name entrant01",
+    )
+
+    val owner01 = Profile(
+        profileId = "owner01",
+        name = "Name owner01",
+    )
+
+    val conversation01: List<Message> = listOf(
+        Message(
+            messageId = "mess01",
+            conversationId = "conv01",
+            fromUserId = currentUserId,
+            message = "Hello",
+            status = "SENT"
+        ),
+        Message(
+            messageId = "mess02",
+            conversationId = "conv01",
+            fromUserId = "owner01",
+            message = "Hello, How are you?",
+            status = "SENT"
+        ),
+        Message(
+            messageId = "mess03",
+            conversationId = "conv01",
+            fromUserId = "owner01",
+            message = "How can I help you today?",
+            status = "SENT"
         )
     )
 
